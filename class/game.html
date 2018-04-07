@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Javascript tic-tac-toe game</title>
+</head>
+<body>
+<p>
+<b>TIC-TAC-TOE</b></p>
+<FORM>
+<INPUT TYPE="BUTTON" NAME="xy0_0" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy1_0" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy2_0" VALUE="    " ONCLICK="handleClick(this);">
+<BR>
+<INPUT TYPE="BUTTON" NAME="xy0_1" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy1_1" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy2_1" VALUE="    " ONCLICK="handleClick(this);">
+<BR>
+<INPUT TYPE="BUTTON" NAME="xy0_2" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy1_2" VALUE="    " ONCLICK="handleClick(this);">
+<INPUT TYPE="BUTTON" NAME="xy2_2" VALUE="    " ONCLICK="handleClick(this);">
+<BR>
+</FORM>
+<SMALL>Written by Remy, age 9 
+<BR>(with syntax help and some programming ideas from his Dad) </SMALL>
+<p>
+<a href="view-source:https://googledrive.com/host/0B0ap0WDOII5mbjdwajNBMlRoZUU/class/game.html">view source</a>
+</p>
+<p><a href="samples.html">back</a></p>
+<SCRIPT>
+
+
+function handleClick(square) {
+var board = square.form;
+	if (square.value=='    ') {
+		square.value='X ';
+		window.status=square.id;
+		moveAfter(board, square);
+		if (checkForWin(board,'O ')) {
+			alert('YOU LOOSE! I WIN! you suck...');
+			gameOver(board);
+			}
+		if (checkForWin(board,'X ')) {
+			alert('I LOOSE! YOU WIN! I suck...');
+			gameOver(board);
+			}
+		if (checkForScramble(board)) {
+			alert('CAT GAME!');
+			gameOver(board);
+			}
+		}
+	else {
+		gameOver(board);
+		}
+	};
+
+function moveAfter(board, square) {
+var blocksquare = checkForBlock(board,'X ');
+	if (blocksquare) {
+		window.status += ' blocking '+blocksquare;
+		if (blocksquare.value=='    ') {
+			blocksquare.value='O ';
+			return;
+			}
+		}
+	if (square.name=='2_1') {
+		if (board.xy2_2.value=='    ') {
+			board.xy$1_$2.value='O ';
+			return;
+			}
+		}
+	if (board.xy1_1.value=='O ') {
+		if (board.xy2_0.value=='    ') {
+			board.xy2_0.value='O ';
+			return;
+			}
+		if (board.xy0_0.value=='    ') {
+			board.xy0_0.value='O ';
+			return;
+			}
+		if (board.xy1_0.value=='    ') {
+			board.xy1_0.value='O ';
+			return;
+			}
+		} 
+	else {
+		if (board.xy1_1.value=='    ') {
+			board.xy1_1.value='O ';
+			return;
+			}
+		if (board.xy0_0.value=='    ') {
+			board.xy0_0.value='O ';
+			return;
+			}
+		}
+	}
+
+function checkForBlock(board, player) {
+// 0_0 1_0 2_0
+// 0_1 1_1 2_1
+// 0_2 1_2 2_2
+
+	if (
+	    (board.xy2_2.value==player
+	  && board.xy1_1.value==player)
+	 || (board.xy1_0.value==player
+	  && board.xy2_0.value==player)
+	 || (board.xy0_1.value==player
+	  && board.xy0_2.value==player)
+	   ) { 
+		if (board.xy0_0.value=='    ') {
+			return board.xy0_0; // -,
+			}
+		}
+	if (
+	    (board.xy0_0.value==player
+	  && board.xy2_0.value==player)
+	 || (board.xy1_1.value==player
+	  && board.xy1_2.value==player)
+	   ) { 
+		if (board.xy1_0.value=='    ') {
+			return board.xy1_0; //' ,
+			}
+		}
+	if (
+	    (board.xy0_0.value==player
+	  && board.xy1_0.value==player)
+	 || (board.xy1_1.value==player
+	  && board.xy0_2.value==player)
+	 || (board.xy2_1.value==player
+	  && board.xy2_2.value==player)
+	   ) { 
+		if (board.xy2_0.value=='    ') {
+			return board.xy2_0; //''
+			}
+		}
+	if (
+	    (board.xy1_1.value==player
+	  && board.xy2_1.value==player)
+	 || (board.xy0_0.value==player
+	  && board.xy0_2.value==player)
+	   ) { 
+		if (board.xy0_1.value=='    ') {
+			return board.xy0_1; //' ,
+			}
+		}
+	if (
+	    (board.xy0_0.value==player
+	  && board.xy2_2.value==player)
+	 || (board.xy0_2.value==player
+	  && board.xy2_0.value==player)
+	 || (board.xy1_0.value==player
+	  && board.xy1_2.value==player)
+	 || (board.xy0_1.value==player
+	  && board.xy2_1.value==player)
+	   ) { 
+		if (board.xy1_1.value=='    ') {
+			return board.xy1_1; //' ,
+			}
+		}
+	if (
+	    (board.xy2_0.value==player
+	  && board.xy2_2.value==player)
+	 || (board.xy0_1.value==player
+	  && board.xy1_1.value==player)
+	   ) { 
+		if (board.xy2_1.value=='    ') {
+			return board.xy2_1; //' ,
+			}
+		}
+	if (
+	    (board.xy0_0.value==player
+	  && board.xy0_1.value==player)
+	 || (board.xy1_2.value==player
+	  && board.xy2_2.value==player)
+	 || (board.xy1_1.value==player
+	  && board.xy2_0.value==player)
+	   ) { 
+		if (board.xy0_2.value=='    ') {
+			return board.xy0_2; // -,
+			}
+		}
+	if (
+	    (board.xy1_0.value==player
+	  && board.xy1_1.value==player)
+	 || (board.xy0_2.value==player
+	  && board.xy2_2.value==player)
+	   ) { 
+		if (board.xy1_2.value=='    ') {
+			return board.xy1_2; //' ,
+			}
+		}
+	if (
+	    (board.xy0_2.value==player
+	  && board.xy1_2.value==player)
+	 || (board.xy0_0.value==player
+	  && board.xy1_1.value==player)
+	 || (board.xy2_0.value==player
+	  && board.xy2_1.value==player)
+	   ) { 
+		if (board.xy2_2.value=='    ') {
+			return board.xy2_2; //'-
+			}
+		}
+	return false;
+	}
+
+function checkForWin(board,player) {
+// 0_0 1_0 2_0
+// 0_1 1_1 2_1
+// 0_2 1_2 2_2
+
+	if (board.xy0_0.value==player
+	 && board.xy1_0.value==player
+	 && board.xy2_0.value==player) { 
+		return true; //"'
+		}
+	if (board.xy0_0.value==player
+	 && board.xy1_1.value==player
+	 && board.xy2_2.value==player) { 
+		return true; // \
+		}
+	if (board.xy2_0.value==player
+	 && board.xy1_1.value==player
+	 && board.xy0_2.value==player) { 
+		return true; // /
+		}
+	if (board.xy0_2.value==player
+	 && board.xy1_2.value==player
+	 && board.xy2_2.value==player) { 
+		return true; // _
+		}
+	if (board.xy1_0.value==player
+	 && board.xy1_1.value==player
+	 && board.xy1_2.value==player) { 
+		return true; //  |
+		}
+	if (board.xy0_0.value==player
+	 && board.xy0_1.value==player
+	 && board.xy0_2.value==player) { 
+		return true; // |
+		}
+	if (board.xy2_0.value==player
+	 && board.xy2_1.value==player
+	 && board.xy2_2.value==player) { 
+		return true; //   |
+		}
+	if (board.xy0_1.value==player
+	 && board.xy1_1.value==player
+	 && board.xy2_1.value==player) { 
+		return true; // -
+		}
+
+	}
+
+function checkForScramble(board) {
+	for (x=0;x<3;x++) {
+		for (y=0;y<3;y++) {
+			if (eval('board.xy'+x+'_'+y).value=='    ') return false;
+			}
+		}
+	return true;
+	}
+
+function gameOver(board) {
+	alert('GAME OVER!');
+	for (x=0;x<3;x++) {
+		for (y=0;y<3;y++) {
+			eval('board.xy'+x+'_'+y).value='    ';
+			}
+		}
+	}
+
+
+</SCRIPT>
+<P><a href="index.html">back</a>
+
+</body>
+</html>
