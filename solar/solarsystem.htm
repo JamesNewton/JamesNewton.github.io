@@ -1,0 +1,73 @@
+<HTML>
+  <HEAD>
+    <TITLE>The solar system</TITLE>
+    </HEAD>
+  <BODY bgcolor="#000000">
+
+<SCRIPT TYPE='text/javascript'><!--					
+function realSize() {
+ with (document.images) {
+  sun.height=sun.width=1000;
+  sun.style.position='absolute';
+  sun.style.left=-0.5*sun.width;
+  sun.style.top=200;
+  mercury.height=mercury.width=sun.height*0.0035;
+  venus.height=venus.width=sun.height*0.0087;
+  earth.height=earth.width=sun.height*0.0092;
+  mars.height=mars.width=sun.height*0.0048;
+  jupiter.height=jupiter.width=sun.height*0.1;
+  saturn.height=saturn.width=sun.height*0.0836;
+  uranus.height=uranus.width=sun.height*0.0337;
+  neptune.height=neptune.width=sun.height*0.0326;
+  pluto.height=pluto.width=sun.height*0.001;
+// relative sizes from
+// http://www.exploratorium.edu/ronh/solar_system/all_bodies.html
+  }
+ return false;
+ }
+
+function equalSize() {
+ with (document.images) {
+  sun.height=sun.width=128;
+  sun.style.position='relative';
+  sun.style.left=0;
+  sun.style.top=0;
+  mercury.height=mercury.width=sun.height;
+  venus.height=venus.width=sun.height;
+  earth.height=earth.width=sun.height;
+  mars.height=mars.width=sun.height;
+  jupiter.height=jupiter.width=sun.height;
+  saturn.height=saturn.width=sun.height;
+  uranus.height=uranus.width=sun.height;
+  neptune.height=neptune.width=sun.height;
+  pluto.height=pluto.width=sun.height;
+  }
+ return false;
+ }
+
+//--></SCRIPT>
+
+
+<FORM onSubmit="return false;">
+<INPUT TYPE="SUBMIT" VALUE="Equal sizes" onClick="equalSize();">
+<INPUT TYPE="SUBMIT" VALUE="Real Sizes" onClick="realSize();">
+<FONT COLOR="WHITE">
+Mouse over the planet to see its name and its size compared to the earth size.
+<br>
+ did you now that it takes 11 earths to be as big as jupiter.          
+</FONT>
+<BR>
+<img src="sun.gif" name="sun" title="sun is 10923% the size of earth">
+<img src="mercury.gif" name="mercury" title="mercury is 39% the size of earth">
+<img src="venus.gif" name="venus" title="venus is 95% the size of earth">
+<img src="earth.gif" name="earth" title="earth is 100% the size of it">
+<img src="mars.gif" name="mars" title="mars is 53% the size of earth">
+<img src="jupiter.gif" name="jupiter" title="jupiter is 1095% the size of earth">
+<img src="saturn.gif" name="saturn" title="saturn is 913% the size of earth">
+<img src="uranus.gif" name="uranus" title="uranus is 368% the size of earth">
+<img src="neptune.gif" name="neptune" title="neptune is 356% the size of earth">
+<img src="pluto.gif" name="pluto" title="pluto is 17% the size of earth">
+
+  </FORM>
+    </BODY>
+  </HTML>
