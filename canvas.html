@@ -11,6 +11,18 @@ ctx.fillStyle = "blue";
 ctx.fillRect(0,0,50,50);
 // Start at (0,0) and clear a 25px x 25px rectangle.
 ctx.clearRect(0,0,25,25);
+  
+ctx.font = '30pt Impact';
+ctx.textAlign = 'center';
+ctx.strokeStyle = 'black';
+ctx.lineWidth = 3;
+ctx.fillStyle = 'white';
+var text = "Hello world";
+  
+ctx.fillText(text, canvas.width / 2, 40);
+ctx.strokeText(text, canvas.width / 2, 40);
+
+}
 </script>
 </body>
 </html>
