@@ -1,0 +1,16 @@
+<html>
+<head><title>Canvas fun</title></head>
+<body>
+
+<canvas id="c">
+<script>
+var c = document.querySelector("#c");
+var ctx = c.getContext("2d");
+ctx.fillStyle = "blue";
+// Start at (0,0) and draw a 50px x 50px blue rectangle.
+ctx.fillRect(0,0,50,50);
+// Start at (0,0) and clear a 25px x 25px rectangle.
+ctx.clearRect(0,0,25,25);
+</script>
+</body>
+</html>
