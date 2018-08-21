@@ -1,31 +1,149 @@
+
 <html>
 <head><title>Dexter Gateware Command Register</title></head>
 <body>
 <a href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">Dexter Gateware Registers</a>
-Bits:<PRE>
-<BR> 1:   1 CapCalibrateBase
-<BR> 2:   2 CapCalibrateEnd
-<BR> 3:   4 CapCalibratePivot
-<BR> 4:   8 GoMove
-<BR> 5:  16 SelectMoveChange
-<BR> 6:  32 EnableLoop
-<BR> 7:  64 AClrLoop 
-<BR> 8: 256 CAL_RUN 
-<BR> 9: 512 ResetMotorPosition 
-<BR>10:1024 ResetForce 
-<BR>13:2048 DiffAxisEnable
-<BR>14:4096 DiffAxisEnable
-</PRE>
-<FORM onSubmit="return false;">
-  <INPUT TYPE="checkbox" NAME="bit1" onClick="this.checked?addin(this):subout(this)";" value=1>Click me</INPUT>
-  Value: <INPUT TYPE="text" NAME="no" VALUE="0">
-      </FORM>
+<FORM onSubmit="return false;">Bits:
+  <TABLE>
+    <TR>
+      <TD> 1:</TD><TD>   1</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit1" value=1
+              onClick="this.checked?addin(this):subout(this);">
+              CapCalibrateBase
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 2:</TD><TD>   2</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit2" value=2
+              onClick="this.checked?addin(this):subout(this);">                    CapCalibrateEnd
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 3:</TD><TD>   4</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit3" value=4
+              onClick="this.checked?addin(this):subout(this);">
+              CapCalibratePivot
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 4:</TD><TD>   8</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit4" value=8
+              onClick="this.checked?addin(this):subout(this);">
+              GoMove
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 5:</TD><TD>  16</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit5" value=16
+              onClick="this.checked?addin(this):subout(this);">
+              SelectMoveChange
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 6:</TD><TD>  32</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit6" value=32
+              onClick="this.checked?addin(this):subout(this);">
+              EnableLoop
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 7:</TD><TD>  64</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit7" value=64
+              onClick="this.checked?addin(this):subout(this);">
+              AClrLoop
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 8:</TD><TD> 128</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit8" value=128
+              onClick="this.checked?addin(this):subout(this);">
+              CAL_RUN
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD> 9:</TD><TD> 256</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit9" value=256
+              onClick="this.checked?addin(this):subout(this);"> 
+              ResetMotorPosition
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD>10:</TD><TD> 512</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit10" value=512
+              onClick="this.checked?addin(this):subout(this);"> 
+              ResetForce
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD>11:</TD><TD>1024</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit11" value=1024
+              onClick="this.checked?addin(this):subout(this);"> 
+              <i>unused</i>
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD>12:</TD><TD>2048</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit12" value=2048
+              onClick="this.checked?addin(this):subout(this);"> 
+              <i>unused</i>
+              </INPUT>
+          </TD>
+      </TR>
+    <TR>
+      <TD>13:</TD><TD>4096</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit13" value=4096
+              onClick="this.checked?addin(this):subout(this);"> 
+              DiffAxisEnable
+              </INPUT>
+        </TD>
+      </TR>
+    <TR>
+      <TD>14:</TD><TD>8192</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit14" value=8192
+              onClick="this.checked?addin(this):subout(this);"> 
+              DiffAxisEnable
+              </INPUT>
+        </TD>
+      </TR>
+    </TABLE>
+
+  Value: 
+  <INPUT TYPE="text" NAME="no" VALUE="0" 
+    onchange="setbits(this.value)">
+  <BR><i>Enter values to see bits, or click bits to see value</i>
+  </FORM>
+
 <script>
-function toggle(bit) {
+function addin(bit) {
 	let n = parseInt(bit.form.no.value);
-  let b = Math.pow(2,parseInt(bit.value));
-  bit.form.no.value=n+b;
+  bit.form.no.value=n+parseInt(bit.value);
   }
+
+function subout(bit) {
+	let n = parseInt(bit.form.no.value);
+  bit.form.no.value=n-parseInt(bit.value);
+  }
+
+function setbits(n) {
+  for (var i = 14; i>0; i--){
+    let c = document.getElementsByName("bit"+i)[0]
+    console.log("c "+c.name+" i"+i+" "+(n&Math.pow(2,i)))
+    c.checked = (n&Math.pow(2,i))>0?true:false
+  }
+
+}
+
 </script>
 </body>
 </html>
