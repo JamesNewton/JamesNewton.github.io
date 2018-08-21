@@ -16,8 +16,16 @@ Bits:<PRE>
 <BR>13:2048 DiffAxisEnable
 <BR>14:4096 DiffAxisEnable
 </PRE>
+<FORM onSubmit="return false;">
+  <INPUT TYPE="checkbox" NAME="bit1" onClick="this.checked?addin(this):subout(this)";" value=1>Click me</INPUT>
+  Value: <INPUT TYPE="text" NAME="no" VALUE="0">
+      </FORM>
 <script>
-
+function toggle(bit) {
+	let n = parseInt(bit.form.no.value);
+  let b = Math.pow(2,parseInt(bit.value));
+  bit.form.no.value=n+b;
+  }
 </script>
 </body>
 </html>
