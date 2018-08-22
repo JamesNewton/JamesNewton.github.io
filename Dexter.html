@@ -45,7 +45,7 @@ body {
     <TR>
     <TR>
       <TD> 5:</TD><TD>   16</TD>
-      <TD><INPUT TYPE="checkbox" NAME="bit4" value=8
+      <TD><INPUT TYPE="checkbox" NAME="bit5" value=8
               onClick="this.checked?addin(this):subout(this);">
               GoMove
               </INPUT>
@@ -95,7 +95,7 @@ body {
       <TD>11:</TD><TD>1024</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit11" value=1024
               onClick="this.checked?addin(this):subout(this);"> 
-              CapCalAngle
+              <i>CapCalAngle</i>
               </INPUT>
           </TD>
       </TR>
@@ -103,7 +103,7 @@ body {
       <TD>12:</TD><TD>2048</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit12" value=2048
               onClick="this.checked?addin(this):subout(this);"> 
-              CapCalRot
+              <i>CapCalRot</i>
               </INPUT>
           </TD>
       </TR>
@@ -143,8 +143,9 @@ function subout(bit) {
 function setbits(n) {
   for (var i = 14; i>0; i--){
     let c = document.getElementsByName("bit"+i)[0]
-    console.log("c "+c.name+" i"+i+" "+(n&Math.pow(2,i)))
-    c.checked = (n&Math.pow(2,i))>0?true:false
+    let b = Math.pow(2,i-1)
+    console.log("c "+c.name+" "+(b)+" "+(n&b))
+    c.checked = (n&b)>0?true:false
   }
 }
 </script>
