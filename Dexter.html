@@ -1,4 +1,3 @@
-
 <html>
 <head>
   <title>Dexter Gateware Command Register</title>
@@ -39,15 +38,16 @@ body {
       <TD> 4:</TD><TD>   8</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit4" value=8
               onClick="this.checked?addin(this):subout(this);">
-              GoMove
+              MoveEnable
               </INPUT>
           </TD>
       </TR>
     <TR>
-      <TD> 5:</TD><TD>  16</TD>
-      <TD><INPUT TYPE="checkbox" NAME="bit5" value=16
+    <TR>
+      <TD> 5:</TD><TD>   16</TD>
+      <TD><INPUT TYPE="checkbox" NAME="bit4" value=8
               onClick="this.checked?addin(this):subout(this);">
-              SelectMoveChange
+              GoMove
               </INPUT>
           </TD>
       </TR>
@@ -95,7 +95,7 @@ body {
       <TD>11:</TD><TD>1024</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit11" value=1024
               onClick="this.checked?addin(this):subout(this);"> 
-              <i>unused</i>
+              <i>CapCalAngle</i>
               </INPUT>
           </TD>
       </TR>
@@ -103,7 +103,7 @@ body {
       <TD>12:</TD><TD>2048</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit12" value=2048
               onClick="this.checked?addin(this):subout(this);"> 
-              <i>unused</i>
+              <i>CapCalRot</i>
               </INPUT>
           </TD>
       </TR>
@@ -111,7 +111,7 @@ body {
       <TD>13:</TD><TD>4096</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit13" value=4096
               onClick="this.checked?addin(this):subout(this);"> 
-              DiffAxisEnable
+              AngleEnable
               </INPUT>
         </TD>
       </TR>
@@ -119,7 +119,7 @@ body {
       <TD>14:</TD><TD>8192</TD>
       <TD><INPUT TYPE="checkbox" NAME="bit14" value=8192
               onClick="this.checked?addin(this):subout(this);"> 
-              DiffAxisEnable
+              RotEnable
               </INPUT>
         </TD>
       </TR>
@@ -136,21 +136,17 @@ function addin(bit) {
 	let n = parseInt(bit.form.no.value);
   bit.form.no.value=n+parseInt(bit.value);
   }
-
 function subout(bit) {
 	let n = parseInt(bit.form.no.value);
   bit.form.no.value=n-parseInt(bit.value);
   }
-
 function setbits(n) {
   for (var i = 14; i>0; i--){
     let c = document.getElementsByName("bit"+i)[0]
     console.log("c "+c.name+" i"+i+" "+(n&Math.pow(2,i)))
     c.checked = (n&Math.pow(2,i))>0?true:false
   }
-
 }
-
 </script>
 </body>
 </html>
