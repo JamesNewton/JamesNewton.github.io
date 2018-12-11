@@ -1,10 +1,11 @@
 (function(ext) {
-	ext._ws = new WebSocket('ws://localhost:3000');
+	var dexter_ip = '192.168.0.138'
+	ext._ws = new WebSocket('ws://'+dexter_ip+':3000');
 	function onClose() {
 		console.log('closed');
 		try {
 			if (ext._ws) {
-				ext._ws = new WebSocket('ws://192.168.0.138:3000');
+				ext._ws = new WebSocket('ws://'+dexter_ip+':3000');
 				ext._ws.onclose = onClose;
 				console.log('reconnected');
 			}
