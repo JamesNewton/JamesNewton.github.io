@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Loading</title>
+    <style type="text/css" media="screen">
+#loader { 
+  position: absolute;
+  top: 36%;
+  right: 40%;
+}
+.loader {
+    z-index: 10000;
+    border: 8px solid #b5b5b5; /* Grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-bottom: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 240px;
+    height: 240px;
+    animation: spin 4s linear infinite;
+    /*display:none;*/
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+      </style>
+    </head>
+  <body>
+    <div id="loader" class="loader"></div>
+  <script>
+//document.byId("loader").style.display = "block";
+//document.byId("loader").style.display = "none";
+    </script>
+  </body>
+</html>
+
