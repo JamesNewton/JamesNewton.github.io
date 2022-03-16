@@ -1,6 +1,6 @@
 Folder for Scratch 2 extensions and notes on Scratch 3 [GUI hosting](https://github.com/LLK/scratch-gui) may be required to access extensions.
 
-### Developming Games on Scratch
+### Developing Games on Scratch
 
 #### Expectations: 
 
