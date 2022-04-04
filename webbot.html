@@ -145,8 +145,9 @@ This page uses the camera to show differences over time and
 <canvas style="display:none;"></canvas>
 <br><span id="results"></span>
 
-  <script>
-const thresh = 50
+<script>
+//do simple image subtraction for movement detection by area.
+const thresh = 50 //set a threshold for how much changes we must see before we react.
 function byId(id) {return document.getElementById(id)}
 const captureVideoButton =  byId("capture-button")
 const screenshotButton = byId("screenshot-button")
@@ -270,11 +271,13 @@ stopButton.onclick = function() {
   LAT:<img src="" name="latch" id="lat" height="50" width="50" />
 </footer>
 
-See also<br /><a
-  href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html"
-  >http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a
->
+See also<UL>
+<LI><a
+  href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a>
+<LI><a href="https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate">https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate</a>
+<UL>
 <script>
+//set the inital values so the images aren't "broken"
   sendI2Cscl(false);
   sendI2Csda(false);
   sendLatch(false);
