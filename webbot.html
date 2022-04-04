@@ -33,7 +33,7 @@
   var count = 0;
 
   function sendI2Cscl(value) {
-    document.images["sdl"].src = value ? white : black;
+    document.images["scl"].src = value ? white : black;
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve();
@@ -197,6 +197,18 @@ screenshotButton.onclick = video.onclick = function() {
   rightside -= rightwidth*h*255
   centertop -= centerwidth * Math.floor(h/2) * 255
   byId("results").innerHTML = "left:"+leftside+" center:"+centertop+" right:"+rightside
+  if (leftside > rightside) {
+    byId("results").innerHTML += " turn right"
+    sendI2CData("R")
+  }
+  if (rightside > leftside) {
+    byId("results").innerHTML += " turn left"
+    sendI2CData("L")
+  }
+  if (centertop == 0) {
+    byId("results").innerHTML += " forward"
+    sendI2CData("F")
+  }
 };
 
 startButton.onclick = function() {
