@@ -114,9 +114,7 @@
     sendBytes(hexToBytes(s));
   }
 
-  sendI2Cscl(true);
-  sendI2Csda(true);
-  sendLatch(false);
+
 </script>
 <form>
   Text Data:
@@ -157,5 +155,10 @@ See also<br /><a
   href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html"
   >http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a
 >
+<script>
+  sendI2Cscl(false);
+  sendI2Csda(false);
+  sendLatch(false);
+  </script>
   </body>
 </html>
