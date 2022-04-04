@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Browser Robot Test page </title></head>
+<body>
+<div id="app"></div>
+<script>
+  //This page blinks sections of the screen in order to send data via I2C
+  //or a shift register based on the idea developed here:
+  //http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html
+
+  //the position of the images is easily controlled in the styles.css file
+  // by changing the <footer> setup.
+  // e.g. to move the blocks to the top, change the "bottom: 0;" to "top: 0;"
+
+  //Javascript inline instead of in index.js to simplify access to js proceedures from html
+
+  //A version rewritten with a state machine approach can be found at:
+  //https://stackblitz.com/edit/js-kxazxy?file=index.html
+
+  //I2C reference data:
+  //http://techref.massmind.org/techref/i2cs.htm
+
+  const appDiv = document.getElementById('app');
+  appDiv.innerHTML = `-`;
+
+  var black =
+    'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///ywAAAAAAQABAAAIBAABBAQAOw==';
+
+  var white =
+    'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///yH5BAEAABAALAAAAAABAAEAAAgEAP8FBAA7';
+
+  var port = 0;
+  var delay = 100;
+  var count = 0;
+
+  function sendI2Cscl(value) {
+    document.images[port + 0].src = value ? white : black;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, delay);
+    });
+  }
+
+  function sendI2Csda(value) {
+    document.images[port + 1].src = value ? white : black;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, delay);
+    });
+  }
+
+  function sendLatch(value) {
+    document.images[port + 2].src = value ? white : black;
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, delay);
+    });
+  }
+
+  async function sendByte(byte) {
+    let bits = byte.toString(2).padStart(8, '0');
+    return new Promise(async (resolve) => {
+      for (let i = 0; i < 8; i++) {
+        let bit = bits[i];
+        let b = bit == '1' ? true : false;
+        //console.log(bits, bit, b);
+        appDiv.innerHTML = bits + ' ' + bit + ' ' + b;
+        await sendI2Cscl(false);
+        await sendI2Csda(b);
+        await sendI2Cscl(true);
+      }
+      resolve();
+    });
+  }
+
+  //http://techref.massmind.org/techref/i2cs.htm
+
+  async function sendBytes(data) {
+    console.log(data);
+    await sendI2Csda(true); //ready (should aleady be high)
+    await sendI2Cscl(true); //should already be
+    await sendI2Csda(false); //start
+    for (let i = 0; i < data.length; i++) {
+      console.log('Byte ' + i);
+      await sendByte(data[i]);
+      await sendLatch(true); //latch for shift register
+      await sendLatch(false);
+    }
+    await sendI2Cscl(false); //finish the last bit
+    await sendI2Csda(false); //now we can lower data
+    await sendI2Cscl(true); //and raise clock
+    await sendI2Csda(true); //the raise data with clock to stop
+  }
+
+  function hexToBytes(hex) {
+    hex = hex.split(' ').join('');
+    for (var bytes = [], c = 0; c < hex.length; c += 2)
+      bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
+  }
+
+  async function sendI2CData(s) {
+    let bytes = [];
+    for (let i = 0; i < s.length; i++) {
+      bytes.push(s.charCodeAt(i));
+    }
+    sendBytes(bytes);
+  }
+
+  function sendI2CHexData(s) {
+    sendBytes(hexToBytes(s));
+  }
+
+  sendI2Cscl(true);
+  sendI2Csda(true);
+  sendLatch(false);
+</script>
+<form>
+  Text Data:
+  <input type="text" name="data" value="Testing 123" />
+  <input
+    type="button"
+    value="Send"
+    onclick="sendI2CData(this.form[0].value);return false;"
+  />
+  <br />
+  Hex Data:
+  <input
+    type="text"
+    name="hexdata"
+    value="00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"
+  />
+  <input
+    type="button"
+    value="Send"
+    onclick="sendI2CHexData(this.form.hexdata.value);return false;"
+  />
+  <br />
+  Delay:
+  <input type="text" value="100" onchange="delay=parseInt(this.value);" />
+</form>
+<footer>
+  SCL:<img src="" name="clock" id="scl" height="50" width="50" /> SDA:<img
+    src=""
+    name="data"
+    id="sda"
+    height="50"
+    width="50"
+  />
+  LAT:<img src="" name="latch" id="lat" height="50" width="50" />
+</footer>
+
+See also<br /><a
+  href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html"
+  >http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a
+>
+  </body>
+</html>
