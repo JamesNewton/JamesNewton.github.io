@@ -114,9 +114,105 @@
     sendBytes(hexToBytes(s));
   }
 
+</script>
+This page uses the camera to show differences over time and
+ summarize those changes as being in the left, right, or top
+ center of the area.
+ <BR>
+ Press Video to start using
+ the camera. It needs to be able to support 180x120 format.
+ Press Capture or click the video to display the difference, 
+ or press Start to display one difference per second. Press
+ Stop to stop. 
+<P>
+<input type="button" id="capture-button" value="Video">
+<input type="button" id="screenshot-button" value="Capture">
+<input type="button" id="start-button" value="Run">
+<input type="button" id="stop-button" value="Stop">
+<br><video autoplay id="my-video"></video>
+<img id="my-image" src="">
+<canvas style="display:none;"></canvas>
+<br><span id="results"></span>
+
+  <script>
+const thresh = 50
+function byId(id) {return document.getElementById(id)}
+const captureVideoButton =  byId("capture-button")
+const screenshotButton = byId("screenshot-button")
+const startButton = byId("start-button")
+const stopButton = byId("stop-button")
+const img = byId('my-image');
+const video = byId('my-video');
+var interval
+var saved
+
+const canvas = document.createElement('canvas')
+const constraints = { video: {width: {exact: 90}, height: {exact: 60} } }
+captureVideoButton.onclick = function() {
+  navigator.mediaDevices.getUserMedia(constraints).
+  then((stream) => {video.srcObject = stream})
+}
+
+function arraySum(data) {
+//https://jsperf.com/array-reduce-vs-foreach/2
+	let total = 0
+  for (let i=0, n=data.length; i<n; i++) {
+  	total += data[i]
+  	}
+  return total
+	}
+
+screenshotButton.onclick = video.onclick = function() {
+  let w = canvas.width = video.videoWidth;
+  let h = canvas.height = video.videoHeight;
+  let leftwidth=Math.floor(w/3)
+  let rightwidth=Math.floor(w/3)
+  let centerwidth=w - leftwidth - rightwidth
+  let ctx = canvas.getContext('2d')
+  ctx.drawImage(video, 0, 0)
+  // Other browsers will fall back to image/png
+	if (!saved) saved = ctx.getImageData(0, 0, w, h)
+	let imageData = ctx.getImageData(0,0, w, h)
+	let data = imageData.data
+
+  for (let i = 0; i < data.length; i += 4) {
+  		let r=i, g=i+1, b=i+2
+      data[r] = Math.abs(saved.data[r] - data[r]);     // red
+      data[g] = Math.abs(saved.data[g] - data[g]); // green
+      data[b] = Math.abs(saved.data[b] - data[b]); // blue
+      if (data[r] < thresh) data[r]=0
+      if (data[g] < thresh) data[g]=0
+      if (data[b] < thresh) data[b]=0
+    }
+  saved = ctx.getImageData(0, 0, w, h)
+  ctx.putImageData(imageData, 0, 0)
+  img.src = canvas.toDataURL('image/webp')
+  //sum remaining image by area
+  let leftside = arraySum(ctx.getImageData(0, 0, leftwidth, h).data)
+  let rightside = arraySum(ctx.getImageData(w-rightwidth,0,rightwidth,h).data)
+  let centertop = arraySum(ctx.getImageData(
+  	leftwidth, 0, centerwidth, Math.floor(h/2)
+    ).data)
+  //subtract out the alpha channels
+  leftside -= leftwidth*h*255
+  rightside -= rightwidth*h*255
+  centertop -= centerwidth * Math.floor(h/2) * 255
+  byId("results").innerHTML = "left:"+leftside+" center:"+centertop+" right:"+rightside
+};
+
+startButton.onclick = function() {
+  interval = setInterval(function(){video.onclick()},1000)
+}
+
+stopButton.onclick = function() {
+  clearInterval(interval)
+}
+
 
 </script>
-<form>
+
+  
+  <form>
   Text Data:
   <input type="text" name="data" value="Testing 123" />
   <input
