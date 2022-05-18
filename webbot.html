@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -8,9 +9,10 @@ footer {
     bottom:0;
     margin-left: auto;
     margin-right: auto;
-    height:50px;
+    height:72pt;
 
 }
+
     </style>
   </head>
 <body>
@@ -261,16 +263,17 @@ stopButton.onclick = function() {
   <input type="text" value="100" onchange="delay=parseInt(this.value);" />
 </form>
 <footer>
-  SCL:<img src="" name="clock" id="scl" height="50" width="50" /> SDA:<img
-    src=""
-    name="data"
-    id="sda"
-    height="50"
-    width="50"
-  />
-  LAT:<img src="" name="latch" id="lat" height="50" width="50" />
+<<table><tr>
+  <td><img src="" name="clock" id="scl" height="36pt" width="36pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;">SCL:</td>
+  <td><img src="" name="data"  id="sda" height="36pt" width="36pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;">SDA:</td>
+  <td><img src="" name="latch" id="lat" height="36pt" width="36pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;">LAT:</td>
+</tr><tr>
+</tr>
+</table>
 </footer>
-
 See also<UL>
 <LI><a href="https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details">https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details</a>
 <LI><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a>
