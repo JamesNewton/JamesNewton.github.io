@@ -3,19 +3,18 @@
 <html>
   <head>
     <title>Browser Robot Test page </title>
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
     <style>
 footer {
     position:fixed;
     bottom:0;
     margin-left: auto;
     margin-right: auto;
-    height:72pt;
+    height:36pt;
 
 }
 
     </style>
-   <meta name="viewport" content="initial-scale=1, width=device-width" />
-
   </head>
 <body>
 <div id="app"></div>
@@ -148,7 +147,7 @@ This page uses the camera to show differences over time and
 <img id="my-image" src="">
 <canvas style="display:none;"></canvas>
 <br><span id="results"></span>
-
+</P>
 <script>
 //do simple image subtraction for movement detection by area.
 const thresh = 50 //set a threshold for how much changes we must see before we react.
@@ -265,22 +264,22 @@ stopButton.onclick = function() {
   <input type="text" value="100" onchange="delay=parseInt(this.value);" />
 </form>
 <footer>
-<<table><tr>
+<table><tr>
   <td><img src="" name="clock" id="scl" height="36pt" width="36pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">SCL:</td>
   <td><img src="" name="data"  id="sda" height="36pt" width="36pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">SDA:</td>
   <td><img src="" name="latch" id="lat" height="36pt" width="36pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">LAT:</td>
-</tr><tr>
 </tr>
 </table>
 </footer>
-See also<UL>
-<LI><a href="https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details">https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details</a>
-<LI><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a>
-<LI><a href="https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate">https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate</a>
-	<UL>
+<P>See also<UL>
+<LI><a href="https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details">https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details</a></LI>
+<LI><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a></LI>
+<LI><a href="https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate">https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate</a></LI>
+</UL>
+</P>
 <script>
 //set the inital values so the images aren't "broken"
   sendI2Cscl(false);
