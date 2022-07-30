@@ -27,6 +27,7 @@ https://scratch.mit.edu/projects/259993708/ Basically Super Mario. Check inside 
 https://scratch.mit.edu/projects/63476480/ Scratch town. Maddening!
 
 https://scratch.mit.edu/projects/294794983/ Black
+
 https://scratch.mit.edu/projects/298612551/ Tunnel (same, different size light)
 
 you can do 3D, but it's not easy. 
@@ -37,8 +38,10 @@ https://scratch.mit.edu/projects/48787568/fullscreen/ Creature: Notice how the e
 
 Main course:
 https://en.scratch-wiki.info/wiki/Getting_Started_with_Scratch
+
 https://docs.google.com/document/d/1IPto0ojSnbc-kbCx8j4keRThdY6PwxB3nkqTHYFmSMs/edit#heading=h.gjdgxs
 
 Sub lessons:
 https://resources.scratch.mit.edu/www/cards/en/animation-cards.pdf
+
 https://resources.scratch.mit.edu/www/cards/en/story-cards.pdf
