@@ -44,7 +44,7 @@ footer {
   var white =
     'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///yH5BAEAABAALAAAAAABAAEAAAgEAP8FBAA7';
 
-  var delay = 100;
+  var delay = 60;
   var count = 0;
 
   function sendI2Cscl(value) {
@@ -75,6 +75,7 @@ footer {
   }
 
   async function sendByte(byte) {
+    //clock out 8 bits of data, 3 delay periods per bit
     let bits = byte.toString(2).padStart(8, '0');
     return new Promise(async (resolve) => {
       for (let i = 0; i < 8; i++) {
@@ -85,7 +86,7 @@ footer {
         await sendI2Cscl(false);
         await sendI2Csda(b);
         await sendI2Cscl(true);
-      }
+      } 
       resolve();
     });
   }
@@ -94,20 +95,24 @@ footer {
 
   async function sendBytes(data) {
     console.log(data);
+    //send i2c start, 3 delay periods
     await sendI2Csda(true); //ready (should aleady be high)
     await sendI2Cscl(true); //should already be
     await sendI2Csda(false); //start
     for (let i = 0; i < data.length; i++) {
+      //send a byte, 3+2 delays per byte
       console.log('Byte ' + i);
       await sendByte(data[i]);
       await sendLatch(true); //latch for shift register
       await sendLatch(false);
     }
+    //finish and send stop, 4 delay periods
     await sendI2Cscl(false); //finish the last bit
     await sendI2Csda(false); //now we can lower data
     await sendI2Cscl(true); //and raise clock
     await sendI2Csda(true); //the raise data with clock to stop
-  }
+  } 
+//total delay per call is 5*len + 7
 
   function hexToBytes(hex) {
     hex = hex.split(' ').join('');
@@ -228,7 +233,8 @@ screenshotButton.onclick = video.onclick = function() {
 };
 
 startButton.onclick = function() {
-  interval = setInterval(function(){video.onclick()},1000)
+  //interval must be limited by bit delays. 
+  interval = setInterval(function(){video.onclick()},2000)
 }
 
 stopButton.onclick = function() {
