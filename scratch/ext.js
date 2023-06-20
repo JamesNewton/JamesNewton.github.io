@@ -50,7 +50,7 @@
 			ext._ws = new WebSocket('ws://localhost:3000');
 			ext._ws.onclose = onClose;
 		} catch (e) {}
-	};
+	}; 
 	var descriptor = {
 		blocks: [
 			[' ', 'move all joints j1: %n j2: %n j3: %n j4: %n j5: %n', 'move_all_joints', 0, 0, 135, 45, 0],
