@@ -1,0 +1,124 @@
+
+<html>
+  <head>
+  <title>CARDIAC</title>
+  <script src="script.js"></script>
+  </head>
+  <body bgcolor="#B0D0B8">
+  <center>
+  <a href="cardiac.html"><img src="cardlogo.jpg" alt="CARDIAC"></a>
+  </center>
+  <!-- <h1>Cardiac</h1> -->
+  <script>drawmem();</script>
+<!-- 
+  <img width="100%" id="svg" src="diagram.svg"> 
+  this can't be included from a separate file because then we wouldn't be 
+  able to access the ID's of the svg elements.
+-->
+<center>
+  <svg width="40em" viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" version="1.0">
+    <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+    <g class="layer">
+     <title>Layer 1</title>
+     <path d="m141,171l90,90l120,0l90,-90l-125,0l-25,25l-25,-25l-125,0z" fill="none" id="svg_2" stroke="#007fff" stroke-width="2"/>
+     <rect fill="none" height="50" id="svg_3" stroke="#007fff" stroke-width="2" transform="matrix(1 0 0 1 0 0)" width="300" x="463" y="118"/>
+     <rect fill="none" height="50" id="svg_4" stroke="#007fff" stroke-width="2" width="90" x="480" y="205"/>
+     <rect fill="none" height="50" id="svg_5" stroke="#007fff" stroke-width="2" width="150" x="500" y="325"/>
+     <rect fill="none" height="50" id="svg_6" stroke="#007fff" stroke-width="2" width="200" x="1" y="295"/>
+     <path d="m99.46,344.53l-4.46,10.47l10,0l-5,-10l0,55l190,0l0,-140" fill="none" id="line_ALU_ACC" stroke="#007fff" stroke-width="2"/>
+     <path d="m100,295l0,-285l680,0l-10,-5l0,10l9.5,-4.25" fill="none" id="line_ACC_MEM" stroke="#007fff" stroke-width="2"/>
+     <path d="m780,50l-405,0l0,120l5,-10l-10,0l5,10" fill="none" id="line_MEM_ALU" stroke="#007fff" stroke-width="2"/>
+     <path d="m100,294.5l0,-284.5l110,0l0,160l5,-10l-10,0l2.5,5l2.25,4.75" fill="none" id="line_ACC_ALU" stroke="#007fff" stroke-width="2"/>
+     <path d="m779,50l-164,0l0,65l5,-10l-10,0l4.75,10.25" fill="none" id="line_MEM_IR" stroke="#007fff" stroke-width="2"/>
+     <path d="m525,168l0,37l5,-10l-10,0l4.5,10" fill="none" id="svg_17" stroke="#007fff" stroke-width="2"/>
+     <path d="m480,230l-98,0l98,0z" fill="none" id="line_decode_ALU" stroke="#007fff" stroke-width="2"/>
+     <path d="m430,230l0,120l70,0" fill="none" id="line_decode_PC" stroke="#007fff" stroke-width="2"/>
+     <path d="m675,169.7l0,106.5l0,143.8l105,0l-9.75,-5.5l-0.25,11.25l10.08,-5.75" fill="none" id="line_IR_ADR" stroke="#007fff" stroke-width="2"/>
+     <path d="m575,375l0,45l205,0l-10,-5.5l0,10.6l11.3,-4.85" fill="none" id="line_PC_ADR" stroke="#007fff" stroke-width="2"/>
+     <path d="m675,170l0,110l-101.37,0l1.37,45l5,-10l-10,0l5.01,9.75" fill="none" id="line_IR_PC" stroke="#007fff" stroke-width="2" transform="matrix(1 0 0 1 0 0)"/>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_25" stroke="#007fff" text-anchor="middle" x="101.13" xml:space="preserve" y="314.59">Accumulator</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_26" stroke="#007fff" text-anchor="middle" x="296" xml:space="preserve" y="232">ALU</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_27" stroke="#007fff" stroke-width="2" text-anchor="middle" x="574.13" xml:space="preserve" y="349.33">Program Counter</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_28" stroke="#007fff" text-anchor="middle" x="523.26" xml:space="preserve" y="231.2">Decode</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_29" stroke="#007fff" text-anchor="middle" x="617.93" xml:space="preserve" y="137.65">Instruction Register</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_30" stroke="#007fff" text-anchor="middle" x="710.75" xml:space="preserve" y="37.5">Memory Data Bus</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="svg_31" stroke="#007fff" text-anchor="middle" x="705" xml:space="preserve" y="451">Memory Address Bus</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="val-ACC" stroke="#007fff" text-anchor="middle" x="102.04" xml:space="preserve" y="332.46">0000</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="val-PC" stroke="#007fff" text-anchor="middle" x="572.6" xml:space="preserve" y="369.37">00</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="val-IR" stroke="#007fff" text-anchor="middle" x="617.46" xml:space="preserve" y="155.36">000</text>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="val-inst" stroke="#007fff" text-anchor="middle" x="523.07" xml:space="preserve" y="248.81"/>
+     <text fill="#000000" font-family="Sans-serif" font-size="18" id="val_OP" stroke="#007fff" style="cursor: move;" text-anchor="middle" x="358" xml:space="preserve" y="233">
+     </text>
+    </g>
+   </svg>
+  <table>
+  <thead>
+  <th>Deck</th><th></th><th>Reader</th><th>CPU</th><th>Output</th>
+  </thead>
+  <tbody>
+  <tr>
+  <td><textarea id="deck" cols=5 rows=10>002
+800
+010
+100
+011
+605
+012
+104
+013
+322
+014
+505
+015
+105
+016
+200
+017
+605
+018
+104
+019
+700
+020
+604
+021
+812
+022
+900
+004
+009
+002
+810</textarea></td>
+  <td><input type="button" value="Load" onclick="doload();"><br>
+    <input type="button" value="Read" onclick="doload();doloadrun();"></td>
+  <td><textarea id="input" cols=5 rows=10 readonly></textarea></td>
+  <td>
+  <center>
+  PC: <input type="text" id="pc" size=2 onkeyup="ladybug();">
+  <hr>
+  <b>Instruction Decoder</b><br>
+  Instruction Register: <input type="text" id="ir" size=3 readonly><br>
+  Opcode: <input type="text" id="opcode" size=3 readonly>
+  Operand: <input type="text" id="operand" size=2 readonly>
+  <hr>
+  Accumulator: <input type="text" id="acc" size=5 readonly>
+  <hr>
+  <input type="button" value="Reset" onclick="doreset();">
+  <input type="button" value="Clear Mem" onclick="doclearmem();">
+  <br>
+  <input type="button" value="Step" onclick="dostep();">
+  <input type="button" value="Slow" onclick="doslow();">
+  <input type="button" value="Run" onclick="dorun();">
+  <input type="button" value="Halt" onclick="mode = 0;">
+  </center>
+  </td>
+  <td><textarea id="output" cols=5 rows=10 readonly></textarea></td>
+  </tr>
+  </tbody>
+  </table>
+  </center>
+  <hr>
+  <script>init();doreset();</script>
+  </body>
+  </html>
+  
