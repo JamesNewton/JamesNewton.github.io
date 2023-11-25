@@ -226,23 +226,32 @@ screenshotButton.onclick = video.onclick = function() {
   rightside -= rightwidth*h*255
   centertop -= centerwidth * Math.floor(h/2) * 255
   byId("results").innerHTML = "left:"+leftside+" center:"+centertop+" right:"+rightside
+  let leftmotor = 0
+  let rightmotor = 0
   if (leftside > rightside) {
     byId("results").innerHTML += " turn right"
     sendI2CData("R")
+    rightmotor -= 100
+    leftmotor += 100
   }
   if (rightside > leftside) {
     byId("results").innerHTML += " turn left"
     sendI2CData("L")
-    setMotors(255,0)
+    rightmotor += 100
+    leftmotor -= 100
   }
   if (centertop == 0) {
     byId("results").innerHTML += " forward"
     sendI2CData("F")
-    setMotors(0,255)
+    rightmotor += 100
+    leftmotor += 100
   }
+  setMotors(leftmotor,rightmotor)
 };
 
 function setMotors(l, r) {
+    if (l<0) l = 0
+    if (r<0) r = 0
     byId("left").style.backgroundColor = "rgb("+l+","+l+","+l+")"
     byId("right").style.backgroundColor = "rgb("+r+","+r+","+r+")"
 }
@@ -287,17 +296,17 @@ stopButton.onclick = function() {
 <footer>
 <table class="blocks"><tr>
   <td name="left" id="left" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;">LEFT:</td>
-
-  <td><img src="" name="clock" id="scl" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;">SCL:</td>
-  <td><img src="" name="data"  id="sda" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;">SDA:</td>
-  <td><img src="" name="latch" id="lat" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;">LAT:</td>
-
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LEFT:</td>
+  <td /></td>
+  <td height="72pt" width="72pt"><img src="" name="clock" id="scl" height="72pt" width="72pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SCL:</td>
+  <td height="72pt" width="72pt"><img src="" name="data"  id="sda" height="72pt" width="72pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SDA:</td>
+  <td height="72pt" width="72pt"><img src="" name="latch" id="lat" height="72pt" width="72pt" /></td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LAT:</td>
+  <td /></td>
   <td name="right" id="right" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;">RIGHT:</td>
+  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">RIGHT:</td>
 </tr>
 </table>
 </footer>
