@@ -11,9 +11,11 @@ footer {
     margin-left: auto;
     margin-right: auto;
     height:72pt;
-
 }
-
+table.failing {
+	width: 100%; 
+	margin:0;
+}
     </style>
   </head>
 <body>
@@ -280,8 +282,8 @@ stopButton.onclick = function() {
   <input type="text" value="100" onchange="delay=parseInt(this.value);" />
 </form>
 <footer>
-<table><tr>
-  <td><img src="" name="left" id="scl" height="72pt" width="72pt" /></td>
+<table class="blocks"><tr>
+  <td><img src="" name="left" id="left" height="72pt" width="72pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">LEFT:</td>
 
   <td><img src="" name="clock" id="scl" height="72pt" width="72pt" /></td>
@@ -291,7 +293,7 @@ stopButton.onclick = function() {
   <td><img src="" name="latch" id="lat" height="72pt" width="72pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">LAT:</td>
 
-  <td><img src="" name="right" id="lat" height="72pt" width="72pt" /></td>
+  <td><img src="" name="right" id="right" height="72pt" width="72pt" /></td>
   <td style="writing-mode: vertical-rl;text-orientation: mixed;">RIGHT:</td>
 </tr>
 </table>
