@@ -233,21 +233,20 @@ screenshotButton.onclick = video.onclick = function() {
   if (rightside > leftside) {
     byId("results").innerHTML += " turn left"
     sendI2CData("L")
-    let left = 255
-    byId("left").style.backgrounColor = "rgb("+left+","+left+","+left+")"
-    let right = 0
-    byId("right").style.backgrounColor = "rgb("+right+","+right+","+right+")"
+    setMotors(255,0)
   }
   if (centertop == 0) {
     byId("results").innerHTML += " forward"
     sendI2CData("F")
-    let left = 0
-    byId("left").style.backgrounColor = "rgb("+left+","+left+","+left+")"
-    let right = 255
-    byId("right").style.backgrounColor = "rgb("+right+","+right+","+right+")"
+    setMotors(0,255)
   }
 };
 
+function setMotors(l, r) {
+    byId("left").style.backgroundColor = "rgb("+l+","+l+","+l+")"
+    byId("right").style.backgroundColor = "rgb("+r+","+r+","+r+")"
+}
+	
 startButton.onclick = function() {
   //interval must be limited by bit delays. 
   interval = setInterval(function(){video.onclick()},2000)
