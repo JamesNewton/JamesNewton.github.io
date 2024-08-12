@@ -16,308 +16,323 @@ footer {
     </style>
   </head>
 <body>
-<div id="app"></div>
-<script>
-  //This page blinks sections of the screen in order to send data via I2C
-  //or a shift register based on the idea developed here:
-  //http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html
-
-  //the position of the images is easily controlled in the styles.css file
-  // by changing the <footer> setup.
-  // e.g. to move the blocks to the top, change the "bottom: 0;" to "top: 0;"
-
-  //Javascript inline instead of in index.js to simplify access to js proceedures from html
-
-  //A version rewritten with a state machine approach can be found at:
-  //https://stackblitz.com/edit/js-kxazxy?file=index.html
-
-  //I2C reference data:
-  //http://techref.massmind.org/techref/i2cs.htm
-
-  const appDiv = document.getElementById('app');
-  appDiv.innerHTML = `-`;
-
-  var black =
-    'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///ywAAAAAAQABAAAIBAABBAQAOw==';
-
-  var white =
-    'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///yH5BAEAABAALAAAAAABAAEAAAgEAP8FBAA7';
-
-//assuming the use of a photo sensitive resistor between the analog pin and ground,
-//and an internal or external pullup resistor to the power rail, 
-//a white screen will cause a low voltage, and a black screen will allow the voltage to rise
-  var logic1 = black
-  var logic0 = white
-	
-  var delay = 60;
-  var count = 0;
-
-  function sendI2Cscl(value) {
-    document.images["scl"].src = value ? logic1 : logic0;
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, delay);
-    });
-  }
-
-  function sendI2Csda(value) {
-    document.images["sda"].src = value ? logic1 : logic0;
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, delay);
-    });
-  }
-
-  function sendLatch(value) {
-    document.images["lat"].src = value ? logic1 : logic0;
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, delay);
-    });
-  }
-
-  async function sendByte(byte) {
-    //clock out 8 bits of data, 3 delay periods per bit
-    let bits = byte.toString(2).padStart(8, '0');
-    return new Promise(async (resolve) => {
-      for (let i = 0; i < 8; i++) {
-        let bit = bits[i];
-        let b = bit == '1' ? true : false;
-        //console.log(bits, bit, b);
-        appDiv.innerHTML = bits + ' ' + bit + ' ' + b;
-        await sendI2Cscl(false);
-        await sendI2Csda(b);
-        await sendI2Cscl(true);
-      } 
-      resolve();
-    });
-  }
-
-  //http://techref.massmind.org/techref/i2cs.htm
-
-  async function sendBytes(data) {
-    console.log(data);
-    //send i2c start, 3 delay periods
-    await sendI2Csda(true); //ready (should aleady be high)
-    await sendI2Cscl(true); //should already be
-    await sendI2Csda(false); //start
-    for (let i = 0; i < data.length; i++) {
-      //send a byte, 3+2 delays per byte
-      console.log('Byte ' + i);
-      await sendByte(data[i]);
-      await sendLatch(true); //latch for shift register
-      await sendLatch(false);
-    }
-    //finish and send stop, 4 delay periods
-    await sendI2Cscl(false); //finish the last bit
-    await sendI2Csda(false); //now we can lower data
-    await sendI2Cscl(true); //and raise clock
-    await sendI2Csda(true); //the raise data with clock to stop
-  } 
-//total delay per call is 5*len + 7
-
-  function hexToBytes(hex) {
-    hex = hex.split(' ').join('');
-    for (var bytes = [], c = 0; c < hex.length; c += 2)
-      bytes.push(parseInt(hex.substr(c, 2), 16));
-    return bytes;
-  }
-
-  async function sendI2CData(s) {
-    let bytes = [];
-    for (let i = 0; i < s.length; i++) {
-      bytes.push(s.charCodeAt(i));
-    }
-    sendBytes(bytes);
-  }
-
-  function sendI2CHexData(s) {
-    sendBytes(hexToBytes(s));
-  }
-
-</script>
-This page uses the camera to show differences over time and
- summarize those changes as being in the left, right, or top
- center of the area.
- <BR>
- Press Video to start using
- the camera. It needs to be able to support 180x120 format.
- Press Capture or click the video to display the difference, 
- or press Start to display one difference per second. Press
- Stop to stop. 
-<P>
-<input type="button" id="capture-button" value="Video">
-<input type="button" id="screenshot-button" value="Capture">
-<input type="button" id="start-button" value="Run">
-<input type="button" id="stop-button" value="Stop">
-<br><video autoplay id="my-video"></video>
-<img id="my-image" src="">
-<canvas style="display:none;"></canvas>
-<br><span id="results"></span>
-</P>
-<script>
-//do simple image subtraction for movement detection by area.
-const thresh = 50 //set a threshold for how much changes we must see before we react.
-function byId(id) {return document.getElementById(id)}
-const captureVideoButton =  byId("capture-button")
-const screenshotButton = byId("screenshot-button")
-const startButton = byId("start-button")
-const stopButton = byId("stop-button")
-const img = byId('my-image');
-const video = byId('my-video');
-var interval
-var saved
-
-const canvas = document.createElement('canvas')
-const constraints = { video: {width: {exact: 90}, height: {exact: 60} } }
-captureVideoButton.onclick = function() {
-  navigator.mediaDevices.getUserMedia(constraints).
-  then((stream) => {video.srcObject = stream})
-}
-
-function arraySum(data) {
-//https://jsperf.com/array-reduce-vs-foreach/2
-	let total = 0
-  for (let i=0, n=data.length; i<n; i++) {
-  	total += data[i]
-  	}
-  return total
-	}
-
-screenshotButton.onclick = video.onclick = function() {
-  let w = canvas.width = video.videoWidth;
-  let h = canvas.height = video.videoHeight;
-  let leftwidth=Math.floor(w/3)
-  let rightwidth=Math.floor(w/3)
-  let centerwidth=w - leftwidth - rightwidth
-  let ctx = canvas.getContext('2d',{willReadFrequently: true})
-  ctx.drawImage(video, 0, 0)
-  // Other browsers will fall back to image/png
-	if (!saved) saved = ctx.getImageData(0, 0, w, h)
-	let imageData = ctx.getImageData(0,0, w, h)
-	let data = imageData.data
-
-  for (let i = 0; i < data.length; i += 4) {
-  		let r=i, g=i+1, b=i+2
-      data[r] = Math.abs(saved.data[r] - data[r]);     // red
-      data[g] = Math.abs(saved.data[g] - data[g]); // green
-      data[b] = Math.abs(saved.data[b] - data[b]); // blue
-      if (data[r] < thresh) data[r]=0
-      if (data[g] < thresh) data[g]=0
-      if (data[b] < thresh) data[b]=0
-    }
-  saved = ctx.getImageData(0, 0, w, h)
-  ctx.putImageData(imageData, 0, 0)
-  img.src = canvas.toDataURL('image/webp')
-  //sum remaining image by area
-  let leftside = arraySum(ctx.getImageData(0, 0, leftwidth, h).data)
-  let rightside = arraySum(ctx.getImageData(w-rightwidth,0,rightwidth,h).data)
-  let centertop = arraySum(ctx.getImageData(
-  	leftwidth, 0, centerwidth, Math.floor(h/2)
-    ).data)
-  //subtract out the alpha channels
-  leftside -= leftwidth*h*255
-  rightside -= rightwidth*h*255
-  centertop -= centerwidth * Math.floor(h/2) * 255
-  byId("results").innerHTML = "left:"+leftside+" center:"+centertop+" right:"+rightside
-  let leftmotor = 0
-  let rightmotor = 0
-  if (leftside > rightside) {
-    byId("results").innerHTML += " turn right"
-    sendI2CData("R")
-    rightmotor -= 100
-    leftmotor += 100
-  }
-  if (rightside > leftside) {
-    byId("results").innerHTML += " turn left"
-    sendI2CData("L")
-    rightmotor += 100
-    leftmotor -= 100
-  }
-  if (centertop == 0) {
-    byId("results").innerHTML += " forward"
-    sendI2CData("F")
-    rightmotor += 100
-    leftmotor += 100
-  }
-  setMotors(leftmotor,rightmotor)
-};
-
-function setMotors(l, r) {
-    if (l<0) l = 0
-    if (r<0) r = 0
-    byId("left").style.backgroundColor = "rgb("+l+","+l+","+l+")"
-    byId("right").style.backgroundColor = "rgb("+r+","+r+","+r+")"
-}
-	
-startButton.onclick = function() {
-  //interval must be limited by bit delays. 
-  interval = setInterval(function(){video.onclick()},2000)
-}
-
-stopButton.onclick = function() {
-  clearInterval(interval)
-}
-
-
-</script>
-
+  <div id="app"></div>
+  <script>
+    //This page blinks sections of the screen in order to send data via I2C
+    //or a shift register based on the idea developed here:
+    //http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html
   
-  <form>
-  Text Data:
-  <input type="text" name="data" value="Testing 123" />
-  <input
-    type="button"
-    value="Send"
-    onclick="sendI2CData(this.form[0].value);return false;"
-  />
-  <br />
-  Hex Data:
-  <input
-    type="text"
-    name="hexdata"
-    value="00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"
-  />
-  <input
-    type="button"
-    value="Send"
-    onclick="sendI2CHexData(this.form.hexdata.value);return false;"
-  />
-  <br />
-  Delay:
-  <input type="text" value="100" onchange="delay=parseInt(this.value);" />
-</form>
-<footer>
-<table style="margin:0;" width="100%"><tr>
-  <td name="left" id="left" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LEFT:</td>
-  <td /></td>
-  <td height="72pt" width="72pt"><img src="" name="clock" id="scl" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SCL:</td>
-  <td height="72pt" width="72pt"><img src="" name="data"  id="sda" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SDA:</td>
-  <td height="72pt" width="72pt"><img src="" name="latch" id="lat" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LAT:</td>
-  <td /></td>
-  <td name="right" id="right" height="72pt" width="72pt" /></td>
-  <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">RIGHT:</td>
-</tr>
-</table>
-</footer>
-<P>See also<UL>
-<LI><a href="https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details">https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details</a></LI>
-<LI><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a></LI>
-<LI><a href="https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate">https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate</a></LI>
-</UL>
-</P>
-<script>
-//set the inital values so the images aren't "broken"
-  sendI2Cscl(false);
-  sendI2Csda(false);
-  sendLatch(false);
+    //the position of the images is easily controlled in the styles.css file
+    // by changing the <footer> setup.
+    // e.g. to move the blocks to the top, change the "bottom: 0;" to "top: 0;"
+  
+    //Javascript inline instead of in index.js to simplify access to js proceedures from html
+  
+    //A version rewritten with a state machine approach can be found at:
+    //https://stackblitz.com/edit/js-kxazxy?file=index.html
+  
+    //I2C reference data:
+    //http://techref.massmind.org/techref/i2cs.htm
+  
+    const appDiv = document.getElementById('app');
+    appDiv.innerHTML = `-`;
+  
+    var black =
+      'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///ywAAAAAAQABAAAIBAABBAQAOw==';
+  
+    var white =
+      'data:image/gif;base64,R0lGODlhAQABAPcAAAAAAIAAAACAAICAAAAAgIAAgACAgICAgMDAwP8AAAD/AP//AAAA//8A/wD//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMwAAZgAAmQAAzAAA/wAzAAAzMwAzZgAzmQAzzAAz/wBmAABmMwBmZgBmmQBmzABm/wCZAACZMwCZZgCZmQCZzACZ/wDMAADMMwDMZgDMmQDMzADM/wD/AAD/MwD/ZgD/mQD/zAD//zMAADMAMzMAZjMAmTMAzDMA/zMzADMzMzMzZjMzmTMzzDMz/zNmADNmMzNmZjNmmTNmzDNm/zOZADOZMzOZZjOZmTOZzDOZ/zPMADPMMzPMZjPMmTPMzDPM/zP/ADP/MzP/ZjP/mTP/zDP//2YAAGYAM2YAZmYAmWYAzGYA/2YzAGYzM2YzZmYzmWYzzGYz/2ZmAGZmM2ZmZmZmmWZmzGZm/2aZAGaZM2aZZmaZmWaZzGaZ/2bMAGbMM2bMZmbMmWbMzGbM/2b/AGb/M2b/Zmb/mWb/zGb//5kAAJkAM5kAZpkAmZkAzJkA/5kzAJkzM5kzZpkzmZkzzJkz/5lmAJlmM5lmZplmmZlmzJlm/5mZAJmZM5mZZpmZmZmZzJmZ/5nMAJnMM5nMZpnMmZnMzJnM/5n/AJn/M5n/Zpn/mZn/zJn//8wAAMwAM8wAZswAmcwAzMwA/8wzAMwzM8wzZswzmcwzzMwz/8xmAMxmM8xmZsxmmcxmzMxm/8yZAMyZM8yZZsyZmcyZzMyZ/8zMAMzMM8zMZszMmczMzMzM/8z/AMz/M8z/Zsz/mcz/zMz///8AAP8AM/8AZv8Amf8AzP8A//8zAP8zM/8zZv8zmf8zzP8z//9mAP9mM/9mZv9mmf9mzP9m//+ZAP+ZM/+ZZv+Zmf+ZzP+Z///MAP/MM//MZv/Mmf/MzP/M////AP//M///Zv//mf//zP///yH5BAEAABAALAAAAAABAAEAAAgEAP8FBAA7';
+  
+  //assuming the use of a photo sensitive resistor between the analog pin and ground,
+  //and an internal or external pullup resistor to the power rail, 
+  //a white screen will cause a low voltage, and a black screen will allow the voltage to rise
+    var logic1 = black
+    var logic0 = white
+    
+    var delay = 60;
+    var count = 0;
+  
+    function sendI2Cscl(value) {
+      document.images["scl"].src = value ? logic1 : logic0;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, delay);
+      });
+    }
+  
+    function sendI2Csda(value) {
+      document.images["sda"].src = value ? logic1 : logic0;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, delay);
+      });
+    }
+  
+    function sendLatch(value) {
+      document.images["lat"].src = value ? logic1 : logic0;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, delay);
+      });
+    }
+  
+    async function sendByte(byte) {
+      //clock out 8 bits of data, 3 delay periods per bit
+      let bits = byte.toString(2).padStart(8, '0');
+      return new Promise(async (resolve) => {
+        for (let i = 0; i < 8; i++) {
+          let bit = bits[i];
+          let b = bit == '1' ? true : false;
+          //console.log(bits, bit, b);
+          appDiv.innerHTML = bits + ' ' + bit + ' ' + b;
+          await sendI2Cscl(false);
+          await sendI2Csda(b);
+          await sendI2Cscl(true);
+        } 
+        resolve();
+      });
+    }
+  
+    //http://techref.massmind.org/techref/i2cs.htm
+  
+    async function sendBytes(data) {
+      console.log(data);
+      //send i2c start, 3 delay periods
+      await sendI2Csda(true); //ready (should aleady be high)
+      await sendI2Cscl(true); //should already be
+      await sendI2Csda(false); //start
+      for (let i = 0; i < data.length; i++) {
+        //send a byte, 3+2 delays per byte
+        console.log('Byte ' + i);
+        await sendByte(data[i]);
+        await sendLatch(true); //latch for shift register
+        await sendLatch(false);
+      }
+      //finish and send stop, 4 delay periods
+      await sendI2Cscl(false); //finish the last bit
+      await sendI2Csda(false); //now we can lower data
+      await sendI2Cscl(true); //and raise clock
+      await sendI2Csda(true); //the raise data with clock to stop
+    } 
+  //total delay per call is 5*len + 7
+  
+    function hexToBytes(hex) {
+      hex = hex.split(' ').join('');
+      for (var bytes = [], c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+      return bytes;
+    }
+  
+    async function sendI2CData(s) {
+      let bytes = [];
+      for (let i = 0; i < s.length; i++) {
+        bytes.push(s.charCodeAt(i));
+      }
+      sendBytes(bytes);
+    }
+  
+    function sendI2CHexData(s) {
+      sendBytes(hexToBytes(s));
+    }
+  
+    function setFlashLight(s) {
+      document.images["lit"].src = s? white : black
+    }
+  
   </script>
+  This page uses the camera to show differences over time and
+   summarize those changes as being in the left, right, or top
+   center of the area.
+   <BR>
+   Press Video to start using
+   the camera. It needs to be able to support 180x120 format.
+   Press Capture or click the video to display the difference, 
+   or press Start to display one difference per second. Press
+   Stop to stop. 
+  <P>
+  <input type="button" id="capture-button" value="Video">
+  <input type="button" id="screenshot-button" value="Capture">
+  <input type="button" id="start-button" value="Run">
+  <input type="button" id="stop-button" value="Stop">
+  <br><video autoplay id="my-video"></video>
+  <img id="my-image" src="">
+  <canvas style="display:none;"></canvas>
+  <br><span id="results"></span>
+  </P>
+  <script>
+  //do simple image subtraction for movement detection by area.
+  const thresh = 50 //set a threshold for how much changes we must see before we react.
+  function byId(id) {return document.getElementById(id)}
+  const captureVideoButton =  byId("capture-button")
+  const screenshotButton = byId("screenshot-button")
+  const startButton = byId("start-button")
+  const stopButton = byId("stop-button")
+  const img = byId('my-image');
+  const video = byId('my-video');
+  var interval
+  var saved
+  
+  const canvas = document.createElement('canvas')
+  const constraints = { video: {width: {exact: 90}, height: {exact: 60} } }
+  captureVideoButton.onclick = function() {
+    navigator.mediaDevices.getUserMedia(constraints).
+    then((stream) => {video.srcObject = stream})
+  }
+  
+  function arraySum(data) {
+  //https://jsperf.com/array-reduce-vs-foreach/2
+    let total = 0
+    for (let i=0, n=data.length; i<n; i++) {
+      total += data[i]
+      }
+    return total
+    }
+  
+  screenshotButton.onclick = video.onclick = function(light) {
+    setFlashLight(light);
+    let w = canvas.width = video.videoWidth;
+    let h = canvas.height = video.videoHeight;
+    let leftwidth=Math.floor(w/3)
+    let rightwidth=Math.floor(w/3)
+    let centerwidth=w - leftwidth - rightwidth
+    let ctx = canvas.getContext('2d',{willReadFrequently: true})
+    ctx.drawImage(video, 0, 0)
+    // Other browsers will fall back to image/png
+    if (!saved) saved = ctx.getImageData(0, 0, w, h)
+    let imageData = ctx.getImageData(0,0, w, h)
+    let data = imageData.data
+  
+    for (let i = 0; i < data.length; i += 4) {
+        let r=i, g=i+1, b=i+2
+        data[r] = Math.abs(saved.data[r] - data[r]);     // red
+        data[g] = Math.abs(saved.data[g] - data[g]); // green
+        data[b] = Math.abs(saved.data[b] - data[b]); // blue
+        if (data[r] < thresh) data[r]=0
+        if (data[g] < thresh) data[g]=0
+        if (data[b] < thresh) data[b]=0
+      }
+    saved = ctx.getImageData(0, 0, w, h)
+    ctx.putImageData(imageData, 0, 0)
+    img.src = canvas.toDataURL('image/webp')
+    //sum remaining image by area
+    let leftside = arraySum(ctx.getImageData(0, 0, leftwidth, h).data)
+    let rightside = arraySum(ctx.getImageData(w-rightwidth,0,rightwidth,h).data)
+    let centertop = arraySum(ctx.getImageData(
+      leftwidth, 0, centerwidth, Math.floor(h/2)
+      ).data)
+    //subtract out the alpha channels
+    leftside -= leftwidth*h*255
+    rightside -= rightwidth*h*255
+    centertop -= centerwidth * Math.floor(h/2) * 255
+    byId("results").innerHTML = "left:"+leftside+" center:"+centertop+" right:"+rightside
+    let leftmotor = 0
+    let rightmotor = 0
+    if (leftside > rightside) {
+      byId("results").innerHTML += " turn right"
+      sendI2CData("R")
+      rightmotor -= 100
+      leftmotor += 100
+    }
+    if (rightside > leftside) {
+      byId("results").innerHTML += " turn left"
+      sendI2CData("L")
+      rightmotor += 100
+      leftmotor -= 100
+    }
+    if (centertop == 0) {
+      byId("results").innerHTML += " forward"
+      sendI2CData("F")
+      rightmotor += 100
+      leftmotor += 100
+    }
+    setMotors(leftmotor,rightmotor)
+  };
+  
+  function setMotors(l, r) {
+      if (l<0) l = 0
+      if (r<0) r = 0
+      byId("left").style.backgroundColor = "rgb("+l+","+l+","+l+")"
+      byId("right").style.backgroundColor = "rgb("+r+","+r+","+r+")"
+  }
+    
+  startButton.onclick = function() {
+    //interval must be limited by bit delays. 
+    let light = false
+    interval = setInterval(
+      function(){
+        video.onclick(light=light?false:true)
+        }
+      ,delay*10)
+  }
+  
+  stopButton.onclick = function() {
+    clearInterval(interval)
+  }
+  
+  
+  </script>
+  
+    
+    <form>
+    Text Data:
+    <input type="text" name="data" value="Testing 123" />
+    <input
+      type="button"
+      value="Send"
+      onclick="sendI2CData(this.form[0].value);return false;"
+    />
+    <br />
+    Hex Data:
+    <input
+      type="text"
+      name="hexdata"
+      value="00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"
+    />
+    <input
+      type="button"
+      value="Send"
+      onclick="sendI2CHexData(this.form.hexdata.value);return false;"
+    />
+    <br />
+    Delay:
+    <input type="text" value="100" onchange="delay=parseInt(this.value);" />
+  </form>
+  <footer>
+  <table style="margin:0;" width="100%"><tr>
+    <td name="left" id="left" height="72pt" width="72pt" /></td>
+    <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LEFT:</td>
+    <td /></td>
+    <td height="72pt" width="72pt"><img src="" name="clock" id="scl" height="72pt" width="72pt" /></td>
+    <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SCL:</td>
+    <td height="72pt" width="72pt"><img src="" name="data"  id="sda" height="72pt" width="72pt" /></td>
+    <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">SDA:</td>
+    <td height="72pt" width="72pt"><img src="" name="latch" id="lat" height="72pt" width="72pt" /></td>
+    <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">LAT:</td>
+    <td /></td>
+    <td name="right" id="right" height="72pt" width="72pt" /></td>
+    <td style="writing-mode: vertical-rl;text-orientation: mixed;" width="1pt">RIGHT:</td>
+  </tr><tr>
+     <td colspan="12" height="24pt" width="100%">
+      <img src="" name="flash" id="lit" height="100%" width="100%">
+      </td>
+  </tr>
+  </table>
+  </footer>
+  <P>See also<UL>
+  <LI><a href="https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details">https://hackaday.io/project/184720-web-smart-phone-screen-blink-bot/details</a></LI>
+  <LI><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a></LI>
+  <LI><a href="https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate">https://github.com/JamesNewton/AdvancedRoboticsWithJavascript/wiki#week-4-day-3-add-javascript-to-navigate</a></LI>
+  </UL>
+  </P>
+  <script>
+  //set the inital values so the images aren't "broken"
+    sendI2Cscl(false);
+    sendI2Csda(false);
+    sendLatch(false);
+    setFlashLight(false);
+    </script>
   </body>
 </html>
