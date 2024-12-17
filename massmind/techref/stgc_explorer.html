@@ -1,0 +1,184 @@
+<html5>
+
+<head><title>Single Track Grey Code Explorer</title></head>
+
+<body>
+see <a href="/techref/io/sensor/pos/enc/greycodes.htm">Position Encoding: Single Track Grey Codes</a>
+        <form>
+        <select onChange="
+            this.form.w.value = this.value.split('|')[0];
+            this.form.s.value = this.value.split('|')[1].replace('\n','');
+            this.form.d.value = this.value.split('|')[2];
+            var link=document.getElementById('link');
+	    var url=this.options[this.selectedIndex].text.split(',')[3];
+	    if ('http://'!=url.substring(0,7)) url='https://www.google.com/search?q='+url;
+	    link.innerHTML = '<A HREF=\''+url+'\'>'+url+'</A>';
+            ">
+            <option value="=s=">Select a sensor, position, start</option>
+
+            <option value="1110|2,3,1,2,0,1,3,0|2">
+                4,9,1110,http://www.winzurf.co.nz/Single_Track_Grey_Code_Patent/Single_track_Grey_code_encoder_patent.pdf</option>
+
+            <option value="11110|3,4,2,3,1,2,0,1,4,0|2">
+                5,11,11110,http://www.winzurf.co.nz/Single_Track_Grey_Code_Patent/Single_track_Grey_code_encoder_patent.pdf</option>
+
+            <option value="110100|1,2,3,5,0,1,2,4,5,0,1,3,4,5,0,2,3,4,5,1,2,3,4,0|4">
+                6,25,110100,http://www.winzurf.co.nz/Single_Track_Grey_Code_Patent/Single_track_Grey_code_encoder_patent.pdf</option>
+
+            <option value="00001|3,1,0,1,4,0,2,0,4,0,3,4,1,4,3,4,2,3,0,3,2,3,1,2,4,2,1,2,0|6">
+                5,30,00001,www.yoctopuce.com/EN/article/how-to-measure-wind-part-2</option>
+
+            <option value="00001|3,0,1,4,1,0,2,4,0,3,0,4,1,3,4,2,4,3,0,2,3,1,3,2,4,1,2,0,2,1|6">
+                5,31,00001,Single-Track Gray Codes: IEEE VOL. 42 NO. 5 sec III </option>
+
+            <option value="000000|
+4,2,4,5,2,3,1,3,4,1,2,0,2,3,0,1,5,1,2,5,
+0,4,0,1,4,5,3,5,0,3,4,2,4,5,2,3,1,3,4,1,
+2,0,2,3,0,1,5,1,2,5,0,4,0,1,4,5,3,5,0|5">
+                6,60,000000,Single-Track Gray Codes: IEEE VOL 42 NO. 5 sec Appendix </option>
+
+            <option value="0000001|
+5,4,3,2,1,2,5,0,1,6,2,3,1,0,1,5,4,2,
+4,3,2,1,0,1,4,6,0,5,1,2,0,6,0,4,3,1,
+3,2,1,0,6,0,3,5,6,4,0,1,6,5,6,3,2,0,
+2,1,0,6,5,6,2,4,5,3,6,0,5,4,5,2,1,6,
+1,0,6,5,4,5,1,3,4,2,5,6,4,3,4,1,0,5,
+0,6,5,4,3,4,0,2,3,1,4,5,3,2,3,0,6,4,
+6,5,4,3,2,3,6,1,2,0,3,4,2,1,2,6,5|18">
+                7,126,0000001,Single-Track Gray Codes: IEEE VOL 42 NO. 5 sec Appendix </option>
+
+            <option value="01010001|
+7,6,7,1,5,4,5,2,1,4,1,7,0,3,7,
+6,5,6,0,4,3,4,1,0,3,0,6,7,2,6,
+5,4,5,7,3,2,3,0,7,2,7,5,6,1,5,
+4,3,4,6,2,1,2,7,6,1,6,4,5,0,4,
+3,2,3,5,1,0,1,6,5,0,5,3,4,7,3,
+2,1,2,4,0,7,0,5,4,7,4,2,3,6,2,
+1,0,1,3,7,6,7,4,3,6,3,1,2,5,1,
+0,7,0,2,6,5,6,3,2,5,2,0,1,4,0,
+7,6,7,1,5,4,5,2,1,4,1,7,0,3,7,
+6,5,6,0,4,3,4,1,0,3,0,6,7,2,6,
+5,4,5,7,3,2,3,0,7,2,7,5,6,1,5,
+4,3,4,6,2,1,2,7,6,1,6,4,5,0,4,
+3,2,3,5,1,0,1,6,5,0,5,3,4,7,3,
+2,1,2,4,0,7,0,5,4,7,4,2,3,6,2,
+1,0,1,3,7,6,7,4,3,6,3,1,2,5,1,
+0,7,0,2,6,5,6,3,2,5,2,0,1,4|15">
+                8,240,01010001,Single-Track Gray Codes: IEEE VOL. 42 NO. 5 Appendix </option>
+
+
+            <option value="0001111111|
+0,1,0,4,1,6,4,7,4,6,4,8,4,6,4,7,4,6,
+4,9,4,6,4,7,4,6,4,8,4,6,4,7,4,6,4,2,
+9,0,9,3,0,5,3,6,3,5,3,7,3,5,3,6,3,5,
+3,8,3,5,3,6,3,5,3,7,3,5,3,6,3,5,3,1,
+8,9,8,2,9,4,2,5,2,4,2,6,2,4,2,5,2,4,
+2,7,2,4,2,5,2,4,2,6,2,4,2,5,2,4,2,0,
+7,8,7,1,8,3,1,4,1,3,1,5,1,3,1,4,1,3,
+1,6,1,3,1,4,1,3,1,5,1,3,1,4,1,3,1,9,
+6,7,6,0,7,2,0,3,0,2,0,4,0,2,0,3,0,2,
+0,5,0,2,0,3,0,2,0,4,0,2,0,3,0,2,0,8,
+5,6,5,9,6,1,9,2,9,1,9,3,9,1,9,2,9,1,
+9,4,9,1,9,2,9,1,9,3,9,1,9,2,9,1,9,7,
+4,5,4,8,5,0,8,1,8,0,8,2,8,0,8,1,8,0,
+8,3,8,0,8,1,8,0,8,2,8,0,8,1,8,0,8,6,
+3,4,3,7,4,9,7,0,7,9,7,1,7,9,7,0,7,9,
+7,2,7,9,7,0,7,9,7,1,7,9,7,0,7,9,7,5,
+2,3,2,6,3,8,6,9,6,8,6,0,6,8,6,9,6,8,
+6,1,6,8,6,9,6,8,6,0,6,8,6,9,6,8,6,4,
+1,2,1,5,2,7,5,8,5,7,5,9,5,7,5,8,5,7,
+5,0,5,7,5,8,5,7,5,9,5,7,5,8,5,7,5,3|36">
+                10,360,0001111111,Single-Track Gray Codes: IEEE VOL. 42 NO. 5 Appendix </option>
+
+
+            </select>
+        <br>Starting keyword:<BR>
+        <INPUT TYPE="TEXT" NAME="w" id="w" size=40 value="00">
+        <br>Sequence
+        <br><textarea name="s" id="s" cols=40 rows=10>0,1,0,1</textarea>
+        <br>Distance between sensors:<input type="TEXT" name="d" id="d" value="?" size=3> (enter ? to search)
+	<br>pixel width <input type="TEXT" name="iw"id="iw" value=40 size=3> 
+	height <input type="TEXT" name="ih"id="ih" value=20 size=3>
+        <br><input type="button" value="Go" 
+         onClick="
+           var o=document.getElementById('o');
+           o.m=document.getElementById('m');
+           var w=this.form.w;
+           var s=this.form.s.value.split(',');
+           var p=w.value;
+           var l=p.length; //number of sensors
+           var d=parseInt(this.form.d.value);
+	   if (isNaN(d)) {
+		dh=Math.ceil(s.length/w.value.length);
+		d=1;
+		}
+	   else {
+		dh=d;
+		}
+	   var fail=1;
+           var iw=parseInt(this.form.iw.value);
+           var ih=parseInt(this.form.ih.value);
+           var v,b=0;
+	   for(;d<=dh && (fail>0);d++) {
+              o.innerHTML='length:'+l+'<br>reading:position<br>'+p+':0';
+              o.m.innerHTML='';
+              var m= new Array(); for(var i=0;i<=s.length*l;i++) { m[i]='_';}
+              p=w.value;
+	      this.form.d.value=d;
+	      fail=0;
+              for(var i=0;i<s.length;i++) {
+                  for (var j=0;j<l;j++){
+                     v=j*(d)+i;
+                     b=p.substr(j,1);
+                     if (m[v]!='_' && m[v]!=b) {
+			m[v]='x';
+			if (v<s.length*l) {
+			   fail=v+1;
+			   i=s.length;
+			console.log('length:'+d+' fails at:'+fail);
+			   }
+			} 
+		      else {m[v]=b;};
+                     }
+                  v=parseInt(s[i]);
+                  b=p.substr(v,1);
+                  p=p.substring(0,v)+(b=='0'?'1':'0')+p.substr(v+1,9);
+                  o.innerHTML+='<br>'+p+':'+(i+1);
+                  }
+		}
+	console.log('fail is:'+fail);
+	if (fail>0) {alert('Fails at '+(fail-1));};
+	this.form.mask.size=s.length*2;
+	this.form.mask.value = m.join(',').substr(0,s.length*2);
+	//o.m.innerHTML='<br><table border=1 cellspacing=0><tr><td><img src='+m.slice(0,s.length).join('.gif width='+iw+' height='+ih+'><br><img src=')+'.gif width='+iw+' height='+ih+'></td></tr></table>';
+	//o.m.innerHTML='';
+	var tbl = document.createElement('table');
+	//tbl.border=1;
+	tbl.style.borderTop = '1px solid black';
+	tbl.style.borderBottom = '1px solid black';
+	tbl.cellPadding=0;
+	tbl.cellSpacing=0;
+	for(var i=0;i<s.length;i++) {
+		var row = tbl.insertRow();
+		var cell1 = row.insertCell(0);
+		cell1.style.borderLeft = '1px solid black';
+		cell1.style.borderRight = '1px solid black';
+		cell1.innerHTML='<img src='+m[i]+'.gif width='+iw+' height='+ih+'>'
+		var cell2 = row.insertCell(1);
+		cell2.style.border = '0px';
+		cell2.style.borderBottom = '1px solid black';
+		cell2.style.width = iw;
+		if (!(i%d) && (l-->0)) {cell2.style.border = '1px solid black'}
+		}
+	o.m.appendChild(tbl);
+           ">
+	<span id="link"></span>
+	<BR>Mask:<br><input type="TEXT" name="mask" SIZE=1>
+	<hr style="page-break-before:always;"><table><tr valign=top><td><span id="m">mask</span></td><td>&nbsp;</td><td>
+        <div id="o">
+            
+            </div>
+	</td></tr></table>
+        </form>
+    </body>
+</html>
