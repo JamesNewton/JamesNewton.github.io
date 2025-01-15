@@ -233,6 +233,20 @@ function arraySum(data) {
   return total
 	}
 
+//subtract two images, zero out differences below a threshold.
+function imgSub(img1, img2, thresh) {
+  for (let i = 0; i < img1.length; i += 4) {
+  		let r=i, g=i+1, b=i+2
+      img1[g] = Math.abs(img2[g] - img1[g]); // green
+      img1[r] = Math.abs(img2[r] - img1[r]);     // red
+      img1[b] = Math.abs(img2[b] - img1[b]); // blue
+      if (img1[r] < thresh) img1[r]=0
+      if (img1[g] < thresh) img1[g]=0
+      if (img1[b] < thresh) img1[b]=0
+    }
+
+}
+
 screenshotButton.onclick = video.onclick = function(light) {
   setFlashLight(light);
   let w = canvas.width = video.videoWidth;
@@ -248,15 +262,7 @@ screenshotButton.onclick = video.onclick = function(light) {
 	let imageData = ctx.getImageData(0,0, w, h)
 	let data = imageData.data
 
-  for (let i = 0; i < data.length; i += 4) {
-  		let r=i, g=i+1, b=i+2
-      data[r] = Math.abs(saved.data[r] - data[r]);     // red
-      data[g] = Math.abs(saved.data[g] - data[g]); // green
-      data[b] = Math.abs(saved.data[b] - data[b]); // blue
-      if (data[r] < thresh) data[r]=0
-      if (data[g] < thresh) data[g]=0
-      if (data[b] < thresh) data[b]=0
-    }
+  imgSub(data, saved.data, thresh); 
   saved = ctx.getImageData(0, 0, w, h)
   ctx.putImageData(imageData, 0, 0)
   //sum remaining image by area
