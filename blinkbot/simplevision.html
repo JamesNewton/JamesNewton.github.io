@@ -18,9 +18,69 @@
   Additionally, one does not have to use a visible laser to perform the scan. 
   Most cameras will detect infrared laser beams quite well (some cameras are more sensitive to infrared light).</P>
 
+    <h2>Basic idea</h2>
 <P>Here we see a self-scanning laser diode projecting a beam onto the region in front of it; above is the camera.</P>
-<img src="https://private-user-images.githubusercontent.com/419392/425853830-bed5a360-4e0c-4042-8196-958c8d85bb5b.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDI3NTQ5NjcsIm5iZiI6MTc0Mjc1NDY2NywicGF0aCI6Ii80MTkzOTIvNDI1ODUzODMwLWJlZDVhMzYwLTRlMGMtNDA0Mi04MTk2LTk1OGM4ZDg1YmI1Yi5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUwMzIzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MDMyM1QxODMxMDdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1jZGZmYTVjMGVlMzIwYTVmZjY2OGUwZDc1ZTU0YzhhZjM2NzI4MjRhYzJlYjExNDhlOTAyMDE1MTljNjNiYjEzJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.8yrWrFfzTj7pqHofUZbJ7j-ikDAaoE3MUWRG66NFvto">
-    
+<img src="https://github.com/user-attachments/assets/bed5a360-4e0c-4042-8196-958c8d85bb5b">
+<p>This arrangement would produce the following images:</p>
+<img src="https://github.com/user-attachments/assets/47940609-fa21-4390-8936-0ea71c3e7148">
+<img src="https://github.com/user-attachments/assets/bb4d4a8f-591f-4410-aa60-98d5052b3715">
+<img src="https://github.com/user-attachments/assets/95f94e3b-2931-404b-9ebe-bc61d281bf2d">
+<p>The first image is what the camera sees with the laser on. 
+  The second image is what the camera sees with the laser off. 
+  The third image is the mathematical difference of the two. 
+  By subtracting the first two images, only the difference between them is left: the laser projection. 
+  Finally, one may want to filter the difference image so that the scanned beam appears no thicker than one pixel. 
+  This will aid in map building.
+</p>    
+<h2>Scene Geometry and Range Calculation</h2>
+    <p>
+Now that we have a bitmap image of the laser scan on the objects (and knowing the geometry of the scanner and laser), 
+      we can reconstruct the geometry of the scene.
+
+Examining a simplified form of the laser projection below, where <ul>
+      <li>h is height of the camera above the laser light plane, </li>
+      <li>r is the distance between the camera and the object, </li>
+      <li>y is the y-coordinate of the projection of the laser light on the object as seen on the camera bitmap and </li>
+      <li>f is the focal length of the camera.</li>
+  </ul>
+    </p>
+    <img src="https://github.com/user-attachments/assets/18023e6e-73d6-4d0f-819a-d0637ae7464a">
+    <P>Using simlar triangles, we see that: y / f = h / ( r + f ). Solving for 'r' we arrive at: r = ( f * h ) / y - f
+    </P>
+Since we know f and h, we can determine the range, r, as a function of y.
+
+<h2>Software Implementation</h2>
+    <p>
+We now merely have to scan the difference bitmap and calculate the range of any pixels that result from the laser projection.</p>
+<pre>
+     For y = 1 to Bitmap.YMax
+          For x = -Bitmap.XMax to Bitmap.XMax
+               If Bitmap.Pixel(x,y) != 0 then
+                    ry = f*h/y - f
+                    rx = x * (f+ry)/f
+                    rz = -h
+
+                   { Now do something with the knowledge        }
+                   { that a pixel maps to a particular position }
+                   { relative to the camera. Perhaps convert    }
+                   { to absolute coordinates and build a map    }
+               end if
+          next x
+     next y
+</pre>
+
+    <h2>Reality</h2>
+    <p>Of course the issue with this is it assumes a perfect set of pictures, with no motion between the frames.
+    In fact, a mobile robot will be moving (it's right there in the name) and the two images will be shifted slightly.
+    But this really doesn't cause as much of an issue as one might think. 
+    And in fact, the shift is valuable on it's own. </p>
+    <p>The difference between the frames will be larger given relative motion of the pixels caused by motion of the robot or objects around the robot.
+    Objects moving around the robot SHOULD be seen!
+    We want the robot to react to things that might run into it or interact with it.
+    </p>
+    <p>Motion caused by the robot falls into two areas: Rotational shifts and Perspective shifts.</p>
+    <
+
     
   </body>
 </html>
