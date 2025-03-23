@@ -1,6 +1,16 @@
 <html>
 
   <body>
+<p>
+    The vision part of the web bot page mentioned in the latter part of the description has been confusing to people. 
+  In part, because everything today is "MORE POWER" and "I'll just use a 3D camera!" 
+  and that seems great until they get buried in data and can't react in time as a result. </p>
+<p>
+This is <i>simple</i>, <i>small</i>, <i>efficient</i>, <i>smart</i> and comes from a day when you didn't have massive compute or ultra high resolution. 
+  And things still had to work. I was introduced to it near the turn of the century (LOL) by a discussion on the PICList:<br>
+<a href="http://www.piclist.com/techref/io/sensor/pos/opticalranging.htm#​">http://www.piclist.com/techref/io/sensor/pos/opticalranging.htm</a>
+  </p>
+    
  <P>Structured light vision techniques greatly simplify the process of triangulating the position of a point in space. 
    Using structured light techniques, one can do realtime navigation without lots of horsepower. 
    This is because one is able to project a beam with known coordinates. 
@@ -79,7 +89,23 @@ We now merely have to scan the difference bitmap and calculate the range of any 
     We want the robot to react to things that might run into it or interact with it.
     </p>
     <p>Motion caused by the robot falls into two areas: Rotational shifts and Perspective shifts.</p>
-    <
+    <p>Perspective Shifts are caused with the robot moves forward or back and obejcts in the cameras view change size. 
+    This is actually very useful! 
+    Think about an object far from the robot. It's pixels will change little, if at all. The robot won't react to it. 
+    Now think about an object very close to the robot. 
+    It will change in a large way and will indicate that the object is close. Which is exactly what you want!
+    Especially, think about an object near, but to the right side of the robot. 
+      This object will cause a large shift in pixels, indicating a close, large, dangrous object.
+      The robot should then turn away from it, to the left, thereby avoiding the collision. 
+    </p>
+    
+    <p>Rotational Shifts are caused when the robot turns, and are probably the least useful / biggest problem.
+    However, they can be reduced by sensing optical flow, and removing the rotation from the second frame digitally.
+    But in practice, this is largely unnecessary; 
+      if the "laser" line is horizontal, and is the primary illumination, it won't change as it lefts side to side.
+    Bright objects in the distance will typically be higher up and can be ignored by simply reducing the weight of reaction to pixels higher in the image.
+    Bright objects up close <i>should</i> cause a reaction as they are "noticed" during the turn. 
+    </p>
 
     
   </body>
