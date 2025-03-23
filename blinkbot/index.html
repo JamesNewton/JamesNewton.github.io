@@ -3,7 +3,132 @@
     
   </head>
   <body>
+<p><strong>What if I&nbsp;told you it was possible to SAFELY use ANY SmartPhone as a robot brain?</strong></p>
 
+<p>On any smartphone with a browser, load a freely hosted github.com webpage with Javascript that blinks areas on the screen to send motor commands to an e.g. Arduino. The page can also access web services API's for voice, object recognition, teleoperation, etc... via WiFI or Cellular data.</p>
+
+
+<p>- <strong>Safe</strong>:&nbsp;No electrical connections to the phone, so you can't possibly damage it.<br>- <strong>Any SmartPhone</strong>: Not dependant on any hardware support; doesn't need USB, audio jack, BLE, anything.<br>- <strong>Secure</strong>:&nbsp;No app needed, so no security concerns, no development software required, nothing to learn but Javascript.<br>100% reliable, no configuration, easy debugging because everything is visible.<br>- <strong>Sensors</strong>:&nbsp;You still get access to all the sensors on the phone; camera, accelerometer, compass, GPS, and to the web via WiFI or cellular connection. <br>- <strong>Internet</strong>:&nbsp;You can remote control it, or have it log data, pics, etc... It can access online services for object reco, voice APIs, etc... but no for $ service provider is required; it's free.<br>- <strong>Stunningly Cheap</strong>:&nbsp;Total additional cost, beyond a tiny circuit or a cheap mcu (Arduino, Pi Pico, etc...), dc motors or servos, battery, whatever else you use for the robot, is&nbsp;<em>pennies</em>. All open source, no required services, no BS.</p>
+
+
+<p><strong>History:&nbsp;ESP's web servers provide great UI's on SmartPhones</strong></p>
+
+
+<p>The <a href="https://www.sdmakersguild.org/">San Diego Makers Guild</a> has provided literally hundreds of <a href="https://www.sdmakersguild.org/events/cardboard-combat-bots/">low cost robots</a> to kids at events. These are based on the NodeMCU (ESP32 or 8266) devices, with a couple continuous rotation servos and a battery pack, programmed with a web server accessible via direct WiFi connections, which allowed them to be controlled by a web page on a cell phone or PC. There are many advantages:</p>
+
+
+<p>- $5 chip, a pair of $5 continuous rotation servos, and a $2 battery pack. All the display, controls, user interface, etc... are on the SmartPhone<br>- Very clean, responsive, and fun remote control interface, without any app to install; just uses the browser on the phone. <a href="https://photos.app.goo.gl/h44D8LdqZJH4XFrW6">This video explains it pretty well.</a>&nbsp;It's from a time when we were using the bots in a combat league.&nbsp;<br>- You can serve any static web page, so not only the basic remote control interface, but also your own custom version, settings, and even a simple web based IDE to edit the files on the ESP; it becomes a <a href="https://github.com/JamesNewton/SDMG-Web-Bot#additional-features">mobile webdev platform</a>!<br></p>
+
+
+<p>The use of the ESP chips to host web pages for smartphones is a great trick but... it's a bit of a trap, in that it's limiting.&nbsp;</p>
+
+
+<p><strong>Historical problems:&nbsp;No web services, no access to sensors:</strong></p>
+
+
+<p>It doesn't allow one to use the phone to contact the internet in general, and worse than that, you can't put the phone ON the robot /and/ use the sensors in the phone from a web page unless the web page is https with a valid certificate. The browsers security won't allow it.&nbsp;</p>
+
+
+<p>Which means you either have to write an app, or install a cert on the ESP (nightmare) or connect the ESP to your house WiFI (which is VERY insecure and just a general bad idea)&nbsp;or... you have to just live without the camera, mic, accelerometers, GPS, compass, etc... all the wonderful sensors that the phone can give us. Which is a huge loss, because they can tell the robot what is around it, that it bumped into something, what direction its moving, where it is, etc.. Not to mention sending pictures to google for classification of objects or sending sound to recognize verbal commands, etc...</p>
+
+
+<p><strong>If not WiFi...<br></strong>Instead, let's connect the smartphone to the robot some other way so we can still just use a web page, avoid an app, and run on the net. But what ways can we connect?&nbsp;</p>
+
+
+<p>- Bluetooth Low Energy is <a href="https://www.google.com/search?q=ble+sucks">horribly unreliable</a>. Getting every model of phone to pair correctly is a nightmare, and... sending data from a web page to a BLE device isn't supported anyway. And you need a microcontroller that supports it, so it really limits your choices.&nbsp;<br>- We could use Bluetooth audio... but again, not reliable, and now we must decode audio on the robot. And you, again, need a controller that manages it.<br>- USB OTG is poorly supported; many phones just don't do it. Also, it's an electrical connection, and if a kid (or someone like me) wires it wrong, dads expensive smartphone can go up in smoke. Maybe. And... you can't send data to USB serial from most browsers.<br>- We could use the headphone jack, but again, not all phones have it. And it's a (minor) electrical risk.&nbsp;</p>
+
+
+<p>But, you know what all phones DO have? And can't be blocked? And doesn't require permissions or anything to access?</p>
+
+
+<p>A <em>screen</em>. Tada!</p>
+
+
+<p><strong>Der Blinkenlights<br></strong>We can build a circuit that senses light from an area on the screen. That can be used in an "analog"&nbsp;mode with a darker or brighter block in that area via a simple transistor / resistor circuit and a DC motor to provide direct control. Or, for actual data transfer and better control, we can use an Arduino or Pi or whatever processor to get digital data. The web page can blink out messages at VERY high frame rates these days. So I've written a page that uses light blocks to send data and some people have designed and built electronics for it:</p>
+
+
+<p><a href="https://hackaday.io/project/4196-2wire-i2c-from-blocks-of-light-on-an-lcd-screen">https://hackaday.io/project/4196-2wire-i2c-from-blocks-of-light-on-an-lcd-screen</a><br></p>
+
+
+<p><a href="http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html">http://techref.massmind.org/techref/io/serial/i2c/withGIFs.html</a></p>
+
+
+<p>It's not blazing fast, but... how long does it take to send a few bits for each motors speed? Not long.</p>
+
+
+<p>By doing that, we can&nbsp;<br>1. Write a web page (e.g. on github.com which provides a good cert, and so can access your phones sensors, and sets `Access-Control-Allow-Origin: *` so the code on the page can access ANY 3rd party service).</p>
+
+
+<p>2. Change the light level to drive the DC motor, or blink out messages to a /really/ low end processor (e.g. Arduino UNO/Nano, Pi Pico, etc...) to control a pair of continuous rotation servos, or anything you like really.&nbsp;</p>
+
+
+<p>3. In the Javascript on the page, we can use the phones sensors to control the robot locally, send data to cloud services for deeper analysis, and...&nbsp;</p>
+
+
+<p>4. There is a system called BOSH which can xfer data for us for FREE to any terminal on the net. Here's how that works:<br><a href="https://en.wikipedia.org/wiki/BOSH_(protocol)">https://en.wikipedia.org/wiki/BOSH_(protocol)</a><span></span><br></p>
+
+
+<p><strong>Teleoperation<br></strong>BOSH supports server push notifications by simply not responding to a request from the client until the server has something to send to the client. The request simply hangs until data arrives (via another connection to the server from the sender) or until it times out. In either case, it is the clients responsibility to re-establish the request as quickly as possible and so continue listening for data from the server, or more accurately from a sender via the server.<br>https://en.wikipedia.org/wiki/BOSH_(protocol)</p>
+
+
+<p><strong>Free Teleoperation<br></strong>But where would a student with no money host a server with server side scripting? Well, it turns out that Google app engine gives users a few free hours /every month/ instead of just at the start. This has been tested, and works quite well:</p>
+
+
+<p><a href="https://github.com/HaddingtonDynamics/Dexter/issues/31#issuecomment-633180367">https://github.com/HaddingtonDynamics/Dexter/issues/31#issuecomment-633180367</a></p>
+
+
+<p>This means that we can move data between any PC browser /anywhere on the net/ and the cell phone on the robot! It's true teleoperation. It works best for small amounts of data (so you don't end up getting a usage bill) but I've found you can do quite a lot with it.</p>
+
+
+<p><strong>Vision<br></strong>It's also amazing how much you can do in a web page on a SmartPhone running in Chrome. Even processing live video is quite possible; just with Javascript.</p>
+
+
+<p>So here is a VERY rough implementation of using vision to guide a robot.&nbsp;<br><a href="https://jamesnewton.github.io/webbot.html">https://jamesnewton.github.io/webbot.html</a></p>
+
+
+<p>It uses the camera and frame subtraction to show differences over time and summarize those changes as being in the left, right, or top center of the area. It ignores the lower center area. If it sees motion on the left, it turns right, and vice versa. If it sees motion ahead it stops. The point is that anything close by will be seen to move, relative to the robots motion. It sends "L", "R" or "F" for Left Right Forward via the images at the bottom.&nbsp;</p>
+
+
+<p>If you build the circuit, and program an Arduino to drive the servos as commanded, then you have a sighted robot.&nbsp;</p>
+
+    <p>This can be combined with  <a href="simplevision.html">simple structured light vision</a> for avery sensitive obstical avoidance system</p>
+
+
+<p><strong>And beyond!<br></strong>MUCH more advanced systems are possible.&nbsp;</p>
+
+
+<p>Even that page could be improved, by sending a binary value based on how much motion is detected. Something like 4 bits for the left motor, and 4 for the right. In hex, 88 is stop, 00 is full reverse, FF is full forward. F0 spins right in place, 89 is a slight turn to the left and so on.&nbsp;</p>
+
+
+<p>- <strong>Optical Flow:</strong> Much better for sensing motion:<br><a href="https://docs.opencv.org/3.4/db/d7f/tutorial_js_lucas_kanade.html">https://docs.opencv.org/3.4/db/d7f/tutorial_js_lucas_kanade.html</a></p>
+
+
+<p>- <strong>Bumper:</strong>&nbsp;We can use the Accelerometer to detect when we have bumped into something, or when we are tipping<br><a href="https://sensor-js.xyz/demo.html">https://sensor-js.xyz/demo.html</a></p>
+
+
+<p>- <strong>Compass&nbsp;Direction:</strong>&nbsp;We can look at the compass to keep the robot rolling straight:<br><a href="https://dev.to/orkhanjafarovr/real-compass-on-mobile-browsers-with-javascript-3emi">https://dev.to/orkhanjafarovr/real-compass-on-mobile-browsers-with-javascript-3emi</a></p>
+
+
+<p>- <strong>Faces:</strong>&nbsp;We can do face tracking:<br><a href="https://docs.opencv.org/3.4/df/d6c/tutorial_js_face_detection_camera.html">https://docs.opencv.org/3.4/df/d6c/tutorial_js_face_detection_camera.html</a></p>
+
+
+<p>- <strong>Voices:</strong>&nbsp;We can listen for voice commands:<br><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API">https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API</a></p>
+
+
+<p>- <strong>GPS:</strong> We might even be able to use GPS to drive to waypoints in a large enough space; like a parking lot or warehouse.&nbsp;<br><a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API/Using_the_Geolocation_API">https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API/Using_the_Geolocation_API</a></p>
+
+
+<p><strong>$</strong><br>All of that for less than $20 worth of parts.&nbsp;</p>
+
+<p><strong>Status:</strong></p>
+
+<p>See <a href="https://hackaday.io/project/184720/logs">the logs</a> for the work that has been done and current ideas.&nbsp;</p>
+
+
+<p><strong>What's needed:</strong><br>- A PCB with the light sensors, headers for the 2 (or 3? 4?) servos or motors, power input, maybe some LEDs... I'd like a laser line driver. Let's not make it a shield, but instead something that plugs into the edge of any number of little controllers, like the <a href="https://hackaday.io/project/181972-rc-servo-adapter">RC Servo adapter</a>. In fact, let's use that for the servo header, and just do the light sensors and LEDs on the new one? For now, the light sensors can just plug into an Arduino.&nbsp;</p>
+
+
+<p><br>- A laser cut or 3D printed body that:<br>- - Holds the PCB with the light sensors against the bottom front of the Smartphone screen.<br>- - Holds the Smartphone vertically.<br>- - Holds the continuous rotation servos (with their wheels attached)<br>- - Holds a tailwheel, or bead, or something to provide a stable base.&nbsp;<br><br></p>
     
     Hackaday is too unreliable. 
   </body>
