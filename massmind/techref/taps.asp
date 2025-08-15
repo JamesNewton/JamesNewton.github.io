@@ -1,19 +1,19 @@
 
-<HTML manifest="/js/taps.appcache">
+<HTML manifest="../js/taps.appcache">
 <HEAD>
   <!-- Created with AOLpress/2.0 -->
   <TITLE>Drill size for Tap, tap drill size, Calculate drill size for tap</TITLE>
 
 <link rel="stylesheet" type="text/css"  
-      href="/js/oldphone-menulinklists.css" media="only screen and (max-width: 480px)" />
+      href="../js/oldphone-menulinklists.css" media="only screen and (max-width: 480px)" />
 <link rel="stylesheet" type="text/css" 
-      href="/js/default.css" media="screen and (min-width: 481px)" />            
+      href="../js/default.css" media="screen and (min-width: 481px)" />            
 
 <meta name="viewport" content="initial-scale=1, width=device-width" />
 
-<link rel="apple-touch-icon" href="/images/tapspiralpoint.jpg" />
+<link rel="apple-touch-icon" href="../images/tapspiralpoint.jpg" />
 
-<link rel="apple-touch-icon-precomposed" href="/images/tapspiralpoint.jpg" />
+<link rel="apple-touch-icon-precomposed" href="../images/tapspiralpoint.jpg" />
 
 </HEAD>
 <BODY>
