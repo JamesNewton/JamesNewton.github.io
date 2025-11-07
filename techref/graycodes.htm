@@ -1,0 +1,173 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 2-Nov-2015 -->
+  <!-- AP: Last modified: 2-Nov-2015 -->
+  <TITLE>Gray Code Data</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Gray Code <A HREF="datatype.htm">Data</A>
+</H1>
+<P>
+A Gray code (after the inventer Frank Gray) is any binary coding sequence
+in which only a single bit position changes as we move from one value to
+the next.
+<P>
+E.g. in normal binary counting, when you go from 1 to 2, the binary values
+are 01, then 10. In that case, both bits changed. The lower 1 changed to
+a 0 and the upper (implied) 0 changed to a 1. In Gray code, 1 is 01, but
+2 is 11 (only the 2nd bit changed) and then the binary pattern 10 is used
+for 3 instead (only the lower bit changes from 2 to 3)
+<P>
+Gray Codes are often used in <A HREF="io/sensor/pos/enc/greycodes.htm">Input
+sensors for position change, Grey Code / Single Track Grey Code Encoders</A>
+because it is impossible to ensure that two bit sensors in an encoder will
+always change value at exactly the same time.
+<P>
+Here are the values from 0 to 15 in Gray Code Binary encoding:
+<TABLE CELLSPACING="0" CELLPADDING="2" ALIGN="LEFT">
+  <TR VALIGN="Bottom">
+    <TD><B>Value</B></TD>
+    <TD><B>Binary</B></TD>
+    <TD><B>Gray <BR>
+      Encoding</B></TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;0</TD>
+    <TD>0000</TD>
+    <TD>0000</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;1</TD>
+    <TD>0001</TD>
+    <TD>0001</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;2</TD>
+    <TD>0010</TD>
+    <TD>0011</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;3</TD>
+    <TD>0011</TD>
+    <TD>0010</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;4</TD>
+    <TD>0100</TD>
+    <TD>0110</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;5</TD>
+    <TD>0101</TD>
+    <TD>0111</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;6</TD>
+    <TD>0110</TD>
+    <TD>0101</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;7</TD>
+    <TD>0111</TD>
+    <TD>0100</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;8</TD>
+    <TD>1000</TD>
+    <TD>1100</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>&nbsp;9</TD>
+    <TD>1001</TD>
+    <TD>1101</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>10</TD>
+    <TD>1010</TD>
+    <TD>1111</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>11</TD>
+    <TD>1011</TD>
+    <TD>1110</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>12</TD>
+    <TD>1100</TD>
+    <TD>1010</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>13</TD>
+    <TD>1101</TD>
+    <TD>1011</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>14</TD>
+    <TD>1110</TD>
+    <TD>1001</TD>
+    <TD></TD>
+  </TR>
+  <TR>
+    <TD>15</TD>
+    <TD>1111</TD>
+    <TD>1000</TD>
+    <TD></TD>
+  </TR>
+</TABLE>
+<P>
+There are many such codes, but the traditional one is computed such that
+the Kth Gray code is K^(K&gt;&gt;1). The ^ operator is XOR, in this case,
+it means that the K&gt;&gt;1'th bit in K is toggled. &gt;&gt; is the shift
+right operator, which in this case is shiving the value one bit to the right.
+In short, K^(K&gt;&gt;1), means that to fined each value, start with the
+binary version of that value, then shift it right one binary digit and XOR
+that with the original.
+<P>
+The well-known algorithm for conversion from Gray to binary is a linear sequence
+of XORs that makes it seem each bit must be dealt with separately. Fortunately,
+that is equivalent to a parallel prefix XOR that can be computed using SWAR*
+techniques in log time. For 32-bit Gray code values produced as described
+above, the conversion from Gray code back to unsigned binary is:
+<PRE>	unsigned int
+	g2b(unsigned int gray) {
+	        gray ^= (gray &gt;&gt; 16);
+	        gray ^= (gray &gt;&gt; 8);
+	        gray ^= (gray &gt;&gt; 4);
+	        gray ^= (gray &gt;&gt; 2);
+	        gray ^= (gray &gt;&gt; 1);
+	        return(gray);
+		}
+</PRE>
+<P>
+* SWAR (SIMD Within A Register) is a technique for performing parallel operations
+on data contained in a processor register. SIMD (Single Instruction, Multiple
+Data) is the application of a single operator to multiple data values in
+parallel. E.g. XOR operation applied to two byte wide values. All the bits
+are processed at once.
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://en.wikipedia.org/wiki/Gray_code">https://en.wikipedia.org/wiki/Gray_code</A>
+  <LI>
+    <A HREF="http://aggregate.org/MAGIC/#Gray%20Code%20Conversion">http://aggregate.org/MAGIC/#Gray%20Code%20Conversion</A>
+</UL>
+<P>
+</BODY></HTML>
