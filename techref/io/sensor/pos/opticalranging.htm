@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Last modified: 7-Feb-2006 -->
+  <TITLE>Optical Ranging</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Optical Ranging
+</H1>
+<P>
+Andy Kunz says
+<BLOCKQUOTE>
+  ...Have you considered optical (laser) ranging? Two laser transmitters set
+  to converge at a spot at the far end of your expected range. Use a CCD to
+  accurately measure the distance between the dots. This is linearly proportional
+  to the distance. Simple geometry --&gt; simple code.
+</BLOCKQUOTE>
+<P>
+Peter van Hoof says:
+<BLOCKQUOTE>
+  ...no need for two lasers and two dots if the
+  <A HREF="../../../cameras.htm">camera</A> is mounted a fixed distance from
+  the laser...
+</BLOCKQUOTE>
+<P>
+Dan Larson says:
+<BLOCKQUOTE>
+  ...you can turn the laser off, take a frame, and if the dot is still there,
+  it wasn't the laser. Actually, you could just take two frames. One with lasers
+  on and the other with lasers off. Subtract them. What's left are only the
+  laser dots and some noise, which could be easily filtered.
+  <P>
+  <A HREF="http://www.embedinc.com">Olin Lathrop</A> [olin at embedinc.com]
+  says:
+  <BLOCKQUOTE>
+    That sounded like such a good idea I had to try it myself. I agree with Randy.
+    Wow! I would have included the results in this email message, but I figured
+    that the images would exceed the PIClist line length limit. I therefore set
+    up a web page at
+    <A HREF="http://www.embedinc.com/temp">http://www.embedinc.com/temp</A> (cached
+    <A HREF="../imagediff.html">20010206145741</A>) for those of you that would
+    like to see the results.
+  </BLOCKQUOTE>
+</BLOCKQUOTE>
+<P>
+I've been hearing this solution for a while and I'm sure it would work nicely.
+It is further described at:
+<A HREF="https://web.archive.org/web/20030212215943/http://www.cyberg8t.com/pendragn/actlite.htm">http://www.cyberg8t.com/pendragn/actlite.htm</A>
+(cached
+<A HREF="../../../com/cyberg8t/www/http/pendragn/actlite.htm">20010131154628</A>, <A HREF="https://web.archive.org/web/20030212215943/http://www.cyberg8t.com/pendragn/actlite.htm">20030212</A>)
+and (as <A HREF="http://www.people.cornell.edu/pages/shb7/index.html">Sean
+H. Breheny</A> notes)&nbsp;is often used in AutoFocus Cameras as described
+at
+<A HREF="https://web.archive.org/web/20010302083547/https://www.hobbyrobot.com/info/gp2d02/index.html">http://www.hobbyrobot.com/info/gp2d02/index.html</A> (Cashed <A HREF="https://web.archive.org/web/20010302083547/https://www.hobbyrobot.com/info/gp2d02/index.html">20010302</A>)
+<P>
+The problem(s) is(are):
+<OL>
+  <LI>
+    CCDs are in the under a $100 range. (getting lower ever day... see
+    <A HREF="../../../cameras.htm">camera</A>s) Ok for the dedicated hobbiest
+    but it makes it hard for kids, producable products, or wife/kid limited budgets
+    (me).
+  <LI>
+    Reading a CCD and finding the right spot requires
+    <UL>
+      <LI>
+	Speed. the standard 4Mhz <A HREF="../../../microchip/index.htm">PIC</A> just
+	ain't going to do it in real time. Could use a PIC with a timer or a faster
+	one. Maybe an <A HREF="../../../scenix/index.htm">SX</A>.
+      <LI>
+	Lots of RAM to take two shots and compaire. Could just count how long untill
+	the laser beam shows up on each scan line. Compair counts. Very little memory
+	needed. But how do you detect the beam and reject other sources?
+      <LI>
+	It just seems to me (and I wish I had time to prove it) that its not necessary.
+    </UL>
+</OL>
+<P>
+3D scanning takes almost no memory if you don't do the "frame difference"
+thing. One counter for "how far am I from the hsync pulse" and then that
+value gets RS232'd or what ever back to the host and then wait for vsync
+and then count down to the next horizontal line and repeat. Over the course
+of 256 fields, you get a complete vertical scan. Then hit the stepper motor
+to rotate the camera / laser platform one step right and repeat. For faster
+operation you can store up the first X lines and send them parallel then
+do the next X lines, etc... If the laser is modulated, you verify that the
+count you got last time is not there when the laser is off.
+<P>
+Or for a robot, you toss the bulk of the information... divide the result
+into 4 or so ranges ("too close", "close", "present" and "open"; two bits
+per line) and only do every 4th line or something. Since the robot doesn't
+really need to be as concerned about the height of the objects its navagating
+around, the whole thing needs to be on its side so your laser line is left
+to right and the cameras horizontal lines are scanning vertically.
+<P>
+Again, modulate the Laser(s) and use a photo diode to a filter with Q at
+modulation frequency directed by a
+<A HREF="../../../idea/mscan/scan1.jpg">mirror on a pager motor</A>. The
+filter outputs pluses only when it sees the correct frequency and the time
+between the two pluses (or from the pluse to a reference provided by a sensor
+that watches the mirror spin when using only one laser) is proportional to
+the distance. Easily PICable, very low cost, etc...
+<P>
+Actually Scott Dattalo has done a brilliant page at
+<A HREF="https://web.archive.org/web/20021214032159/http://www.interstice.com/~sdattalo/technical/theory/dtmf.html">http://www.interstice.com/~sdattalo/technical/theory/dtmf.html</A>
+on how to pick out the presence a frequency by just sampeling the signal
+at a regular interval (ISR) and doing a DFT on it. He uses it for 0 hardware
+DTMF. Scenix did it in thier single chip modem. It could be used in a PIC
+to eliminate the filter and just connect the photo-diode to the PIC. Another
+pin for the reference pulse and maybe a PWM out for the motor speed.
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="../../../new/letter/news0310.htm">October 2003 MassMind Newsletter</A>
+</UL>
+<P>
+
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45741.9527893519" HREF="https://archive.seattlerobotics.org/encoder/200304/Robot%20Positioning%20in%20Visual%20Basic.htm" TARGET="_top">
+https://archive.seattlerobotics.org/encoder/200304/Robot%20Positioning%20in%20Visual%20Basic.htm</A> 
+Positioning via triangulation.<!-- 45741.9527893519 EOR -->
+
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="41856.7336342593" HREF="http://dspace.mit.edu/bitstream/handle/1721.1/6483/AIM-1016.pdf?sequence=2" TARGET="_top">
+http://dspace.mit.edu/bitstream/handle/1721.1/6483/AIM-1016.pdf?sequence=2</A> 
+Herbert the soda can collecting robot, Used a laser line, with a camera, and a parallel network of small 6800 uC's to look for the laser in each line of video.<!-- 41856.7336342593 EOR -->
+
+  <LI>
+    <A HREF="https://www.instructables.com/3-D-Laser-Scanner/">https://www.instructables.com/3-D-Laser-Scanner/</A>
+    3D scanner from a laser pointer, wine glass, lazy susan, and a video camera
+</UL>
+<P>
+Archive:
+<UL>
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="38223.4013541667" HREF="http://www.piclist.com/techref/postbot.asp?by=time&amp;id=piclist/2004/08/21/045410a"
+	TARGET="_top">PICList post "<I>Suggestion - Range finding over short
+    distances</I>"</A> <!-- 38223.4013541667 EOR -->
+</UL>
+</BODY></HTML>
+
+
