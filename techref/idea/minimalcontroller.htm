@@ -1,0 +1,638 @@
+
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 18-Dec-2007 -->
+  <!-- AP: Last modified: 12-May-2020 -->
+  <TITLE>Minimal Controller Idea</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  ABC: Minimal Controller <A HREF="../ideas.htm">Idea</A>
+</H1>
+<P>
+Small device with a pre-programmed <A HREF="../cpus.htm">microcontroller</A>
+like a <A HREF="../zilog/Z86E0812PEC.htm">z8</A> or
+<A HREF="../microchip/index.htm">PIC</A> (e.g.
+<A HREF="../microchip/18F8720-j.htm">18F8760</A>) or PSoC programmed with
+code to drive a <A HREF="../io/lcd/panel1.htm">small LCD panel</A>,
+<A HREF="../io/keyswitch.htm">scan some key switches</A>, communicate on
+a serial port and read or write to an FLASH / EEPROM. Any left over pins
+are available for general purpose IO.
+<P>
+On power up, it can read and execute a byte code
+<A HREF="../language/index.htm">language</A> called ABC
+<A TITLE="P-JMN-EFP-786" NAME="41755.0076157407" HREF="http://ideone.com/rv1dk">^</A><!--
+41755.0076157407 EOR -->, like the <A HREF="../piclist/cump/bytecode.htm">CUMP
+Byte Code</A> or <A HREF="../language/meta-l/bitscope.htm">BitScope Command
+Set</A> from the serial port, if a device is connected or from the EEPROM
+if not. Unlike <A HREF="../language/forths.htm">Forth</A> or
+<A HREF="../language/mouse.htm">Mouse</A>, ABC appears to be a forward notation
+language. E.g. instead of <TT>B 1 + A !</TT> to assign the value of B+1 to
+the variable A, we can say <TT>A:B+1</TT>. (: is the assignment operator
+and it's actually optional). Like mouse, or
+<A HREF="../language/logos.htm">Logo,</A> ABC is very lightweight and can
+be implemented in a few hundred lines of C code. Like an assembly language,
+ABC is based entirely on moving things from source to destination with operations
+along the way. 
+<P>ABC looks more complex than it is. The core is simplicity itself:<BR> <B>Destination, operation, source</B>
+<BR>Just... where to put it, what to do to it, where to get it from. Nothing more than that. It LOOKS really high level, but it isn't.
+<P>
+Then we add single character labels to everything. e.g. there are 26 variables (like registers) "a" to "z". those can be sources or destinations. Then there are operations, e.g. 
+<UL>
+<LI>"+" for add, 
+<LI>"=" for is it equal? 
+<LI>":" for make it equal e.g. set it. E.g. "a:1" (set register a to one). 
+</UL>
+<P>Then we do one little trick: Don't clear the destination until the end of the line, and instead re-use it for multiple operation destination sets. E.g. <I>destination, [operation, source]</I>. And suddenly you have things like "a:b+1" (set a to the value of b and then add one). 
+<P>
+Then we can play with a parser that notices the operation is already set, but the source hasn't been. That makes a double op. e.g. "++" for increment. You can also think of it as an operation of "+" and a source of "+" which is the value of the destination and the number 1. e.g. "a++" 
+<P>
+"?" is a fun one. If the "true" flag is on, just ignore it and continue. If it's off, skip tokens until the end of the line. So "a=1?b++" If a is 1, increment b.
+<P>
+Now add in some IO or other hardware functions, like reading a pin or port into a variable or pushing the value of a variable out to a port or pin and we can get work done in the real world. 
+
+<H3>
+  Registers / Memory
+</H3>
+<P>
+Internal RAM / fast memory is addressed by the lower case letters 'a' to
+'z' as a register array: 8 bit (unsigned char). Each letter points the the
+first of 4, 8 bit values or 32 bits of memory. e.g. "a" is register 0, "b"
+is register 4. 26 letters times 4 bytes is 104 ,4 byte values or 108 bytes
+of RAM. If available, additional memory is added to the end, as 'z' + an
+offset, for use as a stack up to 128 bytes. In addition, there are the following
+special case registers:
+<P>
+NUM stores numbers interpreted from the command text . The commands come
+from any of several input sources: The default setting is EEPROM, but if
+no "autostart" program is loaded, or after it has run, then commands from
+serial or if that isn't connected, from the local LCD / Keys are processed.
+NUM is used extensivly. Numbers offset register addresses, hold values from
+SRC to be acted upon by OP and placed in DST, act as literals, etc... NUM
+is an int, e.g. 32 bits signed.
+<P>
+SRC and DST reference one of the 108 8 bit memory location registers or (high
+bit set) one of the available devices (LCD/Keys, Serial, EEPROM, IO). The
+DST is set first, and the SRC/DST flag toggled so that SRC is loaded next
+at which point the current operation and comparison are performed. If SRC
+is not loaded (zero), NUM is the SRC. After each operation SRC is cleared.
+At the end of each line, the SRC/DST flag, OP and DST are also cleared. Each
+character location in the LCD is mapped to an address in DST. When writing
+to the LCD, DST is incremented after each write.
+<P>
+OP stores the operation to perform once we have a SRC (we should already
+have a DST) or when the line ends. Since there is only one SRC at a time,
+binary operations like addition always accumulate into DST. i.e. DST is the
+implied second source in binary operations. The default operation, when no
+other is specified, is copy. i.e. if only a DST, then a SRC are specified,
+the value of the SRC is simply written to the DST. OP is not cleared between
+SRC's so that " (the quote mark) can escape " (the quote mark).
+<P>
+FLAGS
+<UL>
+  <LI>
+    RX/EE<BR>
+    pull command bytes from the serial port / keybaord or the EEPROM. If the
+    first character of the EEPROM memory isn't zero, set this bit. It is also
+    set when sent a lower case letter as a function call.
+  <LI>
+    SRC/DST<BR>
+    set when the SRC register is to be loaded, clear for DST. Each line starts
+    with this bit cleared, and it is set after the DST is loaded.
+  <LI>
+    LG/EQ<BR>
+    set when checking for less than / greater than, clear when comparing equality
+  <LI>
+    LtE/GtN<BR>
+    set for equal, clear for not equal when LG/EQ clear. set for less than, clear
+    for greater than when LG/EQ set.
+  <LI>
+    TRUE<BR>
+    set when the comparison finds truth, clear when false.
+  <LI>
+    CARRY<BR>
+    added to result of operation
+</UL>
+<P>
+<H3>
+  <a name="Bytecode">Bytecode</a>:
+</H3>
+<P>
+The goal here is to get as close to a high level language, or at least a
+very understandable syntax, without including a compiler, and using the minimum
+resources possible to interpret the bytecodes. How little code can interpret
+something that at least looks like a HLL?
+<PRE>
+0-9 A-F	nibble swap NUM, load hex digit into low nibble of NUM. 
+	Conversion from/to decimal is too much? Maybe not?
+:	Copy operation, effectivly a noop. Not really needed, included only for readability.
+a-z	set SRC or DST to register. a is register 0. b is register 4. z is 100.
+	a:5 sets register 0 to 5. a:b copies register 4 to register 0.
+	NUM is added to the register address first. 3a is the third byte after the start of a. 
+	Register 125 is 7Da or 19z (19h=25d, z=100, +25=125) SRC, DST, etc start at 5z.
+	After DST is loaded, SRC/DST is set and the next address is loaded to SRC.
+@	index. Replace SRC or DST with the value at that address
+	 and clear op. This sets the stage for another op and SRC.
+	e.g. b@a sets the DST to the address of b plus the value of a.
+	If the SRC is a port or port pin, read that value in. 
+"	(Quote) Text. Each following char is copied to the DST until the ending quote.
+	If the DST is a variable, the chars are actually copied into FLASH and the var is
+	set to the starting address of the string in FLASH.
+	If the operation was already " when a new starting " is seen, 
+	put a " to the dest then enter text mode. <TT><U>"Push ""START"""</U></TT> prints <TT><U>Push "START"</U></TT>
+#	Converts the value of source to decimal digits and copies it to DST.
+	incrementing DST after each digit. 
++	set operation to add. a+b adds b to a. a:b+5 sets a to b then adds 5. 
+	if there is no SRC, the NUM is used as the SRC. a+1 increments a.
+	maybe if last op was +, load 1 into NUM. a++ increments a.
+-	set operation to add, pre operation to negate or not, and set carry
+&amp;	set operation to bitwise AND. a-&amp;b ANDs a with NOT b. a&amp;-b subtracts b from a (&amp; is ignored)
+|	set operation to bitwise OR
+=	set compare type to equal
+&lt;	set compare type to less than
+&gt;	set compare type to greater than
+{	Less than or equal (ASCII value of '&lt;' plus '=' less 63)
+}	Greater than or equal (ASCII value of '&gt;' plus '=' less 63)
+~	Not. Toggle true/false flag. Use with greater less and equal. 
+		; e.g. a&lt;b~ will set the true flag if a is greater than or equal to b.
+		; &gt;~ is less than or equal too. &lt;~ is greater than or equal too. =~ is not equal
+	perhaps change to ` (single back tick) (ASCII value of '!' plus '=' less 63)
+?	if. Skip to the next line if the comparison fails (not TRUE)&amp; keep skipping indented lines.
+!	else. Skip to the next line if the comparison succeeded &amp; keep skipping indented lines. 
+(	parms. Prep for a function call by pushing parameters. 
+)	call. Call the function pointed to by DST by incrementing PCP and loading DST to PC.
+[	Start loop
+]	End loop
+.	return. Process OP/SRC, decrement PCP.
+A	(Analog) set Port pin in DST to output PWM in SRC. e.g. P2A100
+	set Port pin in SRC to read analog values in e.g. i:2P1A
+D	(Delay) DST microseconds between IO commands. Clears DST. e.g. 100DP0HLHL
+K	(Local) set SRC or DST to the LCD/Keys. 
+	The actual value stored is 0x88
+	NUM is used to select the position?
+S	(Servo) set Port pin in DST to drive RC servo to postion in SRC. e.g. P1S90
+T	(Terminal) set SRC or DST to the Serial port. 0x89
+P	(Port) set SRC or DST to IO pins. The value stored will be 0x80-0x87. e.g. 2P1 is port 2 pin 1
+	NUM <I>before</I> P selects the port if more than 1 available. stored in the lower 3 bits of the value.
+	NUM <I>after</I> P selects the pin. These are 1 to 8, not 0 to 7 so that 0 can indicate the entire port.
+I	(In) set the Port or Port pin in SRC to an Input. E.g. a:2P7I@ reads port 2 pin 7 into a
+O	(Out) set the Port or Port pin in DST to an Output (Can't H or L just do this?)
+H	(High) set the Port pin(s) in DST to high. e.g. P1H sets port 0, pin 1 (the second pin) high.
+L	(Low) set the Port pin(s) in DST to low. e.g. 2PL sets all pins on port 2 low.
+	When the pin is an input, H and L set or clear TRUE based on the pins value.
+U	(Up) set Port pin(s) in DST to inputs will internal pull-up
+W	wait. Delay for DST u seconds. Not implemented.
+J	(Jump) move NUM lines ?
+
+Unused (for now)
+$	
+%	printf?
+;	push?
+^	power? 
+_	label? subelement?
+
+</PRE>
+<H3>
+  Quote Escaping
+</H3>
+<PRE>
+Case '"' //Start putting out text
+ while
+  temp = SerialGet // after the '"'
+  temp=='"'? // but two quotes
+   LCDPutChr temp // puts out a quote chr
+   temp = SerialGet // after the '"'
+- - - - Until temp '"' //Until the next quote
+
+</PRE>
+<P>
+"Push ""START"""
+<P>
+<OL>
+  <LI>
+    <PRE>While true
+</PRE>
+  <LI>
+    <PRE>- CMD = GetCMD
+</PRE>
+  <LI>
+    <PRE>- Select CMD
+</PRE>
+  <LI>
+    <PRE>
+</PRE>
+  <LI>
+    <PRE>- - Case '"' 			//A After a '"'
+</PRE>
+  <LI>
+    <PRE>- - - temp = GetCMD 		//B  start reading text
+</PRE>
+  <LI>
+    <PRE>- - - temp=='"'? 		//C  but two quotes
+</PRE>
+  <LI>
+    <PRE>- - - - PutDST temp 		//D  puts out a quote chr
+</PRE>
+  <LI>
+    <PRE>- - - While temp NOT '"' 	//E Until the next quote
+</PRE>
+  <LI>
+    <PRE>- - - - PutDST temp 		//F  put out chrs
+</PRE>
+  <LI>
+    <PRE>- - - - temp = GetCMD 		//G  and read more text
+</PRE>
+</OL>
+<P>
+Notice how something like "Push ""START""" gets executed: The first quote
+gets us to line //B above where temp gets loaded with "P". //C fails and
+//D is skipped. Since temp is no longer a quote, we are now inside the
+<TT>While</TT> that started at //E and we put the character out at //F and
+get another at //G repeatedly until we reach the second quote. At that point,
+we fall out of the loop, all the way back to the outer loop where we get
+another command
+<P>
+Comments:
+<H3>
+  Indexing
+</H3>
+<P>
+Let's think about the indexing of one array by another and how that can be
+supported with minimal effort. Lower case letters cause their address to
+be loaded to DST or SRC, not their value. If you want to addr an element
+of 'a' by an offset in 'i' then the value in 'i' must be added to the addr
+of 'a' . There are two ways to do this: Make the var code translate any existing
+value in SRC or DST from address to value before adding in the next var addr.
+Or: xlate the new var adr to a value before adding it to DST or SRC only
+when they are not empty.
+<P>
+Make lower case letters add their base address to whatever is in NUM before
+loading SRC or DST. This moves the offset before the variable so 4a is the
+same as b.
+<P>
+This allows us to write programs that do e.g. multi-byte multiplication like 
+we do multi-digit multiplication. e.g.in decimal we do:<PRE>
+  ab
+* cd
+ ---
+= d*b + d*a*10 + c*10*b + c*10*a*10</PRE>
+Where each letter represents one digit. The *10 part is replaced by *255 in 
+byte wide multiplies. But this byte offset is just the numeric offset of the 
+address. If we take the above and use the variable offset notation of ABC to 
+change it to:<PRE>
+  1a0a
+* 1b0b
+-------
+c:b*a
+1c:b*1a
+1d:1b*0a
+2d:1b*1a
+1c+1d
+2c+2d</PRE>
+Now we've done a 16 bit multiply on a processor with only 8 bit multiplies. 
+<H3>
+  Repeated Operations?
+</H3>
+<P>
+If NUM is not zero when parsing an operation, set a count. Then when performing
+the operation, repeat it, after incrementing SRC and DST, then decrement
+count and loop until count is zero. So a3:b copies register 4,5,6, and 7
+to registers 0,1,2, and 3. If multibyte values are taken in LSB first (little
+endian) order, then a3:b3+c actually moves a LONG at b to a then adds c as
+a LONG.
+<P>
+This works just fine for addition, XOR, things like that, but it takes a bit 
+more logic for multiplication (see above, use a hidden temp variable instead 
+of d) and a lot more for division. Not that easy to implement for all 
+operations. 
+<H3>
+  Copy operation?
+</H3>
+<P>
+One of the goals of this design is to have a syntax that is as close to a
+high level language as possible without a compiler. To that end, should we
+add a character for the default copy operation? e.g. a=b+1 is totally clear,
+but = is also needed for comparisons and really, no operation needs to be
+specified there at all: ab+1 does the same thing. a:b+1 is used for 'syntactic
+sugar'.
+<H3>
+  Double Operations?
+</H3>
+<P>
+Is it useful to detect and use the case of more than one operation being
+specified without a SRC between them? E.g. ++ for increment. &amp;- for AND
+NOT (rather than -&amp;). In some cases, the change requires a lot of work:
+a&lt;=b is not as easy as it looks since a&gt;b~ does the same job without
+requiring a new, combined operator. We can "fake" ++ by loading NUM with
+1 when we see + and the last op was + as well. Is it worth it? Not implemented.
+<PRE>
+@@	?
+""	put a " to the dest stay in text mode. <TT>"Push ""START"""</TT> prints <TT>Push "START"</TT>
+++	load 1 into NUM. a++ increments a.
+--	load 1 into NUM, so a-- decrements a.
+&amp;&amp;	set operation to logical AND?
+||	set operation to logical OR
+==	?
+&lt;&lt;	set operation to shift left?
+&gt;&gt;	set operation to shift right?
+~~	?
+??	?
+</PRE>
+<H3>
+  Multiple Character Operations?
+</H3>
+<PRE>&lt;=	make less than into less that or equal. represented internally by {
+&gt;=	greater than or equal. OP is }.  
+</PRE>
+<P>
+We might be able to cheat and just add multiple opcodes together. e.g. '<'(60)+'='(61) = 'y'(121) so if we treat an op of 'y' as less than or equal two, we don't have to take any care when we find ops other than just total up their values. 
+<P>
+Sadly '>'(62)+'>'(62) = '|'(124) which means that shift right crashes into the logical or operation. As a result, we probably need active detection of multichar opcodes. 
+<P>
+Instead, if we op+('{'-'&lt;') e.g. add 123 - 60 or 63, when we find an '=', this maps &lt;, =, &gt; to {, |, }
+<UL>
+<LI> &lt;= is {, 
+<LI> == is |,
+<LI> &gt;= is },
+<LI> ?= is ~, (not used?)
+<LI> != is ` (back single quote)
+</UL>
+so don't use {} in the future! () and [] are ok.
+
+<H3>
+  Writing to perminant memory
+</H3>
+<P>
+We might use :@ as the command to write to free flash memory and store the
+starting address in the destination. e.g. a:@'P1H W10 L' <I>Update: Just
+note that the destination is a variable so the @ isn't needed. e.g. a:"P1H"
+records P1H to FLASH and sets a to the starting address of that string.</I>
+<H3>
+  Program Counter
+</H3>
+<P>
+Something needs to address the EEPROM or FLASH when instructions are being
+pulled from there. That is our program counter (PC). If we used one of the
+registers, we could affect the flow of the program with more than the skips.
+Use "p" or "z"? Or keep the PC internal?
+<P>
+It would be nice to come up with a clever way to save the current PC when
+jumping to a new location in the program. This would allow more complex flow
+control like call, parameter passing, and return to be written in the language
+itself. One possibility is to follow the 1802 model.
+<P>
+<B>Program Counter Pointer:</B> In an 1802, there is no specific program
+counter register. Instead, there are a set of general purpose registers R(x),
+any one of which can be used as the program counter called R(P). Another
+register (P) pointed to the register that would be used as the PC. There
+are also no call instruction. To call, you load <I>another</I> general purpose
+register wth the address of the subroutine, then set P (the PC pointer) to
+that register. The subroutine then executes and returns by setting P back
+to the original R. Let's call the 1802 P register the Program Counter Pointer
+or PCP
+<P>
+For commonly used routines, you dedicate a register to the subroutine, and
+initiallize it to start, not at the beginning, but a few instructions into
+the sub. The sub, when it is ready to return, jumps back to it's very start,
+where PCP (the PC Pointer) is set back to the main PC, leaving the PC of
+the subroutine back at the entry point, ready for the next call.
+<P>
+Although the 1802 had a dedicated stack and jump instruction, I see no reason
+why these are really necessary: To jump, you could just load a new register
+to be used as the PC with a new address rather than attempting to preserve
+the address all the time. &nbsp;To form a call/return stack, you can use
+the <I>next</I> &nbsp;register to point to the subroutine and the subroutine
+returns by decrementing the PCP. (the real 1802 didn't have an inc or dec
+P instruction!).
+<P>
+If we initialize the program counter to z and the program counter pointer
+to y on startup, then that means there is no stack and returns will would
+fail because the system could prevent the PC from Decrementing past the PCP.
+If the platform has more memory the starting program can set y to z+some
+number effectively allocating a stack of that size. Maybe z can be the PCP
+and the initial PC at the same time? A 1 byte PCP followed by a 3 byte PC?
+<P>
+Or have the PC be 'z' or some other register, and have the PCP internal.
+<H3>
+  Parameters
+</H3>
+<P>
+The real trick is making that work in a way that looks more like standard
+subroutine and function calls in a higher level language.
+<P>
+If the "a" register has been initialized to point to the beginning of a sub
+thread of bytecode in the EEPROM, and we write "a(b)" the "(" could set a
+flag, indicating that a subroutine call was being parameterized, then the
+following byte codes could be loaded into a special parameter call stack
+as references to the actual memory addresses. The ")" would then push the
+return address (the current PC), a count of parameters, and load the value
+of the a register into PC.
+<P>
+In the sub thread, references to "a", "b", "c", etc... would point to the
+values of the parameters on the stack, instead of to the regular memory location
+for those registers. E.g. in the "a" routine, a reference to "a" would actually
+end up affecting the value of "b" since the call was started with "a(b)".
+If the call to "a" had been made with "a(c)" then a reference to "a" would
+affect "c".
+<P>
+At the end of the sub thread, the PC would be popped from the stack and the
+parameter pointers cleared.
+<P>
+This mixing of letters as registers and as pointers to subroutines is less
+than ideal, but perhaps better than limiting the number of subroutines that
+are possible.
+<H3>
+  Devices
+</H3>
+<P>
+LCD: Try to include space for a 15 pin header with an extra IO line on pin
+15 to support e.g. 4x16 displays with a second Enable line.
+<P>
+Ports
+<PRE>P0.0
+P0.1
+P0.2
+
+P2.0
+P2.1
+P2.2
+P2.3
+P2.4 LCD.D4
+P2.5 LCD.D5
+P2.6 LCD.D6
+P2.7 LCD.D7
+
+P3.0 AN1
+P3.1 AN2
+P3.2 AO1
+
+</PRE>
+<H3>
+  Notes
+</H3>
+<P>
+There is a case that is currently unused: When DST has not be set (zero)
+and an operation or number is found in the command text. Can we think of
+a use for that? <TT>9=a?</TT> is better programming practice than
+<TT>a=9?</TT> so maybe NUM should be the dest when DST is not loaded?
+<P>
+It would be nice to bit twiddle pins without specifying port. e.g. 1H10W1L
+to put a 10us pulse on pin 1 of the default port.
+<P>
+
+See also:
+<UL>
+  <LI>
+    <A HREF="http://ideone.com/rv1dk">http://ideone.com/rv1dk</A> one possible
+    implementation in c. A work in progress. It is somewhat useful and under
+    300 lines of simple C code including debug and extensive comments.
+  <LI>
+    <A HREF="http://ideone.com/ujMCIk">http://ideone.com/rv1dk</A> A re-start on implementing ABC, with a much simpler top level code structure and easy to understand breakdown. Not complete. Start with the "main" procedure at the end of the listing. The doit routine could directly interpret the program or compile assembly language instructions for most processors. 
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43641.6242592593" HREF="https://github.com/monsonite/SIMPL"
+	TARGET="_top">https://github.com/monsonite/SIMPL</A> Proof that there is
+    nothing new in the world. SIMPL is more or less the same idea... some small
+    differences. Like SIMPL is actually complete. However, it is stack based, rather than register based, and so not really ideal as a compiler. <!-- 43641.6242592593 EOR -->
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="44284.4606018519" HREF="https://w3group.de/stable.html" TARGET="_top">
+https://w3group.de/stable.html</A> 
+Another Forth Language version of almost exactly the same idea! Because Forth is less human readable, it is also easier to implement and this fits in only 47 lines of C code.<!-- 44284.4606018519 EOR -->
+
+  <LI>
+    <A HREF="https://gist.github.com/JamesNewton/8b994528ff3ce69e60bbb67c40954cd2">https://gist.github.com/JamesNewton/8b994528ff3ce69e60bbb67c40954cd2</A>
+    additional ideas about IO. "Simple Arduino script to set pins high, low,
+    input, pull up, or analog/servo, clock in or out data, with timing/start/stop,
+    and read all or a single pin back via serial IO." TODO: Figure out how to
+    implement the I2C stuff in ABC.
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41755.0076157407" HREF="http://txtzyme.com/view/welcome-visitors"
+	TARGET="_top">http://txtzyme.com/view/welcome-visitors</A> Ward Cunninghams
+    simple DSL (Domain Specific Language) for interaction between browser, server,
+    and USB connected microcontroller.<!-- 41755.0076157407 EOR -->
+  <LI>
+    <A TITLE="70.166.33.116" NAME="39655.4820833333" HREF="/techref/microchip/language/C/io/lcd/hitachilcd-ak/index.htm"
+	TARGET="_top">/techref/microchip/language/C/io/lcd/hitachilcd-ak/index.htm</A>
+    Well written C code for LCD support... Most of it could be translated to
+    asm. It allows support for many different types of small LCDs and all different
+    modes and hardware wiring through defines and conditional
+    compilation.<!-- 39655.4820833333 EOR -->
+  <LI>
+    <A HREF="https://youtu.be/zdJnz6-d060">https://youtu.be/zdJnz6-d060</A> a
+    very interesting byte code for the old 6502 processor. Key insight: A pointer
+    to the memory area being used as the accumulator and other registers. This
+    pointer is shifted up to allocate local variables (and a local accumulator)
+    while still giving access to the values below it via index+offset addressing.
+    So we start with a, then shift e.g. 4 so that e is now a, but the original
+    a is accessable as e-4.
+</UL>
+<P>
+<P>
+Comments:
+<UL>
+  <LI>
+    Use "!" As "else".<!-- 42601.826712963 EOR -->
+</UL>
+
+<H3>Quotes as Destinations: Matching</H3>
+<BLOCKQUOTE>
+<A TITLE="JMN-EFP-786" NAME="44449.4465162037">
+</A> 
+I was looking at the opcodes in the ABC language, most just set an operation and do nothing else. Quote is special, because it works more as a destination or source than an operation. (everything is destination, operation, source [,operation][,source]...) 
+<P>
+If a variable has been set as the destination, and quote turns up as the source, the current memory address is put into the variable, and the text in quotes is copied into memory until the ending quote. Double quotes put a quote in memory (if the prior opcode was quote, and the new character is quote, that's a quote to memory, not a quote opcode.) So that's how subroutines are defined. When you send that letter again, followed by an ending parentheses, the PC is pushed to the "stack" (pointed to by the 's' variable) and the letters value is loaded into PC. Hopefully the string in memory ends with a period which will pop the TOS into PC.
+<PRE>
+a:"b:b+1."
+a)
+</PRE>
+Defines "a" as a function that increments b.
+<P>
+And if the destination is a device, the source string, bounded by quotes, is just copied to the device. So hello world is:
+<PRE>
+T:"Hello World!"
+</PRE>
+Where "T" is the terminal. Colon is the "copy" or "define" operator. In this case, it's not really needed.
+<P>
+But then I thought, what about the quote as a destination? It really has no meaning... oh... what if it were a "match" destination? E.g. what if it took the following characters and put them into memory, and then matched future input against those characters and set the true / false flag depending on if they matched or not? You could write programs like:
+<PRE>
+"hi"|"hello"|"sup?"?T:"Hello!"
+"bye"|"laters"|"out"?T:"Goodbye!"
+</PRE>
+Note that the starting quote starts a match. Quote is destination. Let's say you typed 'z'. That match fails, and so the quote destination skips to an ending quote, consumes it, sets the true/false flag to false, then sets the destination to null, clearing the way for a new destination. This is done because the quote destination has completely failed... there IS no destination. That means the vertical bar (or) is set as an operation with no destination. Then the next quote destination also fails, and /would/ set the flag to false, but notices that the operation of OR is in place, so it ORs it's false into the prior flag and clears the operation. And so on. We end up with the false flag set when we reach question mark and that causes a skip past EOL, which then sets everything back to nothing for the next line.
+<P>
+Anyway that reminded me of the old BNF form (Backusâ€“Naur) which I always loved, and made me hope that I could use ABC as a cool little grammar parser! That would make it a language for defining new languages. 
+<P>
+But the issue is backtracking. It requires a buffer, and probably tokenizing via space or some other delimeter. I think if they were very carefully arranged, you could avoid that. If the quote destination only accepts new characters that match it's string, and skip to the ending quote as soon as the current character doesn't match, you could carefully construct a program that doesn't need buffering or tokenizing. e.g. 
+<PRE>
+h:"T:""Hello!"""
+"h"?"i"?h)!"ello"?h)
+</PRE>
+A better example would have used something starting with "h" and resulting in "Goodbye!" but I couldn't think of such a word. You get the idea. 
+<P>
+Another possibility is to have a small buffer, and when input matches a string partially, then fails, push the content of the string up to that point back into the buffer. It has to match what was typed before. 
+<P>
+Of course, the obvious solution is just to tokenize on spaces or enter and use a buffer. But I honestly see this as most useful in a tiny processor doing things like decoding messages from other devices. e.g. from a GPS or some test equipment or something. And it's generally more of a thought experiment anyway.<!-- 44449.4465162037 EOR -->
+</BLOCKQUOTE>
+
+<P><A TITLE="JMN-EFP-786" NAME="44864.8457060185">
+Thinking about ways to input data. Perhaps<BR>
+<PRE>R	Read from stdin, terminal, or open file. Wait if no data available</PRE>
+
+Then we could do something like: <PRE>
+i:4*24
+[i++@:R=~13?]</PRE>
+which would fill RAM at address 96 with input until the return key is pressed.</A>
+
+<!-- 44864.8457060185 EOR -->
+
+<P><A TITLE="JMN-EFP-786" NAME="44981.6442824074">
+<H3>Variables as stacks</H3>
+<BLOCKQUOTE>
+Here is an interesting idea. What if each of our 26 variables was a stack. e.g. you could push or pop to each one. I'll demo in RPN, but I would use my favorite dest, op, src format in reality. I'm just picking ";" for the push opcode and "^" for the pop opcode and "#" for the print opcode for no good reason. Comments after ?<PRE>
+a;1   ?push a 1 to the 'a' stack
+b;2   ?push a 2 to the 'b' stack
+T:a^# ?prints 1
+</PRE>
+Note that 'a' (for example) here is just selecting WHICH stack we are working on. There are 26. Opecodes like "#" (print) always work on the TOS, but WHICH TOS? Well, the last one we referenced. Binary operations, like + don't work on the current TOS and TOS+1, they work on the current TOS and the <I>former</I> TOS. e.g. we keep track of <I>references</I> to stacks, as parameters to function calls, and always use only the TOS.
+
+And what if we didn't actually push anything until we needed to clear space, and just used the variable as if it were a register until we wanted to move on?<PRE>
+a:1     ?put a 1 in 'a', but don't push it. 
+T:a#    ?prints 1
+a;1;2;3 ?push 1, 2, and 3 to a
+T:a#    ?prints "3"
+T:a^#   ?"2", the value "3" is gone
+T:a#    ?"2" again.
+T:a^#   ?a is now "1")
+</PRE>
+
+Of course, we could do things by referencing TOS now and <I>assume</I> the pop.<PRE>
+c:a+b</PRE>
+
+This would get the TOS of the "a" and "b" stacks and add them, then put them on TOS of c. No pushing or popping. Actually, it gets a, copies it to c, then adds b to c. Same same.
+<P>
+The point here, is that you have BOTH registers (high efficiency) and stacks (high functionality).
+<P>
+Implementation is left as an exercise for the student, but in general, each variable would be a struct, with a value, and a pointer. The pointers would form a linked list in available memory. This linked list would be the "stack". A variable reference would just set or read the value, and leave the pointer alone. A push would allocate ram, copy the value and the pointer to the allocated space, and set the pointer to the start of the allocated ram. 
+<P>
+It's not without problems. Pop has to deal with memory frag, but all the storage is the same size (one TOS unit) so you just have a linked list of memory chunks available after pops and you re-use those during pushes until that list is empty. 
+</BLOCKQUOTE></A>
+
+<!-- 44981.6442824074 EOR -->
+
+<P><A TITLE="JMN-EFP-786" NAME="45089.8436458333">
+<H3>Parsing</H3>
+<blockquote>
+If we take the standard <a href="../ascii.htm">ascii</a> table and divide it into 4 equal groups of 32 symbols by looking at bits 5 and 6:
+<pre>
+5&6 Range Contains
+- - ----- --------------------------------------------
+0 0 00-1F CR and LF. Others can be ignored
+0 1 20-3F symbols and numbers
+1 0 40-5F mostly uppercase letters - User Functions
+1 1 60-7F mostly lowercase letters - User Variables
+</pre>
+So we test bits 5 and 6 of the ascii code and jump to a Group Handling Routine (GHR) in which we have a 5 bit field (bits 0:4) that defines either an instruction (or number), a User Function or a User Variable. Those few symbols along with the letters can be special cased. Thanks to Ken Boak for this idea.
+</blockquote></A>
+
+<!-- 45089.8436458333 EOR -->
+</BODY></HTML>
