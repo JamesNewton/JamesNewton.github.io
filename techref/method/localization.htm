@@ -1,0 +1,52 @@
+<HTML>
+<HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <!-- AP: Last modified: 16-Jul-2019 -->
+  <TITLE>Localization (computing position over time from sensor readings)</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Localization / Tracking
+</H1>
+<H2>
+  <A HREF="ais.htm">Deducing</A> <A HREF="../io/sensor/pos.htm">Position</A>
+  over Time from <A HREF="../../techref/io/sensors.htm">Sensor</A> readings)
+</H2>
+<P>
+Finding the current position is generally done by reading sensors and keeping
+track of movements. But those sensors may not be totally accurate, and the
+sensor platform (robot) may not move with perfect accuracy. Each time we
+take a new reading from our environment, we can update our best guess about
+the current position and increase our certainty. Each time we move, we update
+the total probability by adding the old measurements to the new position
+less some uncertainty. There are at least two general methods:
+<P>
+<A HREF="histogramfilter_localization.htm">Discreet and Multi-modal via
+Montecarlo / <B>Histogram</B> / Bucket Method</A>: Finds the probability
+of each possible position being the correct one. This allows for multiple
+positions to have a high probability of being where we are now. However,
+it requires an impossible amount (exponential) of memory when the number
+of positions increases to a real scale.
+<P>
+<A HREF="kalmanfilter_localization.htm">Continuous and Uni-modal via <B>Kalman
+Filter</B></A>: Finds the single best guess for current location, with an
+score for certainty / uncertainty.
+<P>
+<B><A HREF="particlefilters_localization.htm">Particle
+Filters</A></B>:Continuous multi-modal tracking which scales well and is
+simple to implement. It maintains a set of many vectors containing position
+and orientation data. Each of these represents a guess as to position. Some
+measurement, e.g. the distance to each of several landmarks, compared to
+the position guess of each particle, determines that particles likelihood
+of being the accurate position. Particles with a low probability of being
+correct are deleted, and replaced with new particles which are copies of
+the high probability particles, in a process called "resampling".
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://www.andreasjakl.com/basics-of-ar-slam-simultaneous-localization-and-mapping/">https://www.andreasjakl.com/basics-of-ar-slam-simultaneous-localization-and-mapping/</A>
+    Basics of AR SLAM
+</UL>
+<P>
+</BODY></HTML>

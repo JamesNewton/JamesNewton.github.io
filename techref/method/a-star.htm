@@ -1,0 +1,41 @@
+<HTML><HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <TITLE>A * Search</TITLE>
+  </HEAD>
+<BODY>
+  <H2>A * Search <A HREF="ais.htm#">AI</A> <A HREF="../methods.htm">Method</A></H2>
+  <P>Given a network of nodes, with connections between them, were each connection has a "cost" of moving from one node to the next, the A* algorithm efficiently finds the lowest cost route from a starting node to a goal node. It does this by following the lowest cost path from the starting node, and increasing the length of that path until it is no longer the lowest cost path. A* moves from path to path, extending only the lowest cost option, and adding the additional cost into the total cost of the path. If that causes the path to no longer be the lowest cost, it is abandoned (for now) and the new lowest cost path is extended next instead. 
+<P>
+Pseudocode:
+<PRE>
+push startNode onto openList
+while(openList is not empty) {
+ currentNode = find lowest f in openList
+ if currentNode is final, return the successful path
+ push currentNode onto closedList and remove from openList
+ foreach neighbor of currentNode {
+     if neighbor is not in openList {
+            save g, h, and f then save the current parent
+            add neighbor to openList
+     }
+     if neighbor is in openList but the current g is better than previous g {
+             save g and f, then save the current parent
+     }
+ }
+</PRE>
+<P>
+A* was written in 1968 at SRI as part of the <A HREF="../robot/shakey.htm">Shakey</A> <A HREF="../robotics.htm">Robot</A> project. 
+<P>
+See also:<UL>
+   <LI><A HREF="https://en.wikipedia.org/wiki/A*_search_algorithm">https://en.wikipedia.org/wiki/A*_search_algorithm</A>
+   <LI><A HREF="https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/">https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/</A>
+</UL>
+  
+<P>See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45207.8081134259" HREF="https://www.youtube.com/watch?v=CgW0HPHqFE8" TARGET="_top">
+https://www.youtube.com/watch?v=CgW0HPHqFE8</A> 
+A visualization of an A* search on a real map.<!-- 45207.8081134259 EOR -->
+</UL>
+</BODY></HTML>

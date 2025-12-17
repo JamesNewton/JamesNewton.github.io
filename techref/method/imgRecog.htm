@@ -1,0 +1,102 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 15-Jul-2004 -->
+  <!-- AP: Last modified: 15-Feb-2020 -->
+  <TITLE>Image Recognition Methods</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="../datafile/images.htm">Image</A> <A HREF="ais.htm">Recognition</A>
+  <A HREF="..\methods.htm">Methods</A>
+</H1>
+<P>
+<A HREF="OpenCVs.htm">OpenCV</A>
+<P>
+<A HREF="ai/imagebreakup.htm">Breaking out Features</A>
+<P>
+<A HREF="ai/lbps.htm">Local Binary Patterns (LBP): </A>
+<P>
+<A HREF="../app/ocrs.htm">OCR Optical Character Recognition</A>
+<P>
+<A HREF="../io/opticalmouses.htm">Image correlation: Optical Mice</A>
+<P>
+<A HREF="../language/java/script/cameras.htm">Browser Based Image Processing:
+Subtraction, Area Sum</A>
+<P>
+<A TITLE="JMN-EFP-786" NAME="43876.4645717593" HREF="/Techref/method/optical-flow.htm"
+    TARGET="_top"> Methods for detecting Optical Flow</A>
+<!-- 43876.4645717593 EOR -->
+<P>
+<B>Synthetic Data:</B> To collect large sample sets for character recognition,
+you can synthesize "fake" data (Artificial Data) by randomly pasting letters
+from a randomly selected font onto a randomly selected background with (perhaps)
+random distortions and rotations. The major advantage of doing this is that
+you don't have to "label" the data (know what character(s) are represented)
+because you made it from the label in the first place. It can also help in
+<A HREF="ai/Troubleshooting.htm">trouble shooting</A> complex systems, by
+replacing a stage in a complex system with a "perfect" stage to see how much
+that effects the end product. E.g. if you are wondering how much background
+removal helps your OCR application, generate input images with no background.
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="ai/NeuralNets.htm">Neural Networks</A> especially
+    <A HREF="ai\ConvolutionalNeuralNetworks.htm">Convolutional Neural Networks
+    (CNN)</A>
+  <LI>
+    <A HREF="ai/logisticregresions.htm">Logistic Regression</A>
+  <LI>
+    <A HREF="../member/L030010-YAHOO-E63/index.htm">Soon Lee's MassMind page</A>
+    Image classification, labeling, and pattern recognition.
+  <LI>
+    <A HREF="../new/letter/index.htm">MassMind Newsletter</A>
+    <A HREF="../new/letter/news0310.htm">October 2003: Ranging via Camera and
+    Laser</A>
+  <LI>
+    <A HREF="../new/letter/index.htm">MassMind Newsletter</A>
+    <A HREF="../new/letter/news0308.htm">August 2003: Easy Vision Systems</A>
+</UL>
+<P>
+See also:
+<UL>
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42462.9747222222" HREF="http://hackaday.com/2016/04/02/insanely-quick-3d-tracking-with-1-camera/"
+	TARGET="_top">http://hackaday.com/2016/04/02/insanely-quick-3d-tracking-with-1-camera/</A>
+    Very fast, Single camera, 3D tracking and scanning. Open source code supports
+    <A href="/techref/robot/ROS.htm">ROS</A>.<!-- 42462.9747222222 EOR -->
+  <LI>
+    <A HREF="http://www.robots.ox.ac.uk/~misard/condensation.html">http://www.robots.ox.ac.uk/~misard/condensation.html</A>
+    The Condensation algorithm (Conditional Density Propagation) algorithm tracks
+    moving objects through substatial clutter.
+  <LI>
+    <A HREF="http://neil.fraser.name/software/recog/">http://neil.fraser.name/software/recog/</A>
+  <LI>
+    <A HREF="http://web.archive.org/web/20090913040221/http://www.bitquill.net/trac/wiki/Android/OCR">http://www.bitquill.net/trac/wiki/Android/OCR</A>
+    (see the <A HREF="http://web.archive.org/web/20090913040221/http://www.bitquill.net/blog/?p=119">blog post</A>) Given a greyscale image of dimisions m x n, the lighting
+    will often change from one part of the image to another. To pick out details
+    consistantly, you need to set the threshold individually for each pixel (i,j)
+    as the mean intensity of pixels in a w x w neighborhood around the pixel.
+    On each row, you might do <TT><BR>
+    for i = 0 to N-1: s = 0; for k = max(i-r,0) to min(i+r,N-1): s +=
+    a[k];</TT><BR>
+    where w=2r+1. (r is half the width of the window). But it turns out that
+    this is faster:<BR>
+    <TT>Initialize s = sum(a[0]..a[r]); for i = 1 to N-1: if i &gt; r: s -= a[i-r-1];
+    if i &lt; N-r: s += a[i+r] </TT><BR>
+    at the end of each, s is the threshold for pixel a[i].
+  <LI>
+    <A HREF="http://www.cs.colostate.edu/~draper/papers/draper_cviu05.pdf">http://www.cs.colostate.edu/~draper/papers/draper_cviu05.pdf</A>
+    B. Draper and A. Lionelle. &#147;Evaluation of Selective Attention under
+    Similarity Transformations,&#148; Vision and Image Understanding, 100:152-171,
+    2005
+  <LI>
+    <A HREF="http://www.cs.colostate.edu/~draper/research/software.php">http://www.cs.colostate.edu/~draper/research/software.php</A>
+  <LI>
+    <BR>
+</UL>
+<P>
+<P>
+</BODY></HTML>
+
