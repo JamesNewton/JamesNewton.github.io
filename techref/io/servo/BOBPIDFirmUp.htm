@@ -1,0 +1,109 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 27-Sep-2017 -->
+  <!-- AP: Last modified: 27-Sep-2017 -->
+  <TITLE>Updating BOB P.I.D. Firmware</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Updating <A HREF="BOBPID.htm">BOB P.I.D.</A> Firmware
+</H1>
+<P>
+Connect a <A HREF="../../usbs.htm">USB</A> (or
+<A HREF="../serial/rs232.htm">RS-232</A>) to TTL
+<A HREF="../serials.htm">serial</A> converter to the J2 connector. e.g. FTDI
+Friend, <A HREF="../serial/RLC3.htm">RLC3</A> Again, pin 4 "TX" is data FROM
+the USB/Host going TO the PID controller. RX is TO USB/Host FROM PID controller.
+Configure your <A HREF="../serials.htm#Applications">serial terminal
+program</A>&nbsp;(e.g. Hyperterm, RealTerm, PuTTY, etc...) for whatever COM/TTY
+port shows up, and 38,400 baud, No parity, 8 data bits, and 2 stop bits.
+Select X-ON / X-OFF handshaking if available. 
+<P>
+When the BOB P.I.D. first starts, with a terminal program attached, you should
+see:
+<P>
+<TT>Type "Boot" to start bootloader.9876543210</TT>
+<P>
+If you don't see this, power cycle the BOB P.I.D. You may need to disconnect
+the USB converter from the BOB, don't disconnect it from your PC. If you
+type <TT>Boot</TT> before it finishes that countdown you will get a small
+menu:
+<PRE> PIC18F14K22 BootLoader v0.63 installed at 0x3A40.
+&copy;2013 by vegipete@strongedge.net
+ Commands:
+[P] Program FLASH and EEPROM 
+[W] Write EEPROM
+[E] Erase EEPROM
+[R] Read EEPROM
+[?] Help
+[X] Reset MCU
+
+BL&gt; 
+</PRE>
+<P>
+Reprogram the device by pressing <TT>P</TT> and the enter key. Confirm your
+choice, and then it will be ready to accept the new file.
+<P>
+Here is the trick: You must have X-ON/X-OFF enabled when sending the new
+firmware. This allows the processor time to program one line of data before
+receiving the next line.
+<UL>
+  <LI>
+    It's not available in the Arduino IDE Serial Monitor, so you can't use it
+    to update the firmware<BR>
+    &nbsp;
+  <LI>
+    In RealTerm<A HREF="https://sourceforge.net/projects/realterm/files/">^</A>,
+    just click "Receive" and "Transmit" under Software Flow Control and press
+    Change. Then go to Send, and under Dump File to Port, press ... to select
+    the file, Ok, Send File. If you have problems, add a line delay of
+    10.<BR>
+    &nbsp;
+  <LI>
+    In PuTTY<A HREF="http://www.putty.org/">^</A>, Session / Connection type:
+    Serial, Serial line: <I>your com port</I>, Speed: 38400. Connection / Serial
+    / Serial line to connect to: <I>your com port</I>, Speed (baud): 38400, Data
+    bits: 8, Stop bits: 2, Parity: None, Flow control XON/XOFF. Then press
+    Open.<BR>
+    &nbsp;
+  <LI>
+    In HyperTerm (if anyone still uses that) "Xon/Xoff" is under the port setup,
+    "Flow control" pull down list.<BR>
+    &nbsp;
+  <LI>
+    If your software doesn't have that protocol, see if you can setup a line
+    delay of about 10 ms.<BR>
+    &nbsp;
+</UL>
+<P>
+You should see a long series of lines
+like:<BR>
+<TT>OK:1000A000AF13AF51040B12E0AF51080B0FE0010E7C</TT><BR>
+and that should end with <BR>
+<TT>Finished!</TT><BR>
+and the <TT>BL&gt;</TT> prompt should re-appear. Now you can hit X or just
+power cycle and then do not go back into the boot loader mode, like the countdown
+finish. You should see the new welcome message from the updated firmware
+version.
+<P>
+If you see likes starting with <TT>NA:</TT> <TT>RE:</TT> <TT>SQ:</TT> or
+anything else besides <TT>OK:</TT> there is a problem. It probably won't
+come back to the menu at the end. You can try sending <TT>:00000001FF</TT>
+to get back to the menu or just power cycle it and start over. The firmware
+will NOT be updated. Check to make sure you have XON/XOFF flow control enabled,
+try increasing line delay, and make sure the file is valid.
+<P>
+Worse comes to worse, send me back the chip along with a few dollars for
+the return shipping cost and I'll do it for you.
+<P>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://picprog.strongedge.net/bootloader/bootloader.html">http://picprog.strongedge.net/bootloader/bootloader.html</A>
+    We use a slightly modified version of this bootloader. (the error LED has
+    been changed, and XON/XOFF added)
+</UL>
+<P>
+</BODY></HTML>

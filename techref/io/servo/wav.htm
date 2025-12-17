@@ -1,0 +1,380 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 11-Mar-2014 -->
+  <!-- AP: Last modified: 6-Sep-2019 -->
+  <TITLE>Servo Motor, .Wav file, Hobby Servo, IOT</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="index.htm">Servo</A> <A HREF="../motors.htm">Motor</A> Control With
+  Audio Waveforms or <A HREF="../../files.htm">Files</A>
+</H1>
+<P>
+Any device that can play music (PC, SmartPhone, MP3 player, etc...) can be
+used to reproduce arbitrary waveforms within the limitations of the electronic
+system that drives the analog output. Long periods of maximum or minimum
+signal level may not be coupled if the electronics don't reproduce low
+frequencies well. Other than that, there is no reason why PWM Servo control
+signals can't be encoded in a sound and then played back to move a motor.
+<P>
+Connecting a PC or SmartPhone audio headphone jack to a pair of servos requires
+no more than an 0.1uF decoupling capacitor in line from each stereo channel
+to the servo PWM input. Some have found that the cap's cause distortion and
+should be bypassed. <A HREF="http://makezine.com/projects/trs-drawbot/">^</A>
+This may cause damage so take care.<BR>
+<A HREF="http://www.gluemotor.com/how-to-make">http://www.gluemotor.com/how-to-make</A>
+<P>
+<IMG ALT="Schematics of GlueMotor Cable" BORDER="0" HEIGHT="261" SRC="GlueMotorCable_Schematics.png"
+    WIDTH="400" />
+<P>
+<I>Note: This circuit will only work with devices that have a very loud audio
+output. In most cases, a simple transistor amplifier will be required.</I>
+<P>
+An app or <A HREF="../../language/html/HTML5webapps.htm">HTML5 web app</A>
+could provide cross platform, programmable, motion control via cheap RC servoes
+and this simple hardware. For more complex transmission of data from a web
+page see: <A HREF="../serial/i2c/withGIFs.html">Unidirectional I2C (2 wire)
+via Images</A>
+<P>
+The most basic use is to simply record and play back a series of motions
+via a single huge audio file. There is no programatic control, just a simple
+repeitition of the movement for each play. Generating the wave file has been
+accomplished with MatLab and should be possible from other programming
+environments.
+<H3>
+  <A NAME="ManyFiles">Many Files</A>
+</H3>
+<P>
+To give the playback device, such as a web browser or SmartPhone, the ability
+to change the waveform as directed by a program, multiple files, each with
+a different position encoded, could be loaded and played, as desired. Obviously,
+that means having a HUGE number of files, for all possible combinations of
+each channel. Even for a single channel, single degree control would mean
+having 180 seperate files. The advangate of this approach is that it doesn't
+require HTML5 &lt;audio&gt; tag support. Any Javascript enabled device should
+be able to programatically select different files and play them. But before
+making those files, the hardware needs to be improved. The
+"<A HREF="#Generate">Generate</A>" approach below can be used until then.
+<H3>
+  <A NAME="OneFile">One File</A>, Multiple Waveform "sprites"
+</H3>
+<P>
+With Javascript control over the position of the playback via the .currentTime
+property, a single sound file, incoded with a series of different PWM position
+signals at different times in the playback, can provide servo control from
+an HTML5 web (or smartphone) app. The .currentTime value is expressed in
+seconds, so playback position can not be selected any finer than 1 second.
+As a result, each PWM value must be repeated in the file for one full second.
+This increases the required file size, but the advantage of loading only
+one file may make that worth while.
+<PRE>// UNTESTED sample code
+
+&lt;audio id="PWM" ontimeupdate='updatePWMTime(this);'&gt;
+  &lt;source src="PWM.wav"&gt;
+&lt;/audio&gt;
+
+&lt;script&gt;
+function setServoPosition(degrees) {
+	var pwm = document.getElementById("PWM");
+	pwm.desired = degrees + 90;
+	updatePWMTime(pwm);
+	}
+
+function updatePWMTime(pwm) {
+	//if (pwm.currentTime&gt;pwm.desired) { //not needed
+		pwm.currentTime = pwm.desired;
+	//	} //ontimeupdate is only called once a second.
+	}
+&lt;/script&gt;
+
+&lt;input type="range" name="degrees" min="-90" max="90" value="0" step="1" onchange='setServoPosition(this.value)';&gt;
+</PRE>
+<P>
+.WAV files are (ironically) not supported in Internet Explorer before version
+9. They are supported in all other standard PC browsers (Chrome, Safari,
+Firefox). The Audio tag is supported in all modern browsers. Support on mobile
+devices may be buggy:
+<A HREF="http://pupunzi.open-lab.com/2013/03/13/making-html5-audio-actually-work-on-mobile/"><BR>
+http://pupunzi.open-lab.com/2013/03/13/making-html5-audio-actually-work-on-mobile/</A><BR>
+<A HREF="http://caniuse.com/audio">http://caniuse.com/audio</A><BR>
+<A HREF="http://textopia.org/androidsoundformats.html">http://textopia.org/androidsoundformats.html</A>
+<P>
+Although the .WAV file format allows almost any value for samples per second,
+in practice, the systems that play .WAV files back expect certain specific
+sample rates and depths. e.g. 96.000kHz (DVD), 48.000kHz (DAT), 44.100kHz
+- (CD, DAT, Mac, PC), 22.050kHz - (Mac, PC), 11.025kHz - (Mac, PC, Web).
+<P>
+For single degree resolution, the PWM signal needs to have 180 different
+duty cycles (allowing -90 to +90 degree movement in 1 degree intervals) from
+1ms to 2ms. This requires a wavelength with enough samples to make 180 changes
+between those two values. The distance of 1ms (from 1 to 2) divided by 180
+gives 5.55~degrees/ms. There must be 180 samples from 0 to 1ms, and another
+180 from 1ms to 2ms, then some number of additional samples to complete the
+waveform in the low side. So more than 360 samples are required.
+<P>
+At 22050, each sample is ~0.0453ms so 1ms is abut 22 samples ~8' steps. 0.5MB
+file.
+<P>
+At 44100, each sample is ~0.0227ms so 1ms is about 44 samples ~4' steps.
+2MB file
+<P>
+At 96000, a sample is ~0.0104ms so 1ms is about 96 samples ~2' steps. 9MB
+file
+<P>
+Obviously, there is no reasonable way to get single degree resolution. 2'
+isn't bad, but a 96KHz file would be very large. More than 9Mb. Perhaps it
+would compress well into an MP3?
+<H3>
+  <A NAME="Generate">Generate</A> Waveform on Demand
+</H3>
+<P>
+In browsers that support the &lt;audio&gt;
+tag<A HREF="http://caniuse.com/audio">^</A> and
+.getChannelData(0)<A HREF="https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/getChannelData#Browser_compatibility">^</A>
+we can generate a high speed PWM wav on the
+fly<A HREF="https://developer.tizen.org/documentation/articles/advanced-web-audio-api-usage">^</A>
+and completely avoid the need for an audio file: Chrome for Andriod does
+support this as of version
+18<A HREF="https://code.google.com/p/android/issues/detail?id=10546">^</A>
+<P>
+<B>html4audiopwm.html</B> (<A HREF="html4audiopwm.html">try it</A> hint:
+use <A HREF="http://www.chrome.com">Chrome</A>)<BR>
+  <HR>
+
+<A TITLE="JMN-EFP-786" NAME="45324.6019328704">
+</A> 
+<PRE>&lt;HTML&gt;
+&lt;HEAD&gt;
+  &lt;!-- AP: Last modified: 21-Jan-2016 --&gt;
+  &lt;TITLE&gt;PWM&lt;/TITLE&gt;
+&lt;/HEAD&gt;
+&lt;BODY&gt;
+&lt;P&gt;
+&lt;SCRIPT&gt;
+&lt;!-- 
+var sampleRate = 96000;
+var samplesPerMilliSecond = sampleRate*0.001;
+var samplesPerCycle = samplesPerMilliSecond * 3;
+var bufferLength = samplesPerCycle; //buffer one cycle
+var context = new AudioContext(); //used to be webkitAudioContext();
+var buffer = context.createBuffer(2, bufferLength, sampleRate);
+var data = buffer.getChannelData(0);
+var data2 = buffer.getChannelData(1);
+// Done: adjust samplesPerCycle to be an even multiple of the bufferLength
+var degrees = 0;
+
+function buildPWMWav(degrees, samplesPerMilliSecond, data) {
+var pwm = (degrees+90)/180*samplesPerMilliSecond+samplesPerMilliSecond;
+for (var i = 0; i &lt; data.length; i++) {
+/* Prepare data */
+//data[i] = (Math.random() - 0.5) * 2; // Noise
+//data[i] = (i&gt;=samplesPerMilliSecond &amp;&amp; i&lt;pwm)? 2 : 0;
+//data[i] = (i%samplesPerCycle&lt;pwm)? 2 : 0
+data[i] = (i&lt;pwm)? 2 : 0
+};
+}
+
+onPWMChange = function (degrees) {    
+buildPWMWav(degrees, samplesPerMilliSecond, data);
+};
+
+onPWMChange2 = function (degrees) {    
+buildPWMWav(degrees, samplesPerMilliSecond, data2);
+};
+
+onPWMChange(0); //start in the center.
+onPWMChange2(45); //start offcenter.
+
+var source = context.createBufferSource();
+source.loop = true; // Make sure that sound will repeat over and over again
+source.buffer = buffer; // Assign our buffer to the source node buffer
+
+gainNode = context.createGain();
+
+//connect the source to the gainNode, and the gainNode to the destination.
+source.connect(gainNode);
+gainNode.connect(context.destination);
+
+scale2log = function (x) {
+  let x0 = 0, x1 = 1
+  let offset = 0.0125
+  let y0 = 0+offset, y1 = 1+offset
+  let y1l = Math.log(y1)
+  let y0l = Math.log(y0)
+  let y = Math.exp((x * y0l - x * y1l + x0 * y1l - x1 * y0l) / (x0 - x1))
+  y = y-offset //remove the offset
+  y = Math.round(y * 1000) / 1000 //round off
+  //console.log(&quot;x&quot;,x,&quot;y&quot;,y ,&quot;y1l&quot;,y1l,&quot;y0l&quot;,y0l)
+  return y
+}
+
+onVolumeChange = function (vol) {
+context.resume();
+gainNode.gain.value = scale2log(vol);
+//console.log(Math.floor(gainNode.gain.value * 100));
+};
+
+onVolumeChange(0); //set initial volumn to zero
+
+
+source.start(0);
+//Just start immediatly with zero volume. 
+//Set volume to 0 to stop. If you use noteOff to stop, 
+//you have to recreate the source.
+
+displayWave = function(data,canvas) {
+  var ctx = canvas.getContext('2d');
+  var amp = Math.min(64*gainNode.gain.value,99)+10;
+  canvas.width = data.length+10;
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = 'red';
+  ctx.beginPath();
+  ctx.moveTo(0,canvas.height);
+  for (var i = 0; i &lt; data.length; i++) {
+	  ctx.lineTo(i,canvas.height-data[i]*amp);
+  };
+  ctx.moveTo(i-1,canvas.height);
+  ctx.stroke();
+}
+
+
+
+
+--&gt; &lt;/SCRIPT&gt;
+&lt;H1&gt;
+  &lt;A HREF=&quot;http://techref.massmind.org/Techref/language/html/HTML5webapps.htm&quot;&gt;HTML5 web app&lt;/A&gt;
+  &lt;A HREF=&quot;http://techref.massmind.org/Techref/io/pwm/index.htm&quot;&gt;PWM&lt;/A&gt; 
+  &lt;A HREF=&quot;http://techref.massmind.org/Techref/io/servo/wav.htm&quot;&gt;audio generator&lt;/A&gt;
+  for &lt;A HREF=&quot;http://techref.massmind.org/Techref/io/servo/index.htm&quot;&gt;Servo&lt;/A&gt; 
+  &lt;A HREF=&quot;http://techref.massmind.org/Techref/io/motors.htm&quot;&gt;Motors&lt;/A&gt;
+&lt;/H1&gt;
+&lt;P&gt;
+Volume:
+&lt;INPUT type=&quot;range&quot; min=0 max=100 oninput=&quot;
+	onVolumeChange(parseInt(this.value, 10) / 100);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	&quot; value=2&gt;
+&lt;INPUT type=&quot;button&quot; value=&quot;On&quot; onclick=&quot;onVolumeChange(1);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	&quot;&gt;
+&lt;INPUT type=&quot;button&quot; value=&quot;Off&quot; onclick=&quot;onVolumeChange(0);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	&quot;&gt; 
+&lt;BR&gt;
+Ch1 Degrees: -90
+&lt;INPUT type=&quot;range&quot; min=-90 max=90 oninput=&quot;
+	onPWMChange(parseInt(this.value, 10));
+	document.getElementById('degree').innerHTML=this.value;
+	displayWave(data,document.getElementById('scope'));
+	&quot; value=0&gt;+90
+&lt;INPUT type=&quot;text&quot; min=-90 max=90 size=3 onchange=&quot;
+	onPWMChange(parseInt(this.value, 10));
+	document.getElementById('degree').innerHTML=this.value;
+	displayWave(data,document.getElementById('scope'));
+	&quot; value=0&gt; &lt;BR&gt;
+Ch2 Degrees: -90
+&lt;INPUT type=&quot;range&quot; min=-90 max=90 oninput=&quot;
+	onPWMChange2(parseInt(this.value, 10));
+	document.getElementById('degree2').innerHTML=this.value;
+	displayWave(data2,document.getElementById('scope2'));
+	&quot; value=0&gt;+90
+&lt;INPUT type=&quot;text&quot; min=-90 max=90 size=3 onchange=&quot;
+	onPWMChange2(parseInt(this.value, 10));
+	document.getElementById('degree2').innerHTML=this.value;
+	displayWave(data2,document.getElementById('scope2'));
+	&quot; value=0&gt;
+&lt;DIV id=&quot;degree&quot;&gt;
+  0
+&lt;/DIV&gt;
+&lt;P&gt;
+&lt;canvas id=&quot;scope&quot; width=&quot;200&quot; height=&quot;100&quot;&gt;&lt;/canvas&gt;
+&lt;DIV id=&quot;degree2&quot;&gt;
+  0
+&lt;/DIV&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;canvas id=&quot;scope2&quot; width=&quot;200&quot; height=&quot;100&quot;&gt;&lt;/canvas&gt;
+&lt;P&gt;&lt;/P&gt;
+&lt;/BODY&gt;
+&lt;/HTML&gt;</PRE><!-- 45324.6019328704 EOR -->
+<HR>
+<P>
+Given the lack of support for HTML5 &lt;audio&gt; in SmartPhone Browsers,
+it might be necessary to use a set of seperate .wav or .mp3 files, each one
+encoding a different PWM position.
+<P>
+See also:
+<UL>
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43028.9505671296" HREF="https://martinmelhus.com/web-audio-modem/"
+	TARGET="_top">https://martinmelhus.com/web-audio-modem/</A> JavaScript based
+    audio modem<!-- 43028.9505671296 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41995.012349537" HREF="http://labs.rakettitiede.com/?p=87"
+	TARGET="_top">http://labs.rakettitiede.com/?p=87</A> High speed data transfer
+    from PC to AVR via audio jack.<!-- 41995.012349537 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41957.9480902778" HREF="https://github.com/espruino/EspruinoTools/blob/gh-pages/core/serial_audio.js"
+	TARGET="_top">https://github.com/espruino/EspruinoTools/blob/gh-pages/core/serial_audio.js</A>
+    Two way communication between a web page and a microcontroller via the
+    headphone/mic jack.<!-- 41957.9480902778 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41957.9397106481" HREF="https://github.com/espruino/EspruinoOrion"
+	TARGET="_top">https://github.com/espruino/EspruinoOrion</A> Javascript audio
+    library and simple circuit to send serial data from a host to a
+    microcontroller.<!-- 41957.9397106481 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41783.9116203704" HREF="http://makezine.com/projects/trs-drawbot/"
+	TARGET="_top">http://makezine.com/projects/trs-drawbot/</A> The make version
+    eliminates the caps because they appear to distort the
+    signal.<!-- 41783.9116203704 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41737.9253125" HREF="http://www.slideshare.net/wolfpaulus/android-arduino-and-the-headphone-jack"
+	TARGET="_top">http://www.slideshare.net/wolfpaulus/android-arduino-and-the-headphone-jack</A>
+    FSK data encoding by Arduino read by Android via
+    FFT<!-- 41737.9253125 EOR
+    -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41710.9441203704" HREF="https://developer.tizen.org/documentation/articles/advanced-web-audio-api-usage"
+	TARGET="_top">https://developer.tizen.org/documentation/articles/advanced-web-audio-api-usage</A>
+    Making waveforms on the fly with HTML5 audio's AudioBuffer object via the
+    createBuffer(channels, length, rate) method.<!-- 41710.9441203704 EOR -->
+  <LI>
+    <A HREF="https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createBuffer">https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createBuffer</A>
+    Multi-channel HTML5
+  <LI>
+    <A HREF="http://www.elated.com/articles/html5-audio/">http://www.elated.com/articles/html5-audio/</A>
+    Basic HTML5 audio control via Javascript
+  <LI>
+    <A HREF="http://www.w3schools.com/tags/av_prop_currenttime.asp">http://www.w3schools.com/tags/av_prop_currenttime.asp</A>
+    The currentTime property
+  <LI>
+    <A HREF="http://www.csun.edu/~lg48405/sed618/assignments/audio_format.html">http://www.csun.edu/~lg48405/sed618/assignments/audio_format.html</A>
+    Standard WAV file sample rates and depths.
+  <LI>
+    <A HREF="http://forum.allaboutcircuits.com/showthread.php?t=87688">http://forum.allaboutcircuits.com/showthread.php?t=87688</A>
+    The required hardware.
+</UL>
+<P>
+<P>
+<A TITLE="JMN-EFP-786" NAME="42768.9754976852"> The ability to control a
+motor could then be combined with
+<A href="/Techref/language/java/script/imageprocessing.htm">Javascript based
+object recognition</A> to turn a cell phone into an object following
+device.</A> <!-- 42768.9754976852 EOR -->
+<P>
+Questions:
+<UL>
+  <LI>
+    <A TITLE="P-5.188.210.9" NAME="43304.736875" HREF="mailto:kira@rainmail.win ">kira@rainmail.win
+    </A> asks: <A NAME="5.188.210.9"> </A> <!-- 43304.736875 EOR -->
+  <LI>
+    <A TITLE="P-5.188.210.9" NAME="43304.47625" HREF="mailto:lduluc@pochtar.men ">lduluc@pochtar.men
+    </A> asks: <A NAME="5.188.210.9"> </A> <!-- 43304.47625 EOR -->
+</UL>
+
+</BODY></HTML>

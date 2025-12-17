@@ -1,0 +1,245 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Last modified: 13-Feb-2018 -->
+  <TITLE>Servo Motors</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Servo <A HREF="../motors.htm">"Motor"</A> Systems
+</H1>
+<P>
+There are two classes of "Servo": "Hobby" or "RC" servos and industrial servos.
+Both are actually systems, including a <A HREF="../motors.htm">motor of some
+type</A>, with a built in <A HREF="../sensor/pos.htm">position</A>
+<A HREF="../sensors.htm">sensor</A> and control system to move the shaft
+to the position request from some sort of data input.
+<P>
+<B><BIG>Analog / RC Servos</BIG></B> change position based on the duration of the
+positive part of the pulse received. The pulse can generally range from 1
+to 2 milliseconds with center at 1.5ms. If the pulse is 1.5ms, the servo
+will be centered. At 2.0ms, the servo will rotate 90' clockwise. At 1.0ms,
+it will be at -90' or 90' CCW. The frequency of the pulses is less critical,
+and most servos will function from 40 to 200Hz. The position feedback is
+generally (rare exceptions) a potentiometer attached to the shaft. Accuracy
+is typically no better than a degree or two. The control system is generally
+an analog electronic circuit which compares the input pulse duty cycle with
+the duty cycle of another pulse developed from the internal pot and then
+moves the motor based on the difference. E.g. it is Proportional only.
+<P>
+<B><BIG>Digital / Industrial servos</BIG></B> can be commanded to move with a wide
+range of input data including step/direction, PWM, serial ASCII data, and
+so on. They typically use optical or magnetic
+<A HREF="../sensor/pos/enc/quadrature.htm">Quadrature Encoders</A> to measure
+position, a control system which includes PI or <A HREF="../pid.htm">PID</A>
+control (like the <B><A HREF="BOBPID.htm">BOB PID</A></B>) and a driver to
+move the motor.
+<P>
+<I>(click on the words in the picture below for more information)</I>
+<P>
+<IMG SRC="../../../images/massmind/ServoBlock.png" WIDTH="753" HEIGHT="416"
+    ISMAP USEMAP="#ServoBlock"><MAP NAME="ServoBlock">
+  <AREA SHAPE="RECT" HREF="../hbridge.htm" COORDS="232,152,315,173">
+  <AREA SHAPE="RECT" HREF="../PMinMO.htm" COORDS="137,352,201,372">
+  <AREA SHAPE="RECT" HREF="../../potentiometers.htm" COORDS="447,371,517,389">
+  <AREA SHAPE="RECT" HREF="../../potentiometers.htm" COORDS="665,241,698,257">
+  <AREA SHAPE="RECT" HREF="../dcmotors.htm" COORDS="424,123,453,144">
+  <AREA SHAPE="POLYGON" HREF="../steppers.htm" COORDS="274,174, 274,193, 230,193, 229,208, 287,208, 287,193, 342,193, 342,173, 274,174">
+  <AREA SHAPE="RECT" HREF="../steppers.htm" COORDS="425,158,487,180">
+  <AREA SHAPE="RECT" HREF="../sensor/pos/enc/quadrature.htm" COORDS="399,353,580,370">
+  <AREA SHAPE="POLYGON" HREF="../sensor/pos/enc/quadrature.htm" COORDS="591,225, 591,257, 663,257, 664,239, 683,239, 683,226, 591,225">
+  <AREA SHAPE="RECT" HREF="../../method/motioncontrol.htm" COORDS="6,311,116,398">
+  <AREA SHAPE="RECT" HREF="../pwm/index.htm" COORDS="293,254,389,271">
+  <AREA SHAPE="RECT" HREF="../pwm/index.htm" COORDS="398,370,445,388">
+  <AREA SHAPE="RECT" HREF="../pwm/index.htm" COORDS="139,370,185,389">
+  <AREA SHAPE="RECT" HREF="../pid.htm" COORDS="138,374,139,375">
+  <AREA SHAPE="RECT" HREF="../pid.htm" COORDS="255,341,288,359">
+  <AREA SHAPE="RECT" HREF="../motors.htm" COORDS="422,90,489,220">
+  <AREA SHAPE="RECT" HREF="../sensor/pos/encoders.htm" COORDS="587,183,702,271">
+</MAP>
+<P>
+<P>
+<B>Driver:</B> The motor driver needs to match the motor: e.g.
+<UL>
+  <LI>
+    for a <A HREF="../dcmotors.htm">DC motor</A> you want an
+    <A HREF="../hbridge.htm">H-Bridge</A>,
+  <LI>
+    for an RC motor an ESC,
+  <LI>
+    for a <A HREF="../steppers.htm">stepper motor</A> you need a
+    <A HREF="../stepper/drivers.htm">stepper motor driver</A>.
+</UL>
+<P>
+<B>Servo Controller:</B> The "brains" of the operation. It figures out what
+motion to command based on the current desired position, actual position,
+and what it knows about the mechanics of the motor and mechanical setup.
+It needs to speak the language used by each of the parts it talks to... If
+the motor driver expects <A HREF="../PMinMO.htm">step and direction
+signals</A>, and the control tries to feed it a <A HREF="../pwm/index.htm">PWM
+signal </A>with center at 50% duty cycle, it's just not going to work. In
+the same way, it needs to understand the format of data the position encoder
+is putting out and the format of the commands from the motion controller.
+<A HREF="../sensor/pos/enc/quadrature.htm">Quadrature encoders</A>&nbsp;are
+the most common, but a voltage from a
+<A HREF="../../potentiometers.htm">potentiometer</A> is often used with smaller
+RC servo systems. The motion controller will generally put out
+<A HREF="../PMinMO.htm">step and direction signals</A>. Our offering is the
+<B><A HREF="BOBPID.htm">BOB PID Servo Controller</A></B>
+<P>
+<B>Position Feedback
+<A HREF="../sensor/pos/enc/quadrature.htm">Encoder</A></B>: Best connected
+to the actual output shaft, instead of the motor shaft, because then the
+system can compensate for slop in the gearing.
+<P>
+Gearing is most useful when used with a high speed DC or AC motor, because
+they typically don't have good low speed torque. A gear train allows us to
+trade their higher speed for strength at low speeds. Stepper motors often
+don't need gearing... or servo drive, for that matter...
+<P>
+When there is backlash between the output shaft and the motor shaft (caused
+by the gearing) 2 encoders can be used. This is also applicable to systems
+with a rotary encoder on the motor and a linear encoder on an axis. In this
+case, the PID loop may struggle with the backlash using only the motor shaft
+encoder. The two encoders may be combined by using the motor encoder for
+the P and D terms and the output or axis encoder for the I
+term<A HREF="http://www.machinedesign.com/archive/two-feedback-loops-are-better-one">^</A>.
+Another possibility is to use two PID loops, one inside and one outside.
+<BR>
+<P>
+Turn any motor into a servo with our Controller and Encoder:<BR>
+<B><FONT COLOR="Red">NEW:</FONT> <A HREF="BOBPID.htm">MassMind.org BOB PID
+Servo Controller</A></B><BR>
+<B><FONT COLOR="Red">HOT:
+</FONT><A HREF="../sensor/pos/enc/ENC1.htm">MassMind Magnetic High Speed
+Non-Contact Encoder</A></B><BR>
+<B><FONT COLOR="Red">NEW:</FONT></B>
+<A HREF="../motor/DRV8701s.htm">MassMind.org H-Bridge DC Motor Driver</A>
+<P>
+<A HREF="wav.htm">Servo control with a sound waveforms</A> or
+<A HREF="html4audiopwm.html">from a web Browser</A>
+<P>
+<A HREF="../../microchip/servos.htm">Servo control with the PIC Embedded
+controller</A>
+<P>
+More:
+<UL>
+  <LI>
+    MiniScsi <A HREF="mssc1.pdf">Servos</A> Controllers from
+    <A HREF="http://www.seetron.com">Scott Edwards</A>
+  <LI>
+    <A HREF="../sensor/pos/enc/quadrature.htm">Quadrature Encoders</A>
+  <LI>
+    <A HREF="ppm.htm">Pulse Position Modulation</A>
+  <LI>
+    <A HREF="../pwm/index.htm">Pulse Width Modulation</A>
+  <LI>
+    <A HREF="../pid.htm">Proportional Integral Differential PID Motor Control</A>
+  <LI>
+    <A HREF="d2a.htm">Digital to Analog@</A>
+  <LI>
+    <A HREF="../2motors1axis.htm">Slaving Two Motors to One Axis</A>
+</UL>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://sites.google.com/a/gluemotor.com/www/how-to-make">https://sites.google.com/a/gluemotor.com/www/how-to-make</A>
+    Connecting a PC or SmartPhone audio headphone jack to a pair of servos requires
+    no more than an 0.1uF decoupling capacitor in line from each stereo channel
+    to the servo PWM input.
+  <LI>
+    <A HREF="http://openservo.com/">http://openservo.com/</A> Servo control with
+    the Atmel AVR embedded controller -- the OpenServo board goes *inside* the
+    servo case, converting it from a "analog" servo to a "digital" servo. In
+    addition to accepting position commands, it also accepts speed and cubic
+    motion curve commands, and also sends back motor current and other information.
+    Open source.
+  <LI>
+    <A HREF="http://www.svskits.com">SVS Kits</A>
+    <A HREF="http://www.svskits.com/FreeInfo/FreeInfo.htm">Free information</A>
+  <LI>
+    <A HREF="http://www.seetron.com">Scott Edwards</A>
+  <LI>
+    <A HREF="http://users.swing.be/philippe.jadin/servoen.htm">http://users.swing.be/philippe.jadin/servoen.htm</A>
+    Using a PC parallel port and a Delphi program in Windows to control servos
+  <LI>
+    <A HREF="http://www-cdr.stanford.edu/dynamic/servo/">http://www-cdr.stanford.edu/dynamic/servo/</A>
+  <LI>
+    <A HREF="http://neurobotics.bu.edu/robotics/faqhtml/10.html#10.2.1.">http://neurobotics.bu.edu/robotics/faqhtml/10.html#10.2.1.</A>
+  <LI>
+    <A HREF="http://www.electronic-testbench.com/lib/motors.htm">http://www.electronic-testbench.com/lib/motors.htm</A>
+    &nbsp;Ton of organized excellent links to motor/driving info of all types.
+  <LI>
+    <A HREF="http://users.vnet.net/paulrver/dccbasic.html">The Digital Command
+    Control system from model trains</A>
+  <LI>
+    <A HREF="http://www.compumotor.com/catalog_eng_ref.htm">http://www.compumotor.com/catalog_eng_ref.htm</A>
+  <LI>
+    <A HREF="http://www.intcon.net/~jrclay/servocon.html">http://www.intcon.net/~jrclay/servocon.html</A>
+    Servo control in <A HREF="../../language/ccpp/index.htm">C</A>
+  <LI>
+    <A HREF="http://www.taniwha.com/~paul/fc/rcout.html">http://www.taniwha.com/~paul/fc/rcout.html</A>
+  <LI>
+    <A HREF="http://www.bobblick.com/bob/projects/sv2pwm/">http://www.bobblick.com/bob/projects/sv2pwm/</A>
+    servo pulse to PWM converter
+  <LI>
+    Gear Suppliers
+    <UL>
+      <LI>
+	<A HREF="http://www.nordex-inc.com">http://www.nordex-inc.com</A> -$20 minimum
+	order
+      <LI>
+	<A HREF="http://www.sdp-si.com">http://www.sdp-si.com</A> - $50 minimum order
+      <LI>
+	<A HREF="http://www.wmberg.com">http://www.wmberg.com</A> - The old standby
+      <LI>
+	<A HREF="http://servolink.com">http://servolink.com</A> - Online drive design
+	(Great!)
+      <LI>
+	<A HREF="http://www.smallparts.com">http://www.smallparts.com</A> - $20?
+	minnimum order
+      <LI>
+	<A HREF="http://www.mcmaster.com/">http://www.mcmaster.com/</A>
+    </UL>
+</UL>
+<P>
+<P>
+Questions:
+<UL>
+  <LI>
+    <A TITLE="202.166.126.232" HREF="mailto:kyanpu@singnet.com.sg">kyanpu@singnet.com.sg</A>
+    asks: "<A NAME="202.166.126.232"> </A> camp ask : i need help on how to pulse
+    the servo motor directly using one of the outpin of portb, without the use
+    of TMR2 PWM technique. "
+    <P>
+    <I>There are several non TMR2 PWM versions to be found in the PWM link
+    above</I> <!-- 37518.3198726852 EOR -->
+  <LI>
+    <A TITLE="SRP-calclinks-AC8" HREF="/techref/member/SRP-calclinks-AC8/index.htm">Scott
+    R Pierce</A> asks:
+    <BLOCKQUOTE>
+      Can anyone point me to information on how to take servo pulses from an R/C
+      receiver (RX Unit) and convert those pulses to an integer form? I would like
+      to make sort of a two channel mixing unit for my airplane. I'd take two servo
+      pulses, convert them into integers, do some calculations on them, then convert
+      them back into PWM for the servos. Thanks in advance!
+    </BLOCKQUOTE>
+    <!-- 37478.9192939815 EOR -->
+    <P>
+    <I> See: Piclist post
+    <A HREF="http://www.piclist.com/techref/postbot.asp%3Fby=time%26id=piclist\2000\11\10\132938a">2000/11/10/132825a</A>
+    "Fourier calc for tone detection" by <A HREF="http://www.dattalo.com">Scott
+    Dattalo </A></I>
+</UL>
+<P CLEAR="LEFT">
+<A NAME="News">News</A> 
+  <HR>
+<BR>
+<iframe src="http://www.facebook.com/plugins/likebox.php?href=http%3A%2F%2Fwww.facebook.com%2Fpages%2FLinistepper%2F167619359935577%3Fv%3Dwall&width=640&colorscheme=light&connections=10&stream=true&header=true&height=587"
+scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:640px;
+height:587px;" allowTransparency="true"></iframe>
+<P>
+</BODY></HTML>
+
+

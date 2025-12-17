@@ -1,0 +1,209 @@
+<HTML>
+<HEAD>
+  <!-- AP: Last modified: 21-Jan-2016 -->
+  <TITLE>PWM</TITLE>
+</HEAD>
+<BODY>
+<P>
+<SCRIPT>
+<!-- 
+var sampleRate = 96000;
+var samplesPerMilliSecond = sampleRate*0.001;
+var samplesPerCycle = samplesPerMilliSecond * 3;
+var bufferLength = samplesPerCycle; //buffer one cycle
+var context = new AudioContext(); //used to be webkitAudioContext();
+var buffer = context.createBuffer(2, bufferLength, sampleRate);
+var data = buffer.getChannelData(0);
+var data2 = buffer.getChannelData(1);
+// Done: adjust samplesPerCycle to be an even multiple of the bufferLength
+var degrees = 0;
+
+function buildPWMWav(degrees, samplesPerMilliSecond, data) {
+var pwm = (degrees+90)/180*samplesPerMilliSecond+samplesPerMilliSecond;
+for (var i = 0; i < data.length; i++) {
+/* Prepare data */
+//data[i] = (Math.random() - 0.5) * 2; // Noise
+//data[i] = (i>=samplesPerMilliSecond && i<pwm)? 2 : 0;
+//data[i] = (i%samplesPerCycle<pwm)? 2 : 0
+data[i] = (i<pwm)? 2 : 0
+};
+}
+
+onPWMChange = function (degrees) {    
+buildPWMWav(degrees, samplesPerMilliSecond, data);
+};
+
+onPWMChange2 = function (degrees) {    
+buildPWMWav(degrees, samplesPerMilliSecond, data2);
+};
+
+onPWMChange(0); //start in the center.
+onPWMChange2(45); //start offcenter.
+
+var source = context.createBufferSource();
+source.loop = true; // Make sure that sound will repeat over and over again
+source.buffer = buffer; // Assign our buffer to the source node buffer
+
+gainNode = context.createGain();
+
+//connect the source to the gainNode, and the gainNode to the destination.
+source.connect(gainNode);
+gainNode.connect(context.destination);
+
+scale2log = function (x) {
+  let x0 = 0, x1 = 1
+  let offset = 0.0125
+  let y0 = 0+offset, y1 = 1+offset
+  let y1l = Math.log(y1)
+  let y0l = Math.log(y0)
+  let y = Math.exp((x * y0l - x * y1l + x0 * y1l - x1 * y0l) / (x0 - x1))
+  y = y-offset //remove the offset
+  y = Math.round(y * 1000) / 1000 //round off
+  //console.log("x",x,"y",y ,"y1l",y1l,"y0l",y0l)
+  return y
+}
+
+onVolumeChange = function (vol) {
+context.resume();
+gainNode.gain.value = scale2log(vol);
+//console.log(Math.floor(gainNode.gain.value * 100));
+};
+
+onVolumeChange(0); //set initial volumn to zero
+
+
+source.start(0);
+//Just start immediatly with zero volume. 
+//Set volume to 0 to stop. If you use noteOff to stop, 
+//you have to recreate the source.
+
+displayWave = function(data,canvas) {
+  var ctx = canvas.getContext('2d');
+  var amp = Math.min(64*gainNode.gain.value,99)+10;
+  canvas.width = data.length+10;
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = 'red';
+  ctx.beginPath();
+  ctx.moveTo(0,canvas.height);
+  for (var i = 0; i < data.length; i++) {
+	  ctx.lineTo(i,canvas.height-data[i]*amp);
+  };
+  ctx.moveTo(i-1,canvas.height);
+  ctx.stroke();
+}
+
+
+
+--> </SCRIPT>
+<H1>
+  <A HREF="../../language/html/HTML5webapps.htm">HTML5 web app</A>
+  <A HREF="../pwm/index.htm">PWM</A> <A HREF="wav.htm">audio generator</A>
+  for <A HREF="index.htm">Servo</A> <A HREF="../motors.htm">Motors</A>
+</H1>
+<P>
+Volume:
+<INPUT type="range" min=0 max=100 oninput="
+	onVolumeChange(parseInt(this.value, 10) / 100);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	" value=2>
+<INPUT type="button" value="On" onclick="onVolumeChange(1);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	">
+<INPUT type="button" value="Off" onclick="onVolumeChange(0);
+	displayWave(data,document.getElementById('scope'));
+	displayWave(data2,document.getElementById('scope2'));
+	"> 
+<BR>
+Ch1 Degrees: -90
+<INPUT type="range" min=-90 max=90 oninput="
+	onPWMChange(parseInt(this.value, 10));
+	document.getElementById('degree').innerHTML=this.value;
+	displayWave(data,document.getElementById('scope'));
+	" value=0>+90
+<INPUT type="text" min=-90 max=90 size=3 onchange="
+	onPWMChange(parseInt(this.value, 10));
+	document.getElementById('degree').innerHTML=this.value;
+	displayWave(data,document.getElementById('scope'));
+	" value=0> <BR>
+Ch2 Degrees: -90
+<INPUT type="range" min=-90 max=90 oninput="
+	onPWMChange2(parseInt(this.value, 10));
+	document.getElementById('degree2').innerHTML=this.value;
+	displayWave(data2,document.getElementById('scope2'));
+	" value=0>+90
+<INPUT type="text" min=-90 max=90 size=3 onchange="
+	onPWMChange2(parseInt(this.value, 10));
+	document.getElementById('degree2').innerHTML=this.value;
+	displayWave(data2,document.getElementById('scope2'));
+	" value=0>
+<DIV id="degree">
+  0
+</DIV>
+<P>
+<canvas id="scope" width="200" height="100"></canvas>
+<DIV id="degree2">
+  0
+</DIV>
+<P></P>
+<canvas id="scope2" width="200" height="100"></canvas>
+<P></P>
+
+
+Connecting a PC or SmartPhone audio headphone jack to a pair of servos requires
+no more than an 0.1uF decoupling capacitor in line from each stereo channel
+to the servo PWM input. <BR>
+<A HREF="http://www.gluemotor.com/how-to-make">http://www.gluemotor.com/how-to-make</A>
+<BR><A HREF="https://github.com/GlueMotor/GlueMotor">https://github.com/GlueMotor/GlueMotor</A>
+<P>
+<IMG ALT="Schematics of GlueMotor Cable" BORDER="0" HEIGHT="261" WIDTH="400"
+    SRC="GlueMotorCable_Schematics.png">
+<P>
+<I>Note: This circuit will only work with devices that have a very loud audio
+output. In most cases, a simple transistor amplifier will be required. If
+you can help with the design of such an amp using commonly available parts,
+please <A HREF="mailto:jamesnewton@geocities.com">contact us</A>.</I>
+<P>
+<P>
+ToDo:
+<UL>
+  <LI>
+    Develop easily made open source&nbsp;hardware which will work with any audio
+    output and servo.
+  <LI>
+    <A HREF="wav.htm">Allow wavforms to be saved at the current volume and degree
+    to support browsers without &lt;audio&gt; tag support.</A>
+  <LI>
+    Support two servos with right / left channel stereo generation.
+  <LI>
+    Setup a pull down for common sample rates.
+  <LI>
+    Done: <STRIKE>Adjust samplesPerCycle to a even divisor of bufferLength to
+    remove the 1 second tick</STRIKE>
+  <LI>
+    Done: <STRIKE>Added a visualization so you can see what the wave form is
+    supposed to look like</STRIKE>
+  <LI>
+</UL>
+<P>
+In the short time this page has been up, the Web Audio API has already changed
+and broken it. First by replacing <TT>context.createGainNode();</TT> with
+<TT>context.createGain();</TT> and by replacing
+<TT>context.createBufferSource().noteOn(0);</TT> with
+<TT>context.createBufferSource().start(0);</TT>.
+<P>
+Based on this level of instability, and the fact that this method is not
+compatible with older SmartPhones and browsers, it may be better to focus
+on other methods of communicating with the world, such as the
+<A HREF="../serial/i2c/withGIFs.html">I2C via GIF</A> idea.
+
+<P>
+<UL>
+<LI><A HREF="https://hackaday.io/project/4926-cheepit-sparrow-dev-boards-for-smartphones">https://hackaday.io/project/4926-cheepit-sparrow-dev-boards-for-smartphones</A> Using browser generated audio to program a microcontroller. 
+</UL>
+</BODY></HTML>
+
+
+

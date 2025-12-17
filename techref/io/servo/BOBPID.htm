@@ -1,0 +1,714 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 29-Apr-2016 -->
+  <!-- AP: Last modified: 28-Mar-2019 -->
+  <STYLE>
+.ecompd { 
+	clear:both;
+	float:left;
+	width:45%;
+	background-image: url(/images/linedots.gif);
+	background-position: left 1em;
+	background-repeat: repeat-x;
+	}
+.ecompp { float:left;width:80px;text-align:right;margin-right:4px;}
+.ecompo { float:left;width:60px} 
+.ecompq { float:left;width:120px}
+.ecompqo { float:left;height:1.3em;width:30px}
+.ecompqb { float:left;width:100px} 
+.ecompqp { float:left;position:relative;left:-100px;top:.8em;width:-120px;}
+.ecomco { margin-left:4px;color:red;font-style: italic;}
+.ecombutton {
+	margin : 0em;
+	padding : 2px;
+	border-style: outset;
+	border-width: 2px;
+	background-color: #B0B0B0;
+	color: #000000;
+	text-decoration: none;
+	}
+</STYLE>
+  <TITLE>MassMind BOB PID Servo Motor Control</TITLE>
+</HEAD>
+<BODY>
+<H2>
+  MassMind <A HREF="../../microchip/bob.htm">BOB</A>
+  <A HREF="../pid.htm">PID</A> <A HREF="index.htm">Servo</A>
+  <A HREF="../motors.htm">Motor</A> Control
+</H2>
+<P>
+The BOB PID is a very low cost, but quite capable, PID servo controller,
+which can replace stepper motors in any standard application, such as 3D
+printers or CNC machines.
+<UL>
+  <LI>
+    Serial and step / direction inputs.<BR>
+    - The serial interface, via any
+    <A href="http://www.ecomorder.com/techref/ecomprice.asp?p=416063">TTL to
+    USB adapter</A>, allows for easy tuning of the P.I.D. constants and setting
+    options like the polarity of the output direction signal. It also supports
+    a
+    bootloader<A HREF="http://picprog.strongedge.net/bootloader/bootloader.html">^</A>
+    for future <A HREF="#Firmware">firmware</A> updates and new abilities /
+    optimisation.<BR>
+    - The <A HREF="../PMinMO.htm">PMinMO Standard Step / Direction input</A>
+    allows it`s use in any application where a standard
+    <A HREF="../steppers.htm">stepper</A> driver was intended. Our
+    <A href="http://www.ecomorder.com/techref/ecomprice.asp?p=416076">Pololu
+    adapter cable</A> makes plugging it into a RAMPS / GRBL or pretty much any
+    other motion controller very easy.
+  <LI>
+    Position input comes from a standard
+    <A HREF="../sensor/pos/enc/quadrature.htm">quadrature type position
+    encoder</A>, like <A HREF="../sensor/pos/enc/ENC2.htm">our non-contact, high
+    speed magnetic ENC</A> connected to the motor shaft. Up to 73,000 edges per
+    second or 18,000 lines per second are supported with the current
+    <A HREF="#Firmware">0.93 firmware</A>. That supports up to 1,095 RPM with
+    a 1000 line (4k quad) encoder (73K/4K*60), or over 12,000 RPM with our 360
+    quad <A HREF="../sensor/pos/enc/ENC2.htm">ENC2</A> (73K/360*60).
+  <LI>
+    The output is PWM speed and direction suitable for any standard "H-Bridge"
+    motor driver. Such as the <A HREF="../motor/DRV8701s.htm">MassMind.org H-Bridge
+    DC Motor Driver</A>
+</UL>
+<P>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rnwYqGB3bXw"
+frameborder="0" allowfullscreen></iframe>
+<P>
+<SAMP>416079</SAMP>
+<P>
+<SAMP>416078</SAMP>
+<P>
+<SAMP>416080</SAMP>
+<P>
+<SAMP>416020</SAMP>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<BR>
+TEMPORARY: To tune the PID controller for your motor and load, you will need
+a USB to TTL serial converter. e.g. FTDI friend, etc... Our
+<A HREF="../serial/RLC3.htm">RLC3</A> works nicely. <SAMP>416063</SAMP>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<BR>
+OPTIONAL: +5 volt regulator parts. The BOB PID needs +5 volt logic power
+from somewhere... But that can come from many sources:
+<UL>
+  <LI>
+    The USB-TTL adapter can provide +5 from USB while it's attached to your computer
+    for tuning the PID constants. If you have a spare USB power adapter, just
+    plug it into that after you are done.
+  <LI>
+    Or, if you are using some other driver, and it doesn't put out +5 volts,
+    you can supply +5 volt power form your own source.
+  <LI>
+    Or, you can order the regulator parts and install them on the BOB PID so
+    it can make +5 from your motor power supply.
+</UL>
+<P>
+<SAMP>416025</SAMP>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<BR>
+<I>NOTE: If these options are confusing, please reivew the
+<A HREF="index.htm">Servo block diagram</A> to see how they all fit
+together.</I>
+<H2>
+  Assembling the <A HREF="../../microchip/bob.htm">BOB</A> PID
+</H2>
+<P>
+Note: Most components are installed on the underside of the PCB... The side
+with "U1 PIC"
+<P CLEAR="BOTH" STYLE="clear:both;">
+<TABLE BORDER CELLSPACING="0" CELLPADDING="2" ALIGN="RIGHT">
+  <TR>
+    <TD>Z-axis <BR>
+      Pin</TD>
+    <TD>Signal from BOB PCB <BR>
+      <I>All even pins are ground</I></TD>
+  </TR>
+  <TR>
+    <TD>1 "E"</TD>
+    <TD>/Enable</TD>
+  </TR>
+  <TR>
+    <TD>3 "D"</TD>
+    <TD>PWM Drive (not direction)</TD>
+  </TR>
+  <TR>
+    <TD>5 "S"</TD>
+    <TD>Direction (not step)</TD>
+  </TR>
+  <TR>
+    <TD>7 "-"</TD>
+    <TD>Ground</TD>
+  </TR>
+  <TR>
+    <TD>9 "+"</TD>
+    <TD>+5 Logic power (if needed)</TD>
+  </TR>
+</TABLE>
+<P>
+<I><B>Motor Driver Output </B>via Z Axis cable</I>
+<BLOCKQUOTE>
+  [ ] Install a 10 pin 2x5 header over the Z axis on JP3. On the boards underside,
+  this is the 2nd from the right block of 2x5 pins in JP3 with "Z" just below
+  it. Note that we swapped the standard functions of Step / Direction to support
+  the PIC. For a <A HREF="../PMinMO.htm">PMinMO</A> <U>stepper</U> driver,
+  you must swap pins 2 and 3 in the cable. Our
+  <A HREF="../motor/DRV8701s.htm">MassMind H-bridge driver</A> has those pin
+  swapped, for a straight cable.
+  <P>
+</BLOCKQUOTE>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<TABLE BORDER CELLSPACING="0" CELLPADDING="2" ALIGN="RIGHT">
+  <TR>
+    <TD>X-axis <BR>
+      Pin</TD>
+    <TD>Signal from BOB PCB <BR>
+      <I>All even pins are ground</I></TD>
+  </TR>
+  <TR>
+    <TD>1 "E"</TD>
+    <TD>/Enable (JP3 square pad )</TD>
+  </TR>
+  <TR>
+    <TD>3 "D"</TD>
+    <TD>Direction</TD>
+  </TR>
+  <TR>
+    <TD>5 "S"</TD>
+    <TD>Step</TD>
+  </TR>
+  <TR>
+    <TD>7 "-"</TD>
+    <TD>Ground</TD>
+  </TR>
+  <TR>
+    <TD>9 "+"</TD>
+    <TD>+5 Logic power (if needed)</TD>
+  </TR>
+</TABLE>
+<P>
+<I><B>Step / Direction input</B> from <A HREF="../embeddedcncs.htm">motion
+controller</A>&nbsp;via X Axis cable (if desired)</I>
+<BLOCKQUOTE>
+  [ ] Install a 10 pin 2x5 header over the X axis on JP3. On the boards underside,
+  this is the far left block in JP3, starting from pin 1. This is
+  <A HREF="../PMinMO.htm">PMinMO</A> standard, so our
+  <A HREF="../stepper/PMinMOtoRAMPS.htm">Pololu adapter cable</A> works nicely.
+</BLOCKQUOTE>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<TABLE BORDER CELLSPACING="0" CELLPADDING="2" ALIGN="RIGHT">
+  <TR>
+    <TD>J2<BR>
+      Pin</TD>
+    <TD>&nbsp;<BR>
+      Signal to BOB PCB</TD>
+  </TR>
+  <TR>
+    <TD>1</TD>
+    <TD>+5 Logic power (if needed)</TD>
+  </TR>
+  <TR>
+    <TD>2</TD>
+    <TD>CTS (unused)</TD>
+  </TR>
+  <TR>
+    <TD>3</TD>
+    <TD>Ground</TD>
+  </TR>
+  <TR>
+    <TD>4</TD>
+    <TD>TX &lt;- USB/Host</TD>
+  </TR>
+  <TR>
+    <TD>5</TD>
+    <TD>RX -&gt; USB/Host</TD>
+  </TR>
+</TABLE>
+<P>
+<I><B>Serial Console</B>: To talk to the controller via USB - TTL serial
+(Required to set the PID constants):</I>
+<BLOCKQUOTE>
+  [ ] Install J2 <A HREF="../serial/RLC3.htm">RLC</A> header for USB / serial
+  communications to a host. The host is used to tune the PID loop, provide
+  motion commands for test or use, and update firmware via the bootloader.
+  &nbsp;Note that pin 4 TX is data FROM the USB/Host going TO the PID controller.
+  RX is TO Host FROM PID.
+</BLOCKQUOTE>
+<P CLEAR="BOTH" STYLE="clear:both;">
+<TABLE ALIGN="RIGHT">
+  <TR>
+    <TD><TABLE BORDER CELLSPACING="0" CELLPADDING="2" >
+	<TR>
+	  <TD>Pin on<BR>
+	    BOB</TD>
+	  <TD>&nbsp;<BR>
+	    Label</TD>
+	  <TD>Pin on<BR>
+	    ENC2</TD>
+	  <TD><FONT COLOR="Gray">Pin on <BR>
+	    ENC1</FONT><A HREF="/images/massmind/BOBPID/BOBPID-ENC1Wiring.jpg">*</A></TD>
+	  <TD>Encoder <BR>
+	    Signal</TD>
+	</TR>
+	<TR>
+	  <TD>1 or 6</TD>
+	  <TD>+5</TD>
+	  <TD>1</TD>
+	  <TD><FONT COLOR="Gray">5</FONT></TD>
+	  <TD>5V</TD>
+	</TR>
+	<TR>
+	  <TD>2</TD>
+	  <TD>Y LED</TD>
+	  <TD>5</TD>
+	  <TD><FONT COLOR="Gray">3</FONT></TD>
+	  <TD>PhaseA</TD>
+	</TR>
+	<TR>
+	  <TD>3 or 4</TD>
+	  <TD>GND</TD>
+	  <TD>3,4</TD>
+	  <TD><FONT COLOR="Gray">4</FONT></TD>
+	  <TD>GND</TD>
+	</TR>
+	<TR>
+	  <TD>5 <BR>
+	    (not 4)</TD>
+	  <TD>Z LED</TD>
+	  <TD>2</TD>
+	  <TD><FONT COLOR="Gray">2</FONT></TD>
+	  <TD>PhaseB</TD>
+	</TR>
+      </TABLE>
+    </TD>
+  </TR>
+</TABLE>
+<P>
+<I><B>Quadrature Encoder</B>:</I>
+<BLOCKQUOTE>
+  [ ] Install a 1x6 (or 1x5, pins 6 &amp; 1 share +5) header over the holes
+  for the Z and Y LEDs. (see picture) The polarity tab should be towards the
+  outside edge of the PCB and if a 1x5, it should&nbsp;be slid down to
+  use&nbsp;the square pad toward the <I>lower</I> edge, near "D7" on the underside,
+  of the PCB. See the picture below. This brings power, ground, and data lines
+  originally for those LEDs out for a
+  <A HREF="../sensor/pos/enc/quadrature.htm">Quadrature Encoder</A>; we can
+  those data lines as inputs instead. The cable for the
+  <A HREF="../sensor/pos/enc/ENC2.htm">MassMind Encoder ENC2 </A>is shown:
+  (see also for
+  <A HREF="/images/massmind/BOBPID/BOBPID-ENC1Wiring.jpg">ENC1</A>)
+</BLOCKQUOTE>
+<P CLEAR="BOTH" STYLE="clear:both; page-break-before:always;">
+<IMG SRC="../../../images/massmind/BOBPID/BOBPID-BuiltTop.jpg" WIDTH="733"
+    HEIGHT="537">
+<P>
+[ ] Install C4 (upper right corner, not shown in photo) and C7 (just left
+of U1 "PIC") to ensure stable power and avoid unexpected resets. Despite
+the value indicated on the PCB, C4 can be any good sized electrolytic capacitor
+(e.g. 220uF to 1000uF). Note it's long lead should be installed in the square
+pad nearest the "+" and just above and right of "C4".
+<P>
+[ ] Install JP4 and JP5 on the under side of the PCB, about an inch from
+the left, just below U1. See left bubble in picture.
+<P>
+[ ] Install a jumper over the RP2 LED network from STEP Y to the corresponding
+pin on the bottom side of RP2. See right bubble in picture.
+<P>
+[ ] Install a jumper <I>sideways</I> over RP2 from STEP A to the pin NOT
+directly on the other side of RP2, but one place over, towards the Y jumper
+you just installed. See right bubble in picture.
+<P CLEAR="BOTH" STYLE="clear:both;">
+[ ] The PIC 18F14K22 is installed as U1 PIC on the bottom side center left.
+The notch on one end of the chip should match the notch on PCB and face the
+U1 PIC text. Be sure it is programmed first
+(<A HREF="https://github.com/JamesNewton/BOBPID/">Source code in github</A>).
+The chip provided with the kit is already programmed and includes a bootloader
+for future firmware updates.
+<P>
+The PCB can be mounted to any surface with standoffs. The mounting holes
+are at these locations, measured from the left and bottom of the PCB (right,
+up)
+<OL>
+  <LI>
+    0.45", 0.10"
+  <LI>
+    2.45", 0.10"
+  <LI>
+    3.55", 0.50" (0.1" from right edge)
+  <LI>
+    0.10", 1.13"
+  <LI>
+    3.55", 2.15" (0.1" from right edge)
+</OL>
+<H3>
+  <A NAME="Options">Options</A>
+</H3>
+<P>
+<I><B>ERROR FEEDBACK:</B> OPTION. If you will want error feedback to your
+motion controller: </I>
+<BLOCKQUOTE>
+  [ ] First be very careful that it can accept an error signal on pin 7 of
+  the <A HREF="../PMinMO.htm">PMinMO</A> connector. This pin is normally grounded,
+  and so it will make any error much worse if we activate a short to ground.
+  Connect a low value resistor over the "X" just above U1 on the underside
+  of the PCB.
+</BLOCKQUOTE>
+<P>
+<I><B>ERROR LED:</B> OPTION. For an error indicator, this LED will light
+if the controller looses track of a shaft which is spinning too fast:</I>
+<BLOCKQUOTE>
+  Install an LED with long lead in the A2D pin of J12 (lower edge of PCB) and
+  the short lead in the hole just right of that. Keep the short lead long,
+  and bend it over to also connect to J12 pin 1 (far right of J12) where a
+  low value resistor (e.g. 330 to 560 ohms) should be installed with it's other
+  lead in one of the GND pads of J11. (see center bubble in picture above)
+</BLOCKQUOTE>
+<H2>
+  Operation
+</H2>
+<P>
+<B>TTL Serial 38400 N 8 2 X-ON/X-OFF</B>: Connect a
+<A HREF="../../usbs.htm">USB</A> (or
+<A HREF="../serial/rs232.htm">RS-232</A>) to TTL serial converter to the
+J2 connector. e.g. FTDI Friend, <A HREF="../serial/RLC3.htm">RLC3</A> Again,
+pin 4 "TX" is data FROM the USB/Host going TO the PID controller. RX is TO
+USB/Host FROM PID controller. Configure your serial terminal program (e.g.
+Hyperterm, RealTerm, PuTTY, etc...) for whatever COM/TTY port shows up, and
+38,400 baud, No parity, 8 data bits, and 2 stop bits. Select X-ON / X-OFF
+handshaking if available.
+<A HREF="https://www.youtube.com/watch?v=qii1SxnRzJw">Video</A>
+<P>
+<I>Note: The pre-programmed chips come with a bootloader installed. On power
+up, the serial connection will display a countdown in order to give time
+for the user to go into the bootloader mode if desired. Just wait for the
+countdown to finish for normal operation. If the screen fills up with "!"
+the magent isn't placed correctly.</I>
+<P>
+Commands:
+<UL>
+  <LI>
+    <TT>e</TT> Enable. On startup the unit will NOT drive the motor, until it
+    is enabled. This also resets any position error, so the motor should not
+    move.
+  <LI>
+    <TT>{space}</TT> Disable. To stop the motor at any time, just hit the space
+    bar. This also disables tracking of the hardware input enable line.
+  <LI>
+    <TT>#p</TT>, <TT>#i</TT>, <TT>#d</TT> Set the constant to the value entered.
+    For example, to set the p term to 14, enter <TT>14p</TT> To set I to 0.1,
+    enter <TT>.1i</TT>. Always use lower case (it's faster) and always enter
+    the <I>value</I> first, then the letter. These settings only last as long
+    as power is on, unless you save them into non-volitile memory.
+  <LI>
+    <TT>216w</TT> Set Direction to positive high, negative low
+  <LI>
+    <TT>286w</TT> Set Direction to positive low, negative high
+  <LI>
+    <TT>60w</TT> Make the motor enable track the step/direction input motor enable
+    line
+  <LI>
+    <TT>50w</TT> Make the motor enable NOT track the step/direction input motor
+    enable line. <TT>{space}</TT> also does this <I>and</I> disables the motor.
+  <LI>
+    <TT>#s</TT> (since v0.92) Set the number of steps per each step input pulse.
+    &nbsp;e.g. <TT>10s</TT> changes the setpoint by 10 positions each step.
+    <TT>1s</TT> is a one to one step to position setting.
+  <LI>
+    <TT>#v</TT> (since v0.95) Set velocity for move commands from terminal. Like
+    s but internal. Applies v positions per 1/200th of a second from setpoint.
+  <LI>
+    <TT>321w</TT> Save settings / constants in non-volitile memory. Once direction
+    is set, the PID tuning is done, and input enable tracking set, saving the
+    settings allows you to remove the console cable and just operate from the
+    hardware step/direction input.
+  <LI>
+    <TT>#{enter}</TT> Move to the location entered. e.g. to move to 100, enter
+    100 and press enter. To go to 1, press 1. For negative values, put the minus
+    sign at the end, not the start, of the number. e.g. to move to -20, type
+    <TT>20-{enter}</TT>. The total range is double... 1.17549435 e-38 to 6.80564693
+    e+38 with 32 bit precision.
+</UL>
+<P>
+Start by entering very small values for pid. e.g. <TT>.01p.01i.01d</TT> then
+hit <TT>e</TT> to enable the drive and see if the motor moves at all. If
+not, try increasing p until the motor <I>just </I>moves a bit when you hit
+space and then e again or when you twist the shaft away from the home position.
+If you are getting up to 1p and the motor isn't turning, something is wrong
+with the enable or driver or wiring.
+<P>
+Once the motor starts turning, it may go in the wrong direction, which will
+make the error get worse and worse. Hit <TT>space</TT>, then put in
+<TT>216w</TT> and enter then <TT>e</TT> again. If the motor still just spins,
+try <TT>space</TT>, <TT>286w</TT> and <TT>e</TT>. The motor should just jump
+slightly when you hit e and should hold position loosely. E.g. you should
+be able to twist the shaft quite a bit and the motor should try to resist
+you a litte and move back to home. Enter <TT>321w</TT> to save the settings.
+<P>
+Now increase p and tweak the motor shaft until it just starts oscillating.
+Set p to about half that value. Estimate the number of osciallations per
+second and set d to that frequency divided by 8. Set i to less than the frequency
+divided by 2. This is a good starting point. Continue with our
+<A HREF="../SERVO/PID-tuning.htm">PID Tuning / Troubleshooting</A> page.
+<H2>
+  Troubleshooting<BR>
+</H2>
+<DL>
+  <DT>
+    On power up, after enable, the <B>motor runs continuously</B> in one direction
+    or the other.
+  <DD>
+    The polarity of the direction signal is backwards. Use the Set Direction
+    commands (above) to make it zig or zag as it should.&nbsp;MD
+  <DT>
+    On power up, after enable, the <B>motor holds position in one direction
+    only</B>. If you push it against the correct position, it will resist, but
+    will then go dead as soon as it moves away from the set point.
+  <DD>
+    The Step / Direction lines from the controller to the driver are reversed.
+    Step is feeding direction and direction is feeding step.
+  <DT>
+    The motor oscillates, moves slowly, shudders/grinds, or generally <B>moves
+    but not well</B>.
+  <DD>
+    Please read and follow our <A HREF="PID-tuning.htm">PID Tuning /
+    Troubleshooting</A> page
+  <DT>
+    The error LED comes on, or the serial console shows "!", or the motor looses
+    it's position
+  <DD>
+    1.The encoder is putting out invalid phase A and B signals. The
+    <A HREF="../sensor/pos/enc/ENC1.htm">MassMind ENC1 Encoder</A> will do this
+    if it looses track of it's magnet. Recheck the positioning of the magent.<BR>
+    2. The PID controller isn't able to keep pace with the encoder. Please measure
+    the RPM of the shaft if possible and contact us with this information. A
+    firmware update may become available to improve speed.
+  <DT>
+    Movement works ok from the serial console, but the step / direction interface
+    has no effect. Especially when the step and direction signals are open collector
+  <DD>
+    You will need to provide 1K ohm pull up to logic power from each signal.
+</DL>
+<H3>
+  <A NAME="Firmware">Firmware</A> versions:
+</H3>
+<P>
+<A HREF="https://github.com/JamesNewton/BOBPID/">Source respository</A>,
+<A HREF="BOBPIDFirmUp.htm">Updating the firmware</A>
+<UL>
+  <LI>
+    <B>0.90 inital release.</B>
+  <LI>
+    <B>0.91 Bootloader</B>
+    <OL>
+      <LI>
+	Output motor enable can now track the hardware input enable line from the
+	step direction interface.<BR>
+	- This is disabled by default<BR>
+	- Enable with command 60w, disable with 50w or {space} which is still the
+	e-stop
+      <LI>
+	Baudrate is 38400 to match the bootloader
+      <LI>
+	The code can be bootloaded
+      <LI>
+	Add "hello world" message to make it clear when the bootloader is done.
+    </OL>
+  <LI>
+    <B>0.92 Step size / Faster</B>
+    <OL>
+      <LI>
+	A new parameter 's' can be set for the size of each step from the step/direction
+	input. e.g. 10s changes the setpoint by 10 positions each step. 1s is a one
+	to one step to position setting.
+      <LI>
+	The initial versions just used doubles for everything and that was really
+	slow in the interrupt routine for the encoder and step/direction inputs.
+	This code moves to integers (longs... 32 bits -2,147,483,648 to +2,147,483,647)
+	for the position and setpoint which should support much faster rotation and
+	higher resolution encoders; up to 360 line 1440 quad.
+    </OL>
+  <LI>
+    <B>0.93 Faster! More Sensitive</B>
+    <OL>
+      <LI>
+	By increasing the clock speed from 16 to 64MHz, 4x faster operation is possible
+	allowing support for up to 1000 line, 4,000 quad encoders
+      <LI>
+	Fixing a bug in the PWM output routine (was always multiplying PWM by 10)
+	both increased the update speed and improved sensitivity.<BR>
+	<I>Known issue: Step size parameter is not saved to eeprom.</I>
+    </OL>
+  <LI>
+    0.94 (not released)
+    <OL>
+      <LI>
+	Actually save the step size parameter
+      <LI>
+	Faster processing of step input, slightly faster encoder processing. Just
+	track error, vs Setpoint - encoder_counter. <BR>
+	Note: Step/Direction input is now relative. <BR>
+	Calculation of Derivative and Integral terms changed. May need to re-tune
+    </OL>
+  <LI>
+    <B>0.95 Improved User Interface, Faster!</B>
+    <OL>
+      <LI>
+	Just one "!" per encoder overrun; avoid buffer overrun
+      <LI>
+	Add version / status / settings as "?" command
+      <LI>
+	Let the user know they need to enter 321w to save
+      <LI>
+	Past MAX_ERROR, disable and suggest other direction
+      <LI>
+	Movements via serial command have a max velocity 'v'
+      <LI>
+	Setpoint is now relative, always returns to 0, no wraparaound jerk
+      <LI>
+	Smaller datasizes (short long, 24 bits) used for most variables, faster
+      <LI>
+	Derivative and Integral terms changed. May need to re-tune. EEPROM Version
+	'4'
+    </OL>
+  <LI>
+    0.96 Minor fixes
+    <OL>
+      <LI>
+	BugFix: 10 display digits exceeded precision. 9 works.
+      <LI>
+	BugFix: Avoid PIDerror changing during calculations. Can cause small random
+	jerks.
+    </OL>
+</UL>
+<P>
+<B>Comming attractions</B> (new features wish list). If you see something
+you really want, let us know.
+<UL>
+  <LI>
+    Support for RC servo output (100Hz PWM with zero at 1.5mS, reverse at 1mS
+    and forward at 2mS) so we can support ESC's for BLDC motors. This may not
+    work with all ESCs, but it's worth trying. Some of the new ESC's can manage
+    small movements quite well.<BR>
+    &nbsp;
+  <LI>
+    Support for 0 to 10 volt analog output instead of just 0-5v PWM using the
+    relay driver circuit on the BOB PID. This is just a hardware mod. Do anyone
+    have a 0-10 volt input servo driver / motor to test on?<BR>
+    &nbsp;
+  <LI>
+    Tuning mode with frequency and oscillation of whatever size the last movement
+    was. E.g. you hit 10t 1000 and it moves back and forth by 1000 clicks every
+    10 seconds. Then you can just enter tuning parameters and quickly see the
+    results.<BR>
+    &nbsp;
+  <LI>
+    Binary error reporting mode / program. This will just transmit a single byte
+    over and over again whose value will be proportional to the current error.
+    A program on the PC will receive this data and plot it, allowing you to see
+    exactly what the error is over time. Combined with the Tuning mode, it will
+    make accurate tuning much easier.<BR>
+    &nbsp;
+  <LI>
+    Autotune program. This will use the error reporting and the tuning mode to
+    automatically adjust the PID values for the best movement. <BR>
+    &nbsp;
+  <LI>
+    DRO mode. Output of the current position in engineering units on a large
+    display or web page.
+</UL>
+<P>
+
+
+See also:
+<UL>
+   <LI>
+<A TITLE="184.224.83.1" NAME="43618.649525463" HREF="mailto:camphorblue@gmail.com">camphorblue@gmail.com</A> refers to <BLOCKQUOTE><A NAME="184.224.83.1" HREF="/Techref/io/SERVO/BOBPID.htm" TARGET="_top">
+/Techref/io/SERVO/BOBPID.htm</A> 
+Another typo on this page: To the right of where it says Step/Direction input from motion controller there is a box labeled X-axis Pin. It reads "Signal from BOB PCB" and it should say "Signal to BOB PCB" I think? I'm curious if the BOB PCB board is getting it's 5 volts from the grbl shield  through the PMinMO adapter cable I purchased from you? I don't have your controller board working yet. The grbl shield works to drive steppers with a PMinMO driver in the socket but the drive I built from your kit has no lights lit when powered up. The error light on the BOB PID flashed for a second when motor power is applied. The BOB PID boards error light will also come on if I rotate the motor shaft by hand in either direction.</BLOCKQUOTE>
+<!-- REPLY --> <A TITLE="JMN-EFP-786" NAME="43620.8021875" HREF="/techref/member/JMN-EFP-786/index.htm">James Newton                                       of MassMind</A> replies: <I>I guess it makes more sense to have that say "to" instead of "from", thanks for the feedback. The BOB PID needs logic power from <I>somewhere</I> and it can get it from the DC motor driver, or from the motion controller or whatever.</I><!-- 43620.8021875 EOR --><P><!-- 43618.649525463 EOR -->
+
+   <LI>
+
+
+  <LI>
+    <A HREF="https://youtu.be/qii1SxnRzJw">https://youtu.be/qii1SxnRzJw</A> Video
+    showing setup with 0.95 Firmware (existing customers contact us for
+    upgrade)<BR>
+    &nbsp;
+  <LI>
+    <A HREF="https://youtu.be/rnwYqGB3bXw">https://youtu.be/rnwYqGB3bXw</A> Video
+    of the system running from a standard RAMPS/Marlin motion controller, with
+    our <A HREF="../motor/DRV8701s.htm">MassMind H-bridge driver</A> <BR>
+    &nbsp;&nbsp;
+  <LI>
+    <A HREF="https://youtu.be/Wxd9-VgvRpI">https://youtu.be/Wxd9-VgvRpI</A> Running
+    from RAMPS/Marlin with a <A HREF="http://amzn.to/2bjS4Xl">SyRen 25 Amp
+    Driver</A> or <A HREF="http://amzn.to/2bAD3AV">SyRen 50 Amp Driver</A>: (NOT
+    the Sabertooth dual units)<BR>
+    The trick is to use Option 3 "Analog One-Direction with foward/reverse select
+    on S2" That is, on the DIP switch 1,2,3 ON, 4,5 OFF, 6 ON.<BR>
+    From the SyRen to our motor connector:<BR>
+    - S1 to Z axis pin 3 "D", the PWM Drive<BR>
+    - S2 to Z axis pin 5 "S", Direction signal<BR>
+    - 0V to Z axis pin 7 "-", Ground<BR>
+    &nbsp;
+  <LI>
+    <A HREF="https://www.youtube.com/watch?v=ekbzLTYLiSY">https://www.youtube.com/watch?v=ekbzLTYLiSY</A>
+    The MONSTER servo is a 1 foot square, 5000 oz/in, runs on power tool batteries.
+    Controlled by the BOB PID.<BR>
+    &nbsp;
+  <LI>
+    <A HREF="https://github.com/JamesNewton/BOBPID/">https://github.com/JamesNewton/BOBPID/</A>
+    Source code for the PID controller.<BR>
+    &nbsp;
+  <LI>
+    <A HREF="../../microchip/bob.htm">Full data and Schematic for the BOB PCB
+    </A><BR>
+    &nbsp;
+  <LI>
+    <A HREF="https://docs.google.com/spreadsheets/d/14XrUBmxMQrcOYOkujlJ132LcpPda-IV4-Hq4ntLJoFA/pubhtml?gid=1729284531&amp;single=true">https://docs.google.com/spreadsheets/d/14XrUBmxMQrcOYOkujlJ132LcpPda-IV4-Hq4ntLJoFA/pubhtml?gid=1729284531&amp;single=true</A>
+    <BR>
+    Layout and usage of PIC pins for PID on the BOB PCB<BR>
+    &nbsp;
+  <LI>
+    <A HREF="http://picprog.strongedge.net/bootloader/bootloader.html">http://picprog.strongedge.net/bootloader/bootloader.html</A>
+    We use a slightly modified version of this bootloader. (the error LED has
+    been changed)<BR>
+    &nbsp;
+</UL>
+<P CLEAR="LEFT">
+<A NAME="News">News</A> 
+  <HR>
+<BR>
+<iframe src="http://www.facebook.com/plugins/likebox.php?href=http%3A%2F%2Fwww.facebook.com%2Fpages%2FLinistepper%2F167619359935577%3Fv%3Dwall&width=640&colorscheme=light&connections=10&stream=true&header=true&height=587"
+scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:640px;
+height:587px;" allowTransparency="true"></iframe>
+<P>
+<P>
+<P>
+
+
+Questions:
+<UL>
+   <LI>
+<A TITLE="P-83.87.171.210" NAME="43609.1863773148" HREF="mailto:pieterh265@gmail.com">pieterh265@gmail.com</A> asks: <BLOCKQUOTE><A NAME="83.87.171.210">
+</A> 
+Comming attractions (new features wish list):  <BR>
+Support for 0 to 10 volt analog output instead of just 0-5v PWM using the relay driver circuit on the BOB PID. This is just a hardware mod. Do anyone have a 0-10 volt input servo driver / motor to test on?<BR>
+<BR>
+Yes, that is what i have been searching for!<BR>
+I have servo drivers available.<BR>
+Regards, Pieter</BLOCKQUOTE>
+<!-- 43609.1863773148 EOR -->
+
+   <LI>
+
+
+  <LI>
+  <LI>
+  <LI>
+</UL>
+</BODY></HTML>
+
+

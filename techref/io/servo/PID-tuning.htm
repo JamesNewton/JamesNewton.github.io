@@ -1,0 +1,137 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 9-May-2016 -->
+  <!-- AP: Last modified: 9-May-2016 -->
+  <TITLE>PID Servo Tuning</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="../pid.htm">PID</A> <A HREF="index.htm">Servo</A> Tuning /
+  Troubleshooting
+</H1>
+<P>
+There are generally three settings you must adjust to make a PID based controller
+work correctly:
+<UL>
+  <LI>
+    <B>Proportional constant:</B> Also called "gain". This value is multiplied
+    by the error between where you want the servo to be and where it is. A larger
+    value gets the servo to the desired position faster and makes even small
+    errors matter more&#133; but it may also cause the unit to overshoot the
+    correct position and oscillate back and forth without ever stopping. A smaller
+    value will stop oscillations, but may not generate enough drive when the
+    error is small to actually overcome friction and move the unit all the way
+    to the correct position.<BR>
+    &nbsp;
+  <LI>
+    <B>Integral constant:</B> This value amplifies the accumulated error over
+    time. It makes even a small position error eventually matter enough to get
+    the motor to the exact right place, and increases the speed of long runs&#133;
+    but it really makes overshoot and oscillation a certainty. It should generally
+    be proportioned to the amount of friction in the system.<BR>
+    &nbsp;
+  <LI>
+    <B>Derivative constant:</B> This value amplifies the difference between the
+    prior position and the current position. It compensates for inertia and can
+    really help reducing oscillations, but too much will make the system "shudder"
+    and shake violently as it comes to a stop at a new position.
+</UL>
+<P>
+<B>Ziegler / Nichols Starting Point:</B> There are several ways to tune a
+PID controller, these steps present the Ziegler / Nichols closed loop method
+as a starting point. Further "trial and error" tuning should certainly be
+used: (Commands for the <A HREF="BOBPID.htm">BOB PID</A> system will be shown
+in parenthesis after each step... your systems commands may vary. For e.g.
+Arduino or other hard coded systems, adjust the parameters in the sketch
+before programming each time.)
+<OL>
+  <LI>
+    <B>No I or D, Little P</B> Start with the I and D terms set to 0 and P set
+    to a very small value. (<TT>0i0d1p</TT>) <BR>
+    &nbsp;
+  <LI>
+    <B>Power up,</B> set desired position to 1 (<TT>1{enter</TT>}) and make sure
+    you have direction set correctly (<TT>216w</TT> or <TT>286w</TT>) and enable
+    the driver (<TT>e</TT>), If the servo just spins and spins, it's doing a
+    zig when it should zag... the direction is probably wrong; disable the driver
+    (<TT>{space}</TT>) and try the other direction before enabling again.<BR>
+    &nbsp;
+  <LI>
+    <B>While(!Oscillating) P++;</B> Slowly increase the P constant while moving
+    from one point to another and back until the unit starts to oscillate with
+    a consistent motion, back and forth the same amount.
+    (<TT>1p100{enter}1{enter}2p100{enter}1{enter}</TT>...) To save time, you
+    can use an exponential and then binary search. Start with 1, then 10, then
+    100, then 1000, etc&#133; until you get oscillation. Then divide that number
+    in 2; if it still oscillates, divide by two again, otherwise, add half the
+    current value back. E.g. from 100, try 50, if it oscillates, try 25, if not,
+    try 75 = 50/2+50. And so on.<BR>
+    &nbsp;
+  <LI>
+    This setting for P is called the Ku or "ultimate gain". Record it, and count
+    the number of oscillations per second, which is called the frequency or Tu.
+    Be sure to then change Tu into units matching the sample time used in the
+    controller. E.g. the BOB PID uses &#188; second updates, so divide your
+    measurement by 4.<BR>
+    &nbsp;
+  <LI>
+    Now you can use these values to calculate good starting points for the P,
+    I, and D terms: <BR>
+    &nbsp;
+    <UL>
+      <LI>
+	<B>P/=2;</B> In general P should be about half of Ku, so if your system started
+	oscillating when P was 12, try setting it to 6 to start. (<TT>6p</TT>)<BR>
+	&nbsp;
+      <LI>
+	<B>D=Tu/(8*t);</B> Set D to about Tu/8. For example, 0.125, with BOB PID
+	at 4 Hz. (<TT>.125d</TT>). We are setting D before I here to keep for getting
+	into out of control oscillation.<BR>
+	&nbsp;
+      <LI>
+	<B>I=Tu/(2*t);</B> Set I to less than Tu/2. For example, if your system
+	oscillated at 4 cycles per second, and you use the BOB PID with &#188; second
+	updates, set I to .1. (<TT>.1i</TT>)
+    </UL>
+</OL>
+<P>
+Now try moving back and forth and see how the system reacts. Make both short
+and long jumps, small and large movements. e.g.
+(<TT>10{enter}1{enter}200{enter}1{enter}</TT>...) If it starts oscillating
+out of control, disable the motor and continue with troubleshooting below.
+(<TT>{space}</TT>) Be sure to give it time to settle at each point, and ensure
+it really does make it to exactly the desired point (mark the shaft if you
+can).
+<P>
+Once you have the tuning done, save the values to non-volatile memory {321w}
+<H3>
+  PID Troubleshooting
+</H3>
+<P>
+<B>Oscillation</B>: If you have a very heavy shaft, meaning a lot of mass
+turning on the shaft especially away from the center of rotation; this has
+nothing to do with the weight of the load being moved unless that load is
+spinning with the shaft, then increase D until you start to hear shuddering
+or vibration as it approaches a new setpoint. If you have a lot of overshoot
+when approaching a new setpoint, decrease I. Otherwise, decrease P.
+<P>
+<B>Slow approach to setpoint</B>: If you have a lot of friction in the system,
+increase I. If the system "grinds" or "shudders" or vibrates as it approaches
+the setpoint, decrease D. Otherwise increase P.
+<P>
+<B>Overshoot (without oscillation)</B>: Decrease P.
+<P>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method">https://en.wikipedia.org/wiki/Ziegler%E2%80%93Nichols_method</A>
+  <LI>
+    <A HREF="http://www.mstarlabs.com/control/znrule.html">http://www.mstarlabs.com/control/znrule.html</A>
+  <LI>
+    <A HREF="http://web.archive.org/web/20151115233214/https://controls.engin.umich.edu/wiki/index.php/PIDTuningClassical">https://controls.engin.umich.edu/wiki/index.php/PIDTuningClassical</A>
+    (archived)
+</UL>
+<P>
+</BODY></HTML>

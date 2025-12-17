@@ -1,0 +1,51 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Last modified: 27-Apr-2016 -->
+  <TITLE>Pulse Position Modulation</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Pulse Position Modulation
+</H1>
+<P>
+A subset of <A HREF="../pwm/index.htm">Pulse Width Modulation</A> used to
+control the position of <A HREF="index.htm">RC Servos</A>
+<P>
+Paul B. Webster says:
+<BLOCKQUOTE>
+  Pulse Position Modulation:
+  <P>
+  ... The actual transmitted version is a series of pulses of a given width
+  (somewhat less than 1 ms), the *position* of each of which in respect to
+  the previous defines the length of the pulse to a given channel.
+  <P>
+  More specifically, the 1 to 2 ms channel pulse is the time between the start
+  of one pulse in the transmitted sequence and start of the next. The minimum
+  pulse width of 1 ms corresponds to the transmitted signal going on for 0.5
+  ms, then off for 0.5 ms, then on again for the next pulse. Of course, where
+  FM is used, these are two frequency states instead.
+  <P>
+  The length of the series of pulses is of course the sum of the individual
+  output pulse lengths and may vary over a wide (2:1) range. The "rest" time
+  before the next series is used for synchronisation.
+  <P>
+  What is so elegant is that a single 4017 CMOS chip, with a resistor and capacitor
+  to reset for each series of pulses, neatly performs the decoding function
+  to the individual servo outputs.
+</BLOCKQUOTE>
+<P>
+Comments:
+<UL>
+  <LI>
+    <A TITLE="98.207.2.72" NAME="39621.9318171296" HREF="mailto:dean@reeceweb.com">dean@reeceweb.com</A>
+    <BLOCKQUOTE>
+      I'm looking for a schematic for a 4017-based PPM decoder as described above.
+      I've found several schematics on the web, but they all require additional
+      chips to handle the sync reset. I want a simple/tiny/cheap PPM decoder and
+      using an RC network to handle the reset is very appealing; a reference would
+      be much appreciated. Thanks!
+    </BLOCKQUOTE>
+    <!-- 39621.9318171296 EOR -->
+</UL>
+</BODY></HTML>
