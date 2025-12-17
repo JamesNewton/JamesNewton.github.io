@@ -1,0 +1,186 @@
+<HTML><HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <TITLE>BOSH: Bidirectional Operation over Synchronous Html Data Transfer Method</TITLE>
+  </HEAD>
+<BODY>
+  <H2>BOSH: Bidirectional Operation over Synchronous Html Remote Data Transfer <A href="../methods.htm">Method</A></H2>
+
+Starting from a standard node / express server:
+
+<PRE>
+const express = require('express')
+const http = require('http')
+const WebSocket = require('ws') //https://github.com/websockets/ws
+const bodyParser = require( "body-parser") //parse post body adata
+const bcryptjs = require('bcryptjs') //to encrypt passwords for storage
+
+const app = express()
+const PORT = 8080
+</PRE>
+
+For node.js on the app engine, there are two environments: Standard and Flexible.<UL>
+<LI><A HREF="https://cloud.google.com/appengine/docs/nodejs">https://cloud.google.com/appengine/docs/nodejs</A></LI>
+<LI><A HREF="https://cloud.google.com/appengine/docs/the-appengine-environments">https://cloud.google.com/appengine/docs/the-appengine-environments</A></LI>
+</UL>
+To reduce ongoing cost of operation, we are starting with the standard environment. Sadly, that does not support websockets, which would be very easy to use, but, luckily Jitsi taught us about BOSC
+<P>
+<A HREF="https://en.wikipedia.org/wiki/BOSH_(protocol)">https://en.wikipedia.org/wiki/BOSH_(protocol)</A>
+<P>
+BOSH supports server push notifications by simply not responding to a request from the client until the server has something to send to the client. The request simply hangs until data arrives (via another connection to the server from the sender) or until it times out. In either case, it is the clients responsibility to re-establish the request as quickly as possible and so continue listening for data from the server, or more accurately from a sender via the server.
+<P>
+
+The other issue with the Standard Environment is that it can be shut down and started up at Googles will. This makes keeping session state interesting. You can log in, get a cookie, and if that cookie was stored in a local RAM session store, it can be forgotten at any moment. Luckily, google/@datastore supports using a Cloud Firestore in Datastore mode as the store.
+<P>
+<PRE>
+const {Datastore} = require('@google-cloud/datastore');
+const session = require('express-session') //session mgmt
+const DatastoreStore = require('@google-cloud/connect-datastore')(session);
+const data_store = new Datastore({
+      // @google-cloud/datastore looks for GCLOUD_PROJECT env var. Or pass a project ID here:
+      // projectId: process.env.GCLOUD_PROJECT,
+      projectId: APP_ENGINE_PROJECT_ID,
+      // @google-cloud/datastore looks for GOOGLE_APPLICATION_CREDENTIALS env var. Or pass path to your key file here:
+      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+    })
+
+//Session setup seperate sessionParser so 
+app.use(session({
+  store: new DatastoreStore({
+    kind: 'express-sessions', 
+    // Optional: expire session after exp milliseconds. 0 means do not expire
+    // note: datastore doesnt auto del expired sessions. Run separate cleanup req's to remove expired sessions
+    expirationMs: 0,
+    dataset: data_store
+  }),
+  resave: false,
+  saveUninitialized: false,
+  secret: 'Like id tell you'
+}));
+</PRE>
+The only problem with that is that cookies are perminant and do not expire, even if you tell them to. It's necessary to manually clear out the database once in a while
+<P>
+<PRE>
+//just serve up static files if they exist
+app.use(express.static('public')) 
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
+
+/* Authentication section removed, it basically just sets a user name
+req.session.user = username
+*/
+</PRE>
+
+Rather than use available BOSH packages (which were poorly document and very confusing) a microscopic version of BOSH was included. For this service, we can be relatively certain that the engine will not be shut down, because it's always pending a BOSHout request. As long as one listener is listening, google doesn't have time to shut down the engine and therefore drop the boshs array.
+<P>
+
+Operation: BOSHout requests come in, get added to the boshs array, and then nothing else is done. There is no reply, no error, no nothing. This causes the socket to stay open, as the client waits for the server to respond. Next, a BOSHin request comes in, with a "to" parameter for the user who made the BOSHout request. Since that user is found in the boshs array, the socket response object can be found, and the message sent to that client. The entry in the boshs array is then deleted so it won't be found by another BOSHin until the BOSHout client re-establishes the connection.
+<P>
+<PRE>
+//MicroBOSH
+var boshs = {}
+BOSHtimeout = 30000 //in milliseconds
+
+app.get('/BOSHout', function (req, res, next) { 
+  console.log("BOSHout,  user:"+req.session.user)
+  if (!req.session.user) {
+    var err = new Error('FAIL: Login')
+    err.status = 403
+    next(err) //skips to error handler. 
+    }
+  boshs[req.session.user]={}
+  boshs[req.session.user].res=res
+  boshs[req.session.user].int=setTimeout(function(){ 
+        //console.log('BOSHout timeout '+req.session.user)
+        res.status(408)
+        res.send('BOSHout timeout')
+        res.end()
+        delete boshs[req.session.user]
+        return
+    }, BOSHtimeout)
+//dont reply or end. 
+return
+})
+
+app.get('/BOSHin', function(req,res, next) {
+    //Check that the requestor is logged in. 
+    if (!req.session.user) {
+        var err = new Error('FAIL: Login')
+        err.status = 403
+        next(err) //skips to error handler. 
+        }
+    let msg = req.query.msg || "none"
+    let to = req.query.to
+    let bohc = {}
+    //parameter is the session.user to send the message to
+    if (to) { //console.log("to "+to)
+        if ( boshs[to]) { console.log("found")
+            bosh = boshs[to] //lookup session id from username
+            }
+        }
+    bosh.stat = "unknown"
+    if (bosh.int) { //console.log("clearing timeout")
+        clearInterval(bosh.int)
+        bosh.int=undefined
+        }
+    if (bosh.res) { //console.log("responding")
+        bosh.res.setHeader("from_user", req.session.user)
+        bosh.res.send('BOSHin message:' + msg) //don't change w/o Fry.
+        bosh.res.end()
+        bosh.stat = bosh.res.headersSent ? "good" : "bad" 
+        //https://expressjs.com/en/4x/api.html#res.headersSent
+        //bosh.res = undefined //make sure we know this response object is used
+        delete boshs[to]
+        }
+    console.log("to:"+req.query.to+". stat:"+bosh.stat+". ")
+    res.send('BOSHin to:' +req.query.to + ". Status:" + bosh.stat) 
+    res.end()
+})
+</PRE>
+If the user requested in the BOSHin is not found in the boshs array, "unknown" is returned to the BOSHin client. Otherwise, "good" is returned.
+<P>
+
+The rest of the code is just the standard node / express setup:
+<P>
+<PRE>
+// If we get here, the file wasn't found. Catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  var err = new Error('File Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// Error handler define as the last app.use callback
+app.use(function (err, req, res, next) {
+  res.status(err.status || 500)
+  res.send(err.message)
+  })
+
+app.listen(PORT)
+</PRE>
+Support for this server is being added to DDE via the Messaging class.
+<P>
+
+Testing shows throughput rates of 50ms and latency of 80ms (which is amazing) to 300ms under normal use.
+<P>
+
+All code archived here:
+<P>
+https://drive.google.com/drive/u/0/folders/18OgYsn8LLy1IkCCo-7XHSYZBMB5R-nhN
+<P>
+You can see the result here:
+<BR>
+<A HREF="https://www.youtube.com/watch?v=xfD2V_AaFQY">https://www.youtube.com/watch?v=xfD2V_AaFQY</A>
+<BR>
+(This is without latency compensation of any type. We got 60ms round trips regularly, with as much as 500ms delays from time to time. The major issue was actually the compression and transmission of the return video. Reducing it's resolution and framerate greatly improved teleoperation.)
+
+<UL>
+<LI>TODO: Fix issues with session cookies lasting forever
+
+<LI>TODO: Add a means of registering new users and ensuring they are Dexter users.
+
+<LI>FAIL: Try UDP as a faster option, when the router allows datagrams to NAT back. Although it looked like this was possible, it appears it is NOT on the standard app-engine. They don't explicitly say you can't for node.js (there is no page about it for node) but they DO say you can not accept inbound connections on the python page, and can no longer do outbound. 1 If we want to do UDP, we need a REAL server with control of the firewall.
+
+<LI>TODO: Transition to Flexible environment or a real server and re-enable websockets.
+</UL>
+  <P>
+  </BODY></HTML>
