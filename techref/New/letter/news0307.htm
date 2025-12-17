@@ -1,0 +1,1039 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0052)http://www.sxlist.com/images/sxlist/sxfreq/index.htm
+-->
+<HTML>
+<HEAD>
+  <META http-equiv=Content-Type content="text/html; charset=windows-1252">
+  <META content="MSHTML 6.00.2726.2500" name=GENERATOR>
+  <!-- AP: Last modified: 24-Feb-2016 -->
+  <TITLE>July 2003 SXList.com newsletter - SX Learning Robotics / CMAC</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  July 2003 <A HREF="index.htm">MassMind newsletter</A>
+</H1>
+<H2>
+  Learning Robotics / CMAC
+</H2>
+<H3>
+  Introduction
+</H3>
+<P>
+I've always been interested in artificial life, or more exactly, in machines
+that are more useful than the standard, stationary manufacturing type things.
+A small device that can move around in the home and vacuum, polish, or just
+take out the trash would be a huge win. But so far, it just isn't happening.
+Why? The recently introduced Roomba "vacuuming" robot has shown that it can
+be done. There are lots of hobby robots out there that prove that people
+are capable of complex fabrication. But there is no available design for
+a "build your own <I>useful</I> household robot."
+<P>
+How much does it take to design and build a little motorized base with a
+small trash can on its back that follows a florescent line from the bathroom
+to a charging station next to the the kitchen trash and then meows to be
+emptied and returns? Or a cheap electric screw driver mounted at a slight
+angle with a buffing wheel at the bottom so that as it turns it both rubs
+the floor (wood, tile, etc...) and pushes itself forward. Add a stick to
+a reversing switch with bumpers front and back so that it will bang back
+and forth across the room, cover it with a glass bowl and add a small solar
+panel (ala BEAM robotics) and you can really make mommy proud.
+<P>
+But, they always do end up getting caught on something, run out of power
+(or just eat batteries) or can't figure out what to do when they encounter
+something they don't expect. The real need is for something smooth, solar
+powered or able to find an outlet and most importantly, just a bit smarter.
+&nbsp;It looks like that is the hardest part:
+<A HREF="http://www.irobot.com">Roomba</A> makes use of "thousands of lines
+of code" to do a passable job of covering the living room floor. (see:
+<A HREF="http://www.10k.org/jake/mod/roomba/1vac.html">http://www.10k.org/jake/mod/roomba/1vac.html</A>
+for more internals)
+<P>
+Conventional neural networks are often too complicated to fit into the limited
+confines of solar-able processors, and they don't work that great even on
+large computers. But I've found a couple of simple solutions that can run
+on tiny processors. The simplest is to replace the hard-coded actions with
+memories (variables), then when something doesn't go right randomize the
+memory corresponding to the previous move. A more dense and ultimately more
+capable memory method is to allow multiple inputs to select different memories
+by using the processed input bits (environment) as the memory address.
+<H3>
+  Environmental Memory
+</H3>
+<P>
+<A HREF="http://home.infi.net/~wtnewton/otherwld/picbot2.txt">http://home.infi.net/~wtnewton/otherwld/picbot2.txt</A>
+provides a good example (the code follows this text and is great to look
+over). The algorithm is similar to David Heiserman's "beta class" machine
+(original algorithm used last move as part of the address, this version uses
+just the environment); it rewards moves that result in a "good" environment
+and punishes moves that result in a "bad" environment or movement in reverse
+when in a good environment. In this case, the environment is broken down
+to six bits: 2 feelers, 2 bits to indicate greater light (never both on)
+and 2 bits to indicate darkness on that cell (also space-limited). A bad
+environment can be defined as either or both feelers touching or just one
+dark bit set, or the same move being made over and over in a changing
+environment. A good environment is free of obstacles, full of light and has
+some bad environment mixed in to keep things interesting.
+<PRE>; while true
+;   lastenvbad flag = badenv flag
+;   read senses into environment
+;   clear badenv flag
+;   if feelers touching or one dark bit set
+;       set badenv flag
+;   if action = lastmove
+;       if address &lt;&gt; environment
+;          boring = boring + 1
+;          if boring &gt;= boringthreshhold
+;             set badenv flag
+;   else
+;       boring = 0
+;   if badenv or (not lastenvbad and reverse)
+;       if confidence &gt; 0
+;          decrement confidence
+;          memory(address) = action/confidence
+;   else
+;       if confidence &lt; 3 
+;          increment confidence
+;          if confidence &lt; 3
+;             if direction = towards the light
+;                increment confidence
+;          memory(address) = action/confidence
+;   lastmove = action
+;   address = environment
+;   action/confidence = memory(address)
+;   if action not valid or confidence = 0
+;       action = random
+;       confidence = 0
+;   move robot according to action
+
+</PRE>
+<H3>
+  CMAC: Cerebellar Model Articulation Controller
+</H3>
+<P>
+"CMAC: Brain, Behavior, and Robotics" by James S. Albus published by Byte
+Books
+<P>
+An extension of the ability to learn is the ability to infer: To generalize
+experience. This diagram illustrates the idea: An input value is translated
+via an algorithm (algorithm: A procedure that produces the desired result
+without concern for the reason why it works) into not one, but several addresses
+into the memory. The values stored at each of these addresses are summed
+or averaged to produce a result. The critical part of the input to address
+translation algorithm is that for slight changes in the input, most of the
+output addresses will remain the same. As a result, experience recorded for
+one input will be applied, or generalized, to other inputs that are simular.
+<P>
+<IMG SRC="news0307a.GIF" WIDTH="386" HEIGHT="516" ALIGN="Right">
+<P>
+In general, you can just take the input, add a seperation value (distance
+from "d" to "i" in the picture) plus the inverse of the number of outputs
+desired, store that value, then divide it by the number of outputs and round
+it off. Repeat this for each output.
+<PRE>function CMACLookUp (int: in) int: out {
+int i,sum
+#define CMAC_INC = CMAC_SEPERATION * CMAC_OUTPUTS + 1;
+
+	for (i = 0; i &gt; CMAC_OUTPUTS; i++) {
+		in += CMAC_INC;
+		sum += CMACArray(in / CMAC_OUTPUTS);
+		}
+	return sum / CMAC_OUTPUTS;
+	}
+
+</PRE>
+<P>
+For 4 outputs with a seperation of 4, the asm code would be:
+<P>
+<PRE>CMAC
+;until 4
+; add 17 (seperation * outputs plus 1) to the input.
+; shift right twice and use as address.
+; lookup output and average into result
+; loop
+
+:Lookup
+	call :NextAddr
+	call :ArrayLookup
+	mov out,w
+	call :NextAddr
+	call :ArrayLookup
+	add out,w		;combine the first 2 outputs
+	rr out			;and average (recovers C)
+	call :NextAddr
+	call :ArrayLookup
+	mov out2,w
+	call :NextAddr
+	call :ArrayLookup
+	add out2,w		;combine second 2 outputs
+	mov w, &gt;&gt; out2		;average second 2
+	add out, w		;combine the averages
+	rr out			;average the two averages
+	ret
+
+
+:NextAddr
+	add in, #17
+	mov w,&gt;&gt;in		;recover "in.8" aka carry while /2
+IFDEF WREG			;wreg is FR1 when it shows W and not RTCC
+	clc			;clear carry
+	rr wreg			;divide W by 2
+ELSE
+	clr temp
+	add temp,w		;clears carry
+	mov w,&gt;&gt;temp
+  ENDIF
+	ret
+
+</PRE>
+<P CLEAR=RIGHT>
+Training is basically the same except that the correction (random or computed)
+value is spread over the memory addresses as a change. The potential magnitude
+of the change is based on how good or bad the current environment is, or
+on the direction and magnatide of the change of fortunes. Better outcomes
+result in smaller changes, going from bad to worse may produce a larger change.
+This provides the same sort of "confidence" system employed in our first
+example, but allows for small "fine tuning" adjustments even during "good
+times" so that "even better times" might be found. Rather than a single bit
+for good or bad environment, the amount of change needs to be related to
+a range of good to bad situations. A situational report is prepared before
+the training and is saved to look for upward or downward trends.
+<PRE>function CMACtrain (int: in, oldSitRep, newSitRep) void {
+int i,training
+#define CMAC_INC = CMAC_SEPERATION * CMAC_OUTPUTS + 1;
+	training = ( rnd(0)*newSitRep + rnd(0)*(newSitRep - oldSitRep) ) / CMAC_OUTPUTS
+	for (i = 0; i &gt; CMAC_OUTPUTS; i++) {
+		in += CMAC_INC;
+		CMACArray(in / CMAC_OUTPUTS) += training;
+		}
+	return;
+	}
+
+</PRE>
+<P>
+For a system of outputs with a spread of 4:
+<PRE>;training is random * sitRep + random * statusChange shifted right twice
+;until 4
+; add 17 (seperation * outputs plus 1) to the input.
+; shift right twice and use as address.
+; change array value by training
+; loop
+
+</PRE>
+<P>
+It should also be said that the CMAC is probably the upper limit of what
+can be implemented in a microcontroller like the SX or PIC. In most CMAC
+systems, there are not one, but many CMACs and most have more than one input
+or diminsion. In a minimal system with only one CMAC, the input must be a
+combination of different values rather than just one sensor per CMAC diminsion.
+If the input is broken into individual bits, then we must realize that there
+is a difference in the "importance" or "priority" of the bits. and assign
+the positions of the bits in a usefull way. Low order bits will have little
+effect on the operation of the unit. High order bit changes in the input
+will drastically change the experiences the unit draws upon. For example,
+for a vaccume cleaning bot, the lowest bit could be assigned to a dirt sensor;
+it doesn't really signal a need to change operation, but it provide some
+hope that it will learn to find more dirt. The highest bit might be assigned
+to the status of the battery since the operation of the unit when charged
+is completly different than its operation when it needs to find a recharge.
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://www.iit.nrc.ca/~martin/talks/bio_learning_control/bio_learning_control_3/overview.html">http://www.iit.nrc.ca/~martin/talks/bio_learning_control/bio_learning_control_3/overview.html</A>
+  <LI>
+    <A HREF="http://www.ces.clemson.edu/~petersj/NeuralCodes/cmac/index.html">http://www.ces.clemson.edu/~petersj/NeuralCodes/cmac/index.html</A>
+</UL>
+<H3>
+  Summary
+</H3>
+<P>
+Much more can be said and done on this subject and more informed and much
+more brilliant writers have and will. But I hope to have inspired a vew hobby
+robot fans to look into adding a bit more brain, and more AI especially,
+to their projects.
+<P>
+Best wishes! And thanks for your support.
+<P>
+<PRE>
+
+
+; PicBot 2.05
+;
+; Debugging...
+;  long flash = bad environment
+;  short flash = picking random move
+;  dumps memory at the end of pop cycle
+
+        device PIC16C56, RC_OSC, WDT_ON, PROTECT_OFF
+        reset startup
+        org 000h
+
+pops = 15       ; pops per cycle
+popdur = 50     ; x ontime+offtime
+ontime = 1      ; duty cycle = ontime/(ontime+offtime)
+offtime = 1
+optsleep = 00001111b    ; during sleep - int rtc, max wdt 
+optpause = 00001100b    ; bits 0-2 control pause between pops
+maxsleep = 20   ; number of looks before wak
+ng in unchanging env. 
+darkthresh = 30 ; when dark bits come on
+boringthresh = 6   ; max identical moves in changing environment
+
+; port assignments...
+; Ra0 - 24LC65 clock
+; Ra1 - 24LC65 data
+; Ra2 - 1381 output
+; Ra3 - debug led
+
+; Rb0 - Left Photocell
+; Rb1 - Left Feeler
+; Rb2 - Right Motor Forward (grounds blue when 1)
+; Rb3 - Right Motor Reverse (grounds red when 1)
+; Rb4 - Left Motor Forward (grounds red when 1)
+; Rb5 - Left Motor Reverse (grounds blue when 1)
+; Rb6 - Right Feeler
+; Rb7 - Right Photocell
+
+powerpin       = ra.2
+leftfeelpin    = rb.1
+rightfeelpin   = rb.6
+
+forward   = 01010100b   ; predefined moves
+reverse   = 01101000b   ; bits 6,7 always "01"
+popleft   = 01000100b   ; bits 0,1 confidence=0
+popright  = 01010000b
+turnleft  = 01100100b
+turnright = 01011000b
+backleft  = 01100000b
+backright = 01001000b
+
+environment = 15h
+action      = 16h
+popcnt      = 17h
+flags       = 18h
+
+badenv      = flags.0     ; set if something bad in environment
+badmove     = flags.1     ; set if something wrong with action
+sleeping    = flags.2     ; set if robot was in deepsleep
+popping     = flags.3     ; set if in a pop cycle
+lastenvbad  = flags.4     ; last environment was bad
+
+temp        = 19h
+temp1       = 1Ah
+LightL      = 1Bh
+LightR      = 1Ch
+
+lastmove    = 1Dh
+boring      = 1Eh
+
+statusLED   = ra.3
+portspeed   = 25    ; memory dump bit delay
+
+; EEPROM routines modified from Microchip application note AN558
+; bitin and bitout routines are coded in-line to permit write and
+; read routines to be called without overflowing stack.
+statby  = 03h
+eeport  = 05h ; port A
+eeprom  = 0Ah
+bycnt   = 0Bh  
+addr    = 0Ch
+addr1   = 0Dh
+datai   = 0Eh
+datao   = 0Fh
+txbuf   = 10h
+count   = 11h
+bcount  = 12h
+loops   = 13h
+loops2  = 14h
+di      = 3
+do      = 2
+sdata   = 1
+sclk    = 0
+outmask = 11110100b
+inmask  = 11110110b
+ 
+; wait routine - waits approx loops milliseconds
+
+wait	mov	W, #75
+	mov	loops2, W
+wait2	nop
+	nop
+	nop
+	decsz	loops2
+	jmp	wait2
+	decsz	loops
+	jmp	wait
+        clr wdt  ; convenient
+        ret
+
+; generate start bit
+
+bstart	setb	eeport.sdata
+	mov	W, #outmask
+;*** WARNING: TRIS expanded in two instructions. Check if previous instruction is a skip instruction.
+;        tris eeport
+
+	clrb	eeport.sclk
+	nop
+	setb	eeport.sclk
+	nop
+	nop
+	clrb	eeport.sdata
+	nop
+	nop
+	clrb	eeport.sclk
+	nop
+        ret
+
+; generate stop bit
+
+bstop	clrb	eeport.sdata
+	mov	W, #outmask
+;*** WARNING: TRIS expanded in two instructions. Check if previous instruction is a skip instruction.
+;        tris eeport
+
+	clrb	eeport.sdata
+	nop
+	nop
+	setb	eeport.sclk
+	nop
+	nop
+	setb	eeport.sdata
+	nop
+	clrb	eeport.sclk
+	nop
+	nop
+        ret
+
+; transmit byte in txbuf
+
+tx	mov	W, #8
+	mov	count, W
+txlp	clrb	eeprom.do
+	snb	txbuf.7
+	setb	eeprom.do
+	mov	W, #outmask
+;*** WARNING: TRIS expanded in two instructions. Check if previous instruction is a skip instruction.
+;        tris eeport
+
+	sb	eeprom.do
+	jmp	txlp1
+	setb	eeport.sdata
+	jmp	txlp2
+txlp1	clrb	eeport.sdata
+txlp2	setb	eeport.sclk
+	nop
+	nop
+	nop
+	clrb	eeport.sclk
+	rl	txbuf
+	decsz	count
+	jmp	txlp
+	setb	eeprom.di
+	mov	W, #outmask
+;*** WARNING: TRIS expanded in two instructions. Check if previous instruction is a skip instruction.
+;        tris eeport
+
+	setb	eeport.sclk
+	nop
+	nop
+	sb	eeport.sdata
+	clrb	eeprom.di
+	clrb	eeport.sclk
+        ret
+
+; receive byte into datai
+
+rx	clr	datai
+	mov	W, #8
+	mov	count, W
+	clrb	statby.0
+rxlp	rl	datai
+	setb	eeprom.di
+	mov	W, #outmask
+;*** WARNING: TRIS expanded in two instructions. Check if previous instruction is a skip instruction.
+;        tris eeport
+
+	setb	eeport.sdata
+	setb	eeport.sclk
+	nop
+	nop
+	nop
+	sb	eeport.sdata
+	clrb	eeprom.di
+	clrb	eeport.sclk
+	snb	eeprom.di
+	setb	datai.0
+	decsz	count
+	jmp	rxlp
+        ret
+
+; get byte from EEPROM into datai
+
+rbyte	call	bstart
+	mov	W, #10100000b
+	mov	txbuf, W
+	call	tx
+	mov	W, addr1	; high address
+	mov	txbuf, W
+	call	tx
+	mov	W, addr	; low address
+	mov	txbuf, W
+	call	tx
+	call	bstart
+	mov	W, #10100001b
+	mov	txbuf, W
+	call	tx
+	call	rx
+	call	bstop
+        ret
+
+; write byte in datao to EEPROM
+
+wbyte	call	bstart
+	mov	W, #10100000b
+	mov	txbuf, W
+	call	tx
+	mov	W, addr1
+	mov	txbuf, W
+	call	tx
+	mov	W, addr
+	mov	txbuf, W
+	call	tx
+	mov	W, datao
+	mov	txbuf, W
+	call	tx
+	call	bstop
+	mov	W, #10
+	mov	loops, W
+	call	wait
+        ret
+
+
+
+; end cryptic microchip instructions
+; start parallax instructions
+
+; get environment byte subroutine
+leftfeeler   = environment.0
+rightfeeler  = environment.1
+lightonleft  = environment.2
+lightonright = environment.3
+darkonleft   = environment.4
+darkonright  = environment.5
+
+getenvironment
+        clr environment       ; start all bits clear
+        sb leftfeelpin        ; set feeler bits
+        setb leftfeeler       ; pins low=touching
+        sb rightfeelpin       ; env  high=touching
+        setb rightfeeler
+; read photocells  (hard coded to bits 0 and 7)
+        mov lightL, #127        ; max light level
+        mov !rb, #11000010b     ; make L photobit an out
+        clr rb                  ; short out cap
+        mov loops, #10          ;  for few ms
+        call wait
+        mov !rb, #11000011b     ; make ins again
+ploopL  jb rb.0, readR          ; go on when input goes high
+        djnz lightL, ploopL     ; loop if still above 0
+readR   mov lightR, #127
+        mov !rb, #01000011b
+        clr rb
+        mov loops, #10
+        call wait
+        mov !rb, #11000011b
+ploopR  jb rb.7, readend
+        djnz lightR, ploopR
+readend
+; mask noise
+        and lightL, #01111000b
+        and lightR, #01111000b
+; set environment bits
+        csbe lightL, lightR       ; if left &gt; right
+        setb lightonleft          ;    set lightonleft flag
+        csbe lightR, lightL       ; if right &gt; left
+        setb lightonright         ;    set lightonright flag
+        csa  lightL, #darkthresh  ; if left &lt;= darkthresh
+        setb darkonleft           ;    set darkonleft flag
+        csa  lightR, #darkthresh  ; if right &lt;= darkthresh
+        setb darkonright          ;    set darkonright flag
+; set bad-environment flag
+        clrb badenv
+        mov w, environment
+        and w, #00000011b         ; isolate feelers
+        sz                        ; if either touching
+        setb badenv               ;    set badenv flag
+        mov temp1, environment
+        and temp1, #00110000b     ; isolate dark bits
+        jz gend                   ; skip if neither dark
+        cse temp1, #00110000b     ; skip if both dark
+        setb badenv               ; just one, set badenv flag
+gend
+        ret
+
+; sub to validate action byte and set badmove flag
+checkaction
+        clrb badmove
+        mov temp1, action
+        and temp1, #11000000b
+        cse temp1, #01000000b
+        setb badmove            ; invalid memory
+        jnb action.2, ca1
+        jnb action.3, ca1
+        setb badmove            ; smoke on right
+ca1     jnb action.4, ca2
+        jnb action.5, ca2
+        setb badmove            ; smoke on left
+ca2     mov w, action
+        and w, #00111100b
+        snz
+        setb badmove            ; no movement
+        ret
+
+; table of valid moves
+getmove jmp pc+w
+        retw forward
+        retw reverse
+        retw popleft
+        retw popright
+        retw turnleft
+        retw turnright
+        retw backleft
+        retw backright
+
+;debug subs
+shortflash  setb ra.3
+            mov loops, #30
+            call wait
+            clrb ra.3
+            mov loops, #220
+            call wait
+            ret
+
+longflash   setb ra.3
+            mov loops, #200
+            call wait
+            clrb ra.3
+            mov loops, #50
+            call wait
+            ret
+
+;*********** main code here
+startup
+        mov OPTION, #optpause   ; short delay
+        mov !ra, #00000111b     ; 2=1381in 1=eedata 0=eeclk (set to hi-z)
+        mov !rb, #11000011b     ; 0,7=photo ins 1,6=feeler ins 2-5 motor outs
+        clr ra                  ; clear led out (ra.3)
+        clr rb                  ; clear motor outs
+        mov  addr1, #00011111b  ; set to top of eeprom        
+        jnb statby.3, rest      ; if not waking up from sleep
+        jnb powerpin, rest      ;   and power not low
+        call getenvironment     ;     initialize variables
+        clrb lastenvbad
+        clrb popping
+        clr action
+        clr addr
+        clr lastmove
+        clr boring
+ 
+rest    jb popping, nextpop     ; jump if in middle of a pop cycle
+        mov popcnt, #maxsleep   ; set up max delay before waking
+        jb powerpin, watch      ; become alert if enough power
+        setb sleeping           ; otherwise set deepsleep flag
+        mov OPTION, #optsleep   ;  long duration (!OPTION for SPASM)
+        sleep                   ;  sleep and keep on charging
+
+watch   ; charge until something changes or counter runs out
+        jnb sleeping, wakeup       ; if not in deepsleep, continue on
+        mov temp, environment
+        call getenvironment             ; look around
+        jb badenv, wakeup               ; wake if bad environment
+        cjne temp, environment, wakeup  ; wake if change in env.
+        decsz popcnt                    ; wake if count runs out
+        sleep                           ; else sleep and charge
+
+wakeup  mov popcnt, #pops       ; set up pop counter
+        clrb sleeping           ; not sleeping anymore
+        mov OPTION, #optpause   ; shorten delay (!OPTION for SPASM)
+
+poploop
+
+; learn about surroundings and store in eeprom
+; eeprom memory layout...
+;   7 6 5 4 3 2 1 0    a = motor actions    m = set to "01" if
+;   m m a a a a c c    c = confidence 0-3       a valid memory
+
+        movb lastenvbad, badenv    ; save bad flag
+        call getenvironment        ; look around
+
+        snb badenv
+        call longflash             ; flash if bad environment
+
+; boring detection
+        mov temp, action
+        and temp, #00111100b       ; compare just action bits 
+        cjne lastmove, temp, rstbc      ; if same move
+        cje environment, addr, bdend    ;  if env. changed
+        inc boring                      ;   boring=boring+1
+        csb boring, #boringthresh       ;   if boring&gt;=toomany
+        setb badenv                     ;    set badenv flag
+        jmp bdend                       ; else
+rstbc   clr boring                      ;  boring=0
+bdend
+
+; update confidence of last move according to success
+        jb badenv, decconf     ; decrement last if bad environment 
+        jb lastenvbad, incconf ; increment if last environment bad
+        mov w, action          ;   (but this one isn't)
+        and w, #00101000b      ; check for reverse bits
+        jnz decconf            ; decrement if backing up when good
+incconf mov temp, action       ; good move, increment
+        and temp, #00000011b
+        cje temp, #00000011b, evaldone ; no change if max confidence
+        inc action          ; increment confidence
+        mov temp, action           ; learned photovore behavior
+        and temp, #00000011b       ; reward if going to light
+        cje temp, #00000011b, wr2ee
+        jnb lightonleft, lpvb2
+        jnb action.2, wr2ee
+        jb  action.5, wr2ee
+lpvb2   jnb lightonright, lpvb3
+        jnb action.4, wr2ee
+        jb  action.3, wr2ee
+lpvb3   inc action        
+
+wr2ee   mov datao, action   ; write action
+        call wbyte          ;  to eeprom (addr)
+        jmp evaldone
+decconf mov w, action
+        and w, #00000011b
+        jz evaldone      ; no change if conf already 0
+        dec action       ; decrement confidence
+        jmp wr2ee        ; jmp to write        
+evaldone
+        mov lastmove, action     ; save last move
+        and lastmove, #00111100b ;  minus extra data
+
+; access memory from eeprom
+        mov addr, environment
+        call rbyte 
+        mov action, datai      ; action = memory
+        call checkaction
+        jb badmove, rmove      ; select random if bad move
+        mov w, action
+        and w, #00000011b
+        jnz move               ; confidence &gt; 0, go with move
+
+; select random move
+rmove
+        call shortflash        ; short flash when picking random
+
+; variable delay based on light
+        mov !rb, #11000010b    ; discharge left photo input cap 
+        clr rb
+        mov loops, #10
+        call wait
+        mov !rb, #11000011b
+        mov temp, #255         ; set max loops
+vdelay  jb rb.0, loadrnd       ; go if photo input high
+        djnz temp, vdelay      ; loop until temp = 0
+loadrnd mov temp, rtcc         ; who knows what
+        and temp, #00000111b   ; mask off all but bottom 3
+        mov w, temp            ; convert 0-7 into
+        call getmove           ;  valid predefined move
+        mov action, w          ; get move in action
+
+; move robot with move in action variable
+; (bits 2-5 to motors, rest ignored)
+move
+        call checkaction        ; validate action
+        jb badmove, drstop      ; stop if forbidden move        
+
+        mov temp, #popdur       ; how much
+drloop  mov rb, action
+        mov loops, #ontime
+        call wait
+        clr rb
+        mov loops, #offtime
+        call wait 
+        djnz temp, drloop       ; loop until done
+drstop
+        setb popping            ; tell startup we're in a move cycle
+        sleep                   ; sleep between pops to save power
+
+nextpop                         ; here if wakes with popping set
+        clrb popping            ; end of move cycle
+        djnz popcnt, poploop    ; next pop
+        mov OPTION, #optsleep   ; long duration (!OPTION for SPASM)
+
+; dump contents of memory to LED then go to sleep
+; each byte ...1-0-m0-m1-m2-m3-m4-m5-m6-m7-1-0-0...
+        mov temp, addr          ; save current addr
+        mov addr, #0            ; start at 0
+dumplp  call rbyte              ; get byte
+        setb statusLED
+        mov loops,#50           ; '1' start bit
+Await   mov loops2,#portspeed
+Await2  djnz loops2, Await2
+        djnz loops, Await
+        clrb statusLED
+        mov loops,#50           ; '0' start bit
+Bwait   mov loops2,#portspeed
+Bwait2  djnz loops2, Bwait2
+        djnz loops, Bwait
+        mov count, #8           ; 8 data bits 
+LEDfla2 clrb statusLED
+        snb datai.0
+        setb statusLED          ; 1 if lsb set
+        clr wdt                 ; don't bomb
+        mov loops,#50
+Cwait   mov loops2,#portspeed
+Cwait2  djnz loops2, Cwait2
+        djnz loops, Cwait
+        rr datai                 ; next bit
+        djnz count, LEDfla2
+        setb statusLED
+        mov loops,#50           ; '1' stop bit
+Dwait   mov loops2,#portspeed
+Dwait2  djnz loops2, Dwait2
+        djnz loops, Dwait
+        clrb statusLED
+        mov loops, #100         ; 2 '0' stop bits
+Ewait   mov loops2,#portspeed
+Ewait2  djnz loops2, Ewait2
+        djnz loops, Ewait
+        inc addr                ; next address
+        jnb addr.6, dumplp      ; loop if under 64
+        mov addr, temp          ; restore old address
+        sleep                   ; rest and charge
+
+; end
+
+
+/*              CMAC - Cerebellum Model Articulation Controller
+                as described in AI Expert, June 1992, pp. 32-41
+                and Transactions of ASME, Sept. 1975, pp. 220-227
+
+                __________________
+          \     |                |---|****   |----------|
+           \    |                |---|AND *--| x Weight |--+
+          \ &gt;---|                |---|****   |----------|  |
+X Input1-* X    |                |                         |
+          X &gt;---|                |                         |
+X Input2-* X    |                |     :                   |
+          / &gt;---|                |                         |
+           /    |                |                         |
+          /     |                |     :                   |
+                |  Interconnect  |                         |
+          \     |     Matrix     |                         |
+           \    |                |     :                   | |-----------|
+          \ &gt;---|                |                         +-+           |
+Y Input1-* X    |                |---|****   |----------|    |           | Output
+          X &gt;---|                |---|AND *--| x Weight |----+  Output   +-------&gt;
+Y Input2-* X    |                |---|****   |----------|    | Summation |
+          / &gt;---|                |                         +-+           |
+           /    |                |     :                   | |-----------|
+          /     |                |                         |
+                |                |                         |
+          \     |                |     :                   |
+           \    |                |                         |
+          \ &gt;---|                |                         |
+Z Input1-* X    |                |                         |
+          X &gt;---|                |     :                   |
+Z Input2-* X    |                |                         |
+          / &gt;---|                |                         |
+           /    |                |---|****   |----------|  |
+          /     |                |---|AND *--| x Weight |--+
+                |                |---|****   |----------|
+                ------------------
+
+                                                  ^ trainable weight vector
+                                       ^ AND gates (eg. dimension=3)
+                        ^connection matrix (connects inputs to AND gates)
+             ^overlapping input sensors (eg. width=2 inputs/sensor)
+         ^inputs (eg. quant=2 bits/dimension)
+ ^dimension (eg. 3)
+
+Notes:
+       1. Only one input per dimension can be active (= 1) at any time.
+          Input values must be quantized into 1 of "quant" values.
+
+       2. Input sensors overlap and cover to "1 to width" number of inputs.
+          Width can vary between 1 to "quant". Low numbers usually work best.
+
+       3. Interconnect matrix is such that each input vector (eg. X,Y,Z)
+          activates exactly "width" number of AND gates.
+
+       4. Each AND gate has "dimension" number of inputs.
+
+       5. Output is a summation of weights corresponding to activated AND gates.
+
+       6. Weights are trained using the Delta rule.
+
+       7. CMAC converges very rapidly. Three bit parity example can be solved to
+          an accuracy of .001 in about 20 training passes.
+
+       8. All nonlinearity comes from input mapping instead, of sigmoid
+          function like FFNNs.
+
+       9. Visualize input vectors as locations in an N-dimensional space.
+          The Output is then the value of the function at that location.
+
+      10. Interpolation between multiple outputs can be added to reduce
+          effect of quantization.
+
+      11. Once the weights have been trained, the compute_output routine
+          can be used alone to determine output quickly.
+
+      12. CMAC can be used to find approximations to N-dimensional nonlinear
+          functions like sqrt or distance calculations quickly.
+
+      13. CMAC has been used successfully to linearize transducers or to form
+          the inverse function of unknown plant dynamics.
+*/
+
+#include &lt;stdio.h&gt;
+#include &lt;math.h&gt;
+
+                /* User selectable values */
+#define dimension       3               /* input dimensions */
+#define quant           2               /* input quantization per dimension */
+#define width           2               /* width of input sensors */
+#define max_gates       10              /* ==&gt; set to (quant**dimension)+width) */
+#define beta            0.4             /* learning rate for weight training */
+#define err_limit       0.001           /* maximum error for any input */
+
+#define k1              (quant+width-1) /* intermediate calculation */
+#define max(a,b)        ((a&gt;=b)?a:b)    /* max macro */
+#define min(a,b)        ((a&lt;=b)?a:b)    /* min macro */
+
+struct  list_of_conns{
+           int  n;                      /* number of gates in list */
+           int  gate_ptr[(max_gates)];  /* indices of gates */
+        } conn[quant][dimension],       /* connections between inputs and gates */
+          activated,                    /* list of activated gates */
+          *c;                           /* pointer to list_of_conns */
+
+int     n_inputs;                       /* number of possible input vectors */
+int     n_sensors;                      /* number of possible input sensors */
+int     input[dimension];               /* input vector */
+int     nbr_gates = 0;                  /* num of gates used */
+int     gate[max_gates];                /* AND gates */
+double  weight[max_gates];              /* weight matrix */
+double  output, desired, error, total_error;
+
+void form_interconnects();
+void compute_output();
+void train();
+
+int main()
+{
+    register int        i, j, k;
+    int                 pass=1;
+    double              max_error=err_limit;
+
+    printf("\n\n       CMAC        \n\n");
+    n_inputs=(int)pow((double)quant,(double)dimension);
+    n_sensors=(int)pow((double)(quant+width-1),(double)dimension);
+    form_interconnects();
+    printf("cmac: finished interconnects, beginning training.\n");
+    while(max_error&gt;=err_limit){                    /* for each pass */
+        total_error=0.0;
+        max_error=0.0;
+        for(i=0;i&lt;n_inputs;i++){                    /* for each possible input */
+            for(k=1,j=0;j&lt;dimension;k*=quant,j++)   /* form input vector */
+                input[j]=(i/k)%quant;
+            compute_output();
+            for(desired=0,j=0;j&lt;dimension;j++)      /* compute desired output */
+              desired=(double)(((int)desired) ^ input[j]); /* parity bit example */
+            train();
+            total_error+=fabs(error);
+            max_error=max(fabs(error),max_error);
+        }
+        printf("Pass=%d   \tmax_error=%g\tAvg Err=%g\n",
+                pass++,max_error,total_error/n_inputs);
+    }
+    printf("cmac: finished training.\n\n");
+    for(i=0;i&lt;nbr_gates;i++)                        /* display weights */
+        printf("W[%d]=%f\n",i,weight[i]);
+}
+
+void form_interconnects()                       /* generate interconnect lists */
+{
+        register int    i, j, k, m, n, p, found;
+
+        for(c = &amp;conn[0][0],i=0; i&lt;quant*dimension; c++,i++)  /* initialization */
+            c-&gt;n=0;
+
+        for (k=0; k&lt;width; k++){
+            for(i=0;i&lt;n_sensors;i++){  /* for each combination of input sensors */
+                found=1;
+                for(m=1,j=0; j&lt;dimension; m*=k1,j++)   /* for each dimension */
+                    if((((i/m)%k1)%width)!=k){     /* check acceptance criteria */
+                        found=0;                     /* rejected, try another */
+                        break;
+                }
+                if(found==1){                               /* if acceptable */
+                    for(m=1,j=0; j&lt;dimension; m*=k1,j++){ /* for each dimension */
+                        n=(i/m)%k1;                         /* n=input sensor */
+                        for(p=max(0,n-width+1); p&lt;=min(n,(quant-1)); p++){
+                            c = &amp;conn[p][j];   /* p=input connected to sensor n */
+                            c-&gt;gate_ptr[(c-&gt;n)++]=nbr_gates;
+                        }
+                    }
+                    nbr_gates++;
+                    if(nbr_gates &gt; max_gates){
+                       printf("cmac: error, maximum number of gates exceeded!\n");
+                       exit(3);         /* increase #define max_gates */
+                    }
+                }
+            }
+        }
+}
+
+void compute_output()                       /* usable during and after training */
+{
+        register int g, i, j;
+
+        activated.n=0;                      /* initialization */
+        output=0;
+        for(g=0;g&lt;nbr_gates;g++)  gate[g]=0;
+
+        for(i=0;i&lt;dimension;i++){           /* for all dimensions */
+            c = &amp;conn[input[i]][i];
+            for(j=0;j&lt;c-&gt;n;j++){            /*increment all gates in list */
+                g=c-&gt;gate_ptr[j];
+                gate[g]++;
+                if(((i+1)==dimension)&amp;&amp;(gate[g]==dimension)){ /* if activated */
+                                            /* generate list of activated gates */
+                    activated.gate_ptr[activated.n++]=g;
+                    output += weight[g];    /* update output */
+                }
+            }
+        }
+}
+
+void    train()                             /* compute error and modify weights */
+{
+        register int    i;
+
+        error=desired-output;
+        for(i=0;i&lt;activated.n;i++)          /* using list of activated gates */
+            weight[activated.gate_ptr[i]]+=beta*error;
+}
+
+
+
+
+</PRE>
+<P>
+<P>
+<A TITLE="JMN-EFP-786" NAME="41884.7045717593"> See also:</A>
+<UL>
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="41884.7045717593"><A href="/techref/method/ais.htm">Artificial
+    Intelligence.</A> </A>
+</UL>
+<!-- 41884.7045717593 EOR -->
+</BODY></HTML>
