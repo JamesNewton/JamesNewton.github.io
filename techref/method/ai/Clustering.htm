@@ -1,0 +1,128 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 21-Aug-2015 -->
+  <!-- AP: Last modified: 28-Aug-2015 -->
+  <TITLE>Machine Learning Method Clustering</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Clustering
+</H1>
+<P>
+Given data with no labels (e.g. only X data, no y) find clusters in that
+data.
+<H2>
+  K-Means Algorithm
+</H2>
+<P>
+Pick some number of points that you want to cluster your data into. Randomly
+set those "centroid" points to locations in the data space. Assign each datapoint
+to the centroid closest to it. Move the centroid to the center of the points
+assigned to it. Repeat. 
+<P>
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE><FONT COLOR="Green"><B>%SETUP</B></FONT>
+M = size(X,1);
+<FONT COLOR="Green">%K &lt; M (because we are grouping the data into fewer clusters</FONT>
+K<SUB>max</SUB> = floor(M/2); <FONT COLOR="Green">%no point if less than 2 points in each</FONT>
+cost<SUB>old</SUB> = inf; <FONT COLOR="Green">% start with infinite cost.</FONT>
+<FONT COLOR="Green">%The &#181; centroids can be set to random datapoints</FONT>
+&#181;r = randperm(M); <FONT COLOR="Green">% Makes a list from 1:M in random order</FONT>
+for K = 1:K<SUB>max</SUB> <FONT COLOR="Green">% slowly increase K</FONT>
+	<FONT COLOR="Green">% assign K cluster centroids &#181;<SUB>1</SUB>, &#181;<SUB>2</SUB>, ... &#181;<SUB>K</SUB>, </FONT>
+	&#181; = X(&#181;r(1:K), :); <FONT COLOR="Green">%Picks out first K of those values from X</FONT>
+	<FONT COLOR="Green">% Assign points to local cluster and return cost</FONT>
+	[C,cost] = groupCentriods(X, &#181;);
+	if (cost &lt; cost<SUB>max</SUB>) break; endif
+	if (abs(cost - cost<SUB>old</SUB>) &lt; cost<SUB>elbow</SUB>) break; endif
+	cost<SUB>old</SUB> = cost;
+	endfor
+
+<FONT COLOR="Green"><B>%K-MEANS</B></FONT>
+%Repeat { <FONT COLOR="Green">% How many times?</FONT>
+	<FONT COLOR="Green">% Assign points to local cluster around centroids</FONT>
+	[C,cost] = groupCentriods(X, &#181;);
+	<FONT COLOR="Green">% Move cluster centroids to center of clusters data points</FONT>
+	&#181; = moveCentroids(X, C, K);
+	} <FONT COLOR="Green">% and that's how you do the K-Means!</FONT>
+
+function [C,cost] = groupCentriods(X, &#181;)
+	for i = 1:M <FONT COLOR="Green">% for every datapoint</FONT>
+	<FONT COLOR="Green">% find C<SUP>(i)</SUP> := index (1:K) of cluster centroid closest to x<SUP>(i)</SUP></FONT>
+		d<SUB>min</SUB> = inf; <FONT COLOR="Green">% start with infinite distance</FONT>
+		for k = 1:K <FONT COLOR="Green">% look at every cluster centroid</FONT>
+			d = sum<BIG>(</BIG> (X<SUP>(i,:)</SUP>-&#181;<SUP>(k,:)</SUP>).^2 <BIG>)</BIG>; <FONT COLOR="Green">% find distance</FONT> 
+			if d &lt; d<SUB>min</SUB> <FONT COLOR="Green">% if this centroid is closer</FONT>
+				C<SUP>(i)</SUP> = k; <FONT COLOR="Green">% record its number</FONT>
+				d<SUB>min</SUB> = d; <FONT COLOR="Green">% remember how close we got</FONT>
+				endif
+			endfor
+		<FONT COLOR="Green">%Faster replacement for the inner (for k) loop:</FONT>
+		% d = &#181; - repmat(X(i,:),M,1); 
+		% [d<SUB>min</SUB> C(i)] = min(sum(d .^ 2,2));
+		cost = cost + d<SUB>min</SUB>; <FONT COLOR="Green">% accumulate the cost</FONT>
+		endfor
+	end
+
+function &#181; = moveCentroids(X, C, K)
+	for k = 1:K <FONT COLOR="Green">% for every cluster</FONT>
+	<FONT COLOR="Green">% &#181;<SUB>k</SUB> := mean position of points assigned to cluster k</FONT>
+		p = [,]; <FONT COLOR="Green">% start a list of points nearest this cluster</FONT>
+		for i = 1:M <FONT COLOR="Green">% for every datapoint</FONT>
+			if (C(i) == k) <FONT COLOR="Green">% if this point was assigned to this cluster</FONT>
+				p = [p; X(i,:)]; <FONT COLOR="Green">% save it</FONT>
+				endif
+			endfor
+		if length(p) &gt; 0
+			&#181;(k,:) = mean(p); <FONT COLOR="Green">% move centroid to middle of cluster</FONT>
+		else <FONT COLOR="Green">% no data points near cluster?</FONT>
+			&#181;(k,:) = x(rand * M,:); <FONT COLOR="Green">% move to a new random position</FONT>
+			<FONT COLOR="Green">% could also delete</FONT>
+			endif
+		<FONT COLOR="Green">%Faster (assuming there are no empty clusters):</FONT>
+		% p = find(C == k); <FONT COLOR="Green">%p is an array of indexes here</FONT>
+		% u(k,:) = mean(X(p,:)); 
+		endfor
+	end
+</PRE>
+<P>
+<P>
+<IMG SRC="K-Means.png" WIDTH="216" HEIGHT="60" ALIGN="Right">So K-Means is
+minimizing
+sum(||x<SUP>(i)</SUP>-&#181;<SUP>(k)</SUP>||<SUP>2</SUP>)/m
+<P>
+<B><BIG>Choosing K:</BIG></B><BIG> </BIG>Choosing the number of clusters,
+K, can be difficult to automate.
+<P>
+<B>Elbow Method:</B> We can try to run the method multiple times with increasing
+numbers for K and perhaps find a point where the final cost has dropped rapidly
+and then stops decreasing much as K increases. This is called the elbow method,
+and works well if there are very obvious clusters. In other cases, it can
+be very difficult to find any point where the cost decreases is significantly
+less.
+<P>
+<B>Maximum Allowed Error Method: </B>Another way is to increase K until the
+cost (maximum error in the cluster) is below some pre-set value.
+<P>
+<B><BIG>Avoid Local Clusters:</BIG></B> The clusters may come out differently
+depending on their initial positions. In cases with a small number of K,
+(less than 100, certainly less than 10) then the centroids may get stuck
+in local clusters and not do a good job of finding larger clusters. To avoid
+this, try multiple random initializations and test each without moving the
+centroids to find the one that generates the lowest cost.
+<P>
+<B><BIG>Equal Sized Clusters:</BIG></B> &nbsp;K-Means tends to find clusters
+that are the same size. In a dataset with a clusters that are larger or smaller,
+this can lead to poor clustering. Expectation Maximization or EM Clustering
+<A HREF="https://en.wikipedia.org/wiki/Expectation-maximization_algorithm">^</A>avoids
+this.
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://en.wikipedia.org/wiki/K-means_clustering">https://en.wikipedia.org/wiki/K-means_clustering</A>
+</UL>
+<P>
+</BODY></HTML>

@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 6-Sep-2015 -->
+  <!-- AP: Last modified: 10-Sep-2015 -->
+  <TITLE>Machine Learning Methods for Big Data</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Methods</A> for Big Data
+</H1>
+<P>
+A major cause of the advances in machine learning are related to big data:
+Very large datasets. 
+<P>
+If you see <A HREF="Troubleshooting.htm#Variance">high variance </A>in the
+learning curve &nbsp;(cost on training set slowly increases, cost on validation
+set slowly decreases) as the number of data points is small but increasing,
+then more data is one of the better ways to improve the system. In that case,
+optimizing for big data can be worth the effort. If you don't see continued
+improvements as the number of data points is increased, then larger datasets
+are, obviously, not worth the effort.
+<H3>
+  <A NAME="StochasticGradientDescent">Stochastic Gradient Descent</A>
+</H3>
+<P>
+When the number of data sets is large, computing the derivative term for
+a standard (aka "Batch") <A HREF="LinearRegresion.htm#GadientDescent">gradient
+descent</A> can be expensive because we must sum the slopes for all the data
+points to find the direction we want to move. If we instead take steps based
+on only one training example at a time, modifying the parameters
+<STRIKE>O</STRIKE>&nbsp;for only that one data point, then repeat that process
+for each data point, we can get the same effect, but without waiting to update
+parameters after scanning ALL the data points. This basically makes the system
+converge faster. 
+<P>
+For this to work, we must ensure the data is in random order, so an initial
+step, were we randomize the data, is necessary. Each change in the parameters,
+after each data point, may not take us in a good direction, but the overall
+average effect will be the same, as long as the data doesn't "lead us astray"
+for more than a few points. Randomizing the data order helps to prevent that.
+Our "walk" toward the minimum cost will probably be more jagged and wandering,
+but that can actually help avoid local minimums. 
+<P>
+To ensure the system is converging on a minimum, we can compute the cost
+each time we update the parameters, after each data point. Then we can average
+those costs, and plot them every so many iterations. The result may be noisy,
+but a general trend should be obvious. 
+<P>
+Because individual data points can send us in the wrong direction, it can
+be difficult to find the end of the "walk" towards the minimum. At or near
+minimum, the system can still wander around and not really settle on a final
+best value. In some cases, it may help to slowly decrease your steps size
+(alpha), or just stop after a certain number of steps. 
+<H3>
+  Mini-Batch Gradient Descent
+</H3>
+<P>
+Instead of updating the parameters for each data point as in Stochastic descent,
+or only after all data points as with the standard Batch descent, we can
+use some subset of the data points, hoping that they are representative of
+the complete data set. Given a set size, b, we compute the average slope
+of the cost function for this subset of b data points, then update the parameters
+accordingly, and then repeat using the next b data points. 
+<P>
+This method also lends itself to parallel processing. It's cost is higher
+than Stochastic and lower than Batch. 
+<H3>
+  "Online" Learning for Continuous Data Streams
+</H3>
+<P>
+When the input data continues to flow in, with ever more data points, we
+can apply each new data point to the learning system as it arrives. For example,
+if we were using <A HREF="logisticregresions.htm">Linear Regression</A>,
+we can do a single additional change to the parameters with Stochastic
+<A HREF="LinearRegresion.htm#GadientDescent">gradient descent</A> on that
+single new data point. In this way, our data set size can be effectively
+infinite. Another advantage of this system is that it will slowly adapt over
+time to changes in the environment. 
+<H3>
+  Map Reduce
+</H3>
+<P>
+Another very important, but very simple, means of dealing with large datasets
+is to split the data over multiple computers (or multiple cores in one computer
+if your libraries don't parallalize automatically), calculating the error
+slope for each subset seperately on each machine. This brings parallel computing
+to bear on the problem. Then we can do the
+<A HREF="LinearRegresion.htm#GadientDescent">gradient descent</A> on a "master"
+computer re-combine the slopes found by each machine and adjusting our parameters
+by that total times alpha / m as usual. e.g. we add <BR>
+<TT>s = sum(S,2) %sum up the columns, one column from each
+machine</TT><BR>
+before <TT><BR>
+theta = theta - alpha .* s</TT>
+</BODY></HTML>

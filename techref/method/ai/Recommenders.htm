@@ -1,0 +1,188 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 2-Sep-2015 -->
+  <!-- AP: Last modified: 15-Sep-2015 -->
+  <TITLE>Prediction / Recommendation Systems.</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Prediction / Recommendation Systems
+</H1>
+<P>
+The obvious examples are web services that sell movies, music, books, or
+other products. Based on what each customer has purchased, or the ratings
+they gave, recommend new items that the user is likely to purchase or rate
+highly. Ratings are often over a range (e.g. 0 to 5 stars) and may not be
+available for all products purchased / used. The products first need to be
+grouped or classified, and then we can look for patterns in each users ratings
+/ consumption. E.g. Mary Jane loves romantic movies, but Billy Bob likes
+action flicks. Now, given that a movie neither has yet seen is a romantic
+comedy, what rating is MJ likely to give it? How about BB?
+<P>
+So we can treat this as a combination of a
+<A HREF="LogisticClassifier.htm">Classifier</A> (possibly using
+<A HREF="Clustering.htm">clustering</A> if we don't have known classes) which
+finds parameters for each product and a <A HREF="LinearRegresion.htm">Linear
+Regression</A> predictor to learn the users preferences.
+<P>
+We have:
+<UL>
+  <LI>
+    <B>n<SUB>u</SUB></B><SUB> </SUB>number of users, and
+  <LI>
+    <B>n<SUB>p</SUB></B> number of products, and so<BR>
+    <B>n<SUB>u </SUB>x n<SUB>p</SUB></B> possible ratings.
+  <LI>
+    <B>y<SUB>(u,p)</SUB></B> are the ratings from each user for each product
+    and
+  <LI>
+    <B>r<SUB>(u,p)</SUB></B> is a flag indicating that a rating is or is not
+    available. Obviously we want to store the data in a more compressed format
+    (a table "ratings" of the rating, the user, and the product).
+  <LI>
+    <B>k</B> is the number of classes.
+  <LI>
+    <B>x</B> is a features vector which indicates how that product relates to
+    each class. <BR>
+    <B>i</B> (1:n<SUB>p</SUB>) indexes each product<BR>
+    <B>x<SUP>(i)</SUP></B> is a vector of k+1 elements.
+  <LI>
+    <B>j</B> (1:n<SUB>u</SUB>) indexes the users and we have <BR>
+    <B>m(j)</B> as the number of products the user has rated and <BR>
+    <B>y<SUP>(i,j)</SUP></B> is the users prior rating for product i. <BR>
+    <B><STRIKE>o</STRIKE><SUP>(j)</SUP></B> parameters are built which we will
+    train to fit that users affinity for each class.
+</UL>
+<P>
+We need to predict the rating of each product i, which they haven't rated
+as (<STRIKE>o</STRIKE><SUP>(j)</SUP>)<SUP>T</SUP>x<SUP>(i)</SUP>. Both
+<STRIKE>o</STRIKE><SUP>(j)</SUP> and x<SUP>(i)</SUP> are vectors of k+1 elements
+where k is the number of classes. <I>Note: The +1 is because of the unit
+vector x<SUB>0</SUB> which is always 1. </I>
+<P>
+As with the standard <A HREF="LinearRegresion.htm">Linear Regression</A>,
+to learn <STRIKE>o</STRIKE><SUP>(j)</SUP> we find the minimum values for
+the sum, over the values of i where r<SUB>(u,p)</SUB> is set,
+of&nbsp;(<STRIKE>o</STRIKE><SUP>(j)Tx(i)</SUP> -
+y<SUP>(i,j)</SUP>)<SUP>2</SUP> divided by 2. We don't divide by the number
+of products rated, m<SUP>(j)</SUP>, because that number will be different
+for each parameter. We also should add
+<A HREF="Regularization.htm">Regularization</A> of 1/2 lambda over the k
+classes. Here is that cost function:
+<P>
+<IMG SRC="RecommenderCost.png" WIDTH="595" HEIGHT="95">
+<P>
+The slope function is: (<I>but remember to omit the lambda term for k=0)</I>
+<P>
+<IMG SRC="RecommenderSlope.png" WIDTH="408" HEIGHT="64">
+<P>
+We repeat this for all users from 1:n<SUB>u</SUB>
+<H3>
+  Collaborative Filtering
+</H3>
+<P>
+<B>Known <STRIKE>o</STRIKE>, unknown x:</B> Another version of this has no
+classifications for the product, but the users have provided labels for what
+sort of products they like. In other words,
+<STRIKE>o</STRIKE><SUP>(j)</SUP> is provided and we don't have
+x<SUP>(i)</SUP>. We do have the y<SUP>(i,j)</SUP> ratings for each product
+that was rated by each user. Based on this, we can guess what the x values
+will be and then use that to predict the y values for unrated products. In
+this case, we can use exactly the same method as above, except that we will
+change x and find the minimum cost for x, over all the users instead of all
+the products j:r(i,j)=1, while also using
+<A HREF="Regularization.htm">regularization</A> for x instead of
+<STRIKE>o</STRIKE>.
+<P>
+<B>Back and forth:</B> If we have neither the x values or the
+<STRIKE>o</STRIKE> values, we can randomly guess <STRIKE>o</STRIKE>, and
+use that to develop some x values, then use those values to develop better
+<STRIKE>o</STRIKE> values and by working back and forth, between the two
+different parameter sets.
+<P>
+<B>Both x and <STRIKE>o</STRIKE> unknown:</B> And, in fact, we can combine
+the two versions of the cost function (with
+<A HREF="Regularization.htm">regularization</A> for <I>both</I> x and
+<STRIKE>o</STRIKE>) and minimize for both x and <STRIKE>o</STRIKE> over all
+users <I>and</I> products (i,j):r(i,j)=1, resulting in a single Linear Regression
+problem which solves for both x and <STRIKE>o</STRIKE> at once. We start
+by initialize all the values of x and <STRIKE>o</STRIKE> to small random
+numbers much like we do for <A HREF="NeuralNets.htm">Neural Nets</A> and
+for the same reason: This serves to break symmetry and ensures the system
+learns features that are different from each other.
+<P>
+<B>x<SUB>0</SUB>=1 not needed:</B> An interesting side effect of this combined
+learning of both x and <STRIKE>o</STRIKE> is that we no longer need
+x<SUB>0</SUB>=1. And the reason is completely amazing: Because the system
+is learning all the X's, if it wants an x which is 1, it will learn one.
+... <I>{ed: pause to let brain explode and re-grow}</I>. We can now regularize
+all x and <STRIKE>o</STRIKE> parameters.
+<H3>
+  Related / Similar Products
+</H3>
+<P>
+After we have a matrix x of product attributes, we can find products which
+are related simply by finding those with simular values of x.
+<H3>
+  Vectorization: Low Rank Matrix
+</H3>
+<P>
+If we take a matrix, Y, &nbsp;of all the product ratings (products x users
+or n<SUB>p</SUB> x n<SUB>u</SUB>) with gaps where some users haven't rated
+some products, we can attempt to fill in those gaps. We can also make predictions
+for each element to see if we are making good predictions against the known
+values. Element Y(1,1) is
+<STRIKE>O</STRIKE><SUP>(1)T</SUP>x<SUP>(1)</SUP>. If we take all the X values,
+x<SUP>(1)</SUP> ... x<SUP>(n<SUB>p</SUB>)</SUP>, transpose, and stack them
+into a vector, then do the same with <STRIKE>O</STRIKE>, we can compute our
+prediction for Y = X&#183;<STRIKE>O</STRIKE><SUP>T</SUP>. In
+<A HREF="../../language/octave.htm">Octave</A> must as we did for
+<A HREF="LinearRegresion.htm">Linear Regression</A>
+<PRE>% X 	- num_movies  x num_features matrix of movie features
+% Theta	- num_users  x num_features matrix of user features
+% Y 	- num_movies x num_users matrix of user ratings of movies
+% R 	- num_movies x num_users matrix, where R(i, j) = 1 if the 
+% 	  i-th movie was rated by the j-th user
+
+%Compute Cost
+hyp = (X*Theta'); 
+errs = (hyp - Y);
+err = errs .* R;	%note .* R removes unrated
+J = sum(err(:).^2)/2; %note not dividing by m
+%Regularization (both Theta and X)
+J = J + (lambda .* sum(Theta(:).^2) ./ 2);
+J = J + (lambda .* sum(X(:).^2) ./ 2);
+%Note that there is no need to remove the first element
+
+%Compute X gradient with respect to Theta
+for i=1:num_movies; %for each movie
+  idx = find(R(i, :)==1);    %list of users who rated this movie
+  Thetatemp = Theta(idx, :); %Theta features for these users
+  Ytemp = Y(i, idx);         %Ratings by these users
+  X_grad(i, :) = (X(i, :) * Thetatemp' - Ytemp) * Thetatemp;
+  endfor
+% Or in matrix form:
+X_grad = (err * Theta) + (X .* lambda);
+  
+%Compute Theta gradient with respect to X
+for j=1:num_users; %for each user
+  idx = find(R(:, j)==1); %list of movies rated by this user
+  Xtemp = X(idx,:);       %X features for these movies
+  Ytemp = Y(idx, j)';     %Ratings for these movies, 
+  %Note this is transposed to a column of movie ratings
+  Theta_grad(j, :) = (Theta(j, :) * Xtemp' - Ytemp) * Xtemp;
+  endfor
+% Or in matrix form:
+Theta_grad = (err' * X) + (Theta .* lambda);
+</PRE>
+<H3>
+  New Users / Users with no Ratings: Mean Normalization
+</H3>
+<P>
+When a user has not rated any products, our minimization system will develop
+all zero values for <STRIKE>o</STRIKE>, which is not useful. We can use Mean
+Normalization to develop average ratings for each product which I can assign
+as a new users expected ratings.
+</BODY></HTML>

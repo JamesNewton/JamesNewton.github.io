@@ -1,0 +1,634 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 31-Jul-2015 -->
+  <!-- AP: Last modified: 2-Feb-2019 -->
+  <TITLE>Machine Learning, Neural Networks Method</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Neural Networks
+</H1>
+<P>
+Unlike <A HREF="LinearRegresion.htm">Linear Regression</A> or
+<A HREF="logisticregresions.htm">Logistic Regression</A>, Neural Networks
+can be applied to Non-linear data or data which would otherwise require to
+many quadratic features to classify. When there are many features, such as
+in <A HREF="../imgRecog.htm">machine vision</A> problems and especially with
+<A HREF="ConvolutionalNeuralNetworks.htm">Convolution</A>, their combinations
+can quickly get out of control. NNs have been around since the '50's when
+they were developed as a way to mimic the operation of the brain. At that
+time, they were too computationally expensive,&nbsp;but they are making a
+resurgence given todays computing power.
+<P>
+NN simulate real "neurons" by sending messages to each other. The connections,
+x<SUB>n</SUB>, are weighted by parameters <STRIKE>O</STRIKE><SUB>n</SUB>,
+and the weights are tuned based on experience. There is also an input that
+is not from other neurons, x<SUB>0</SUB>, called the "bias unit" which is
+always set to 1. The weight on the bias unit changes the likelihood that
+the neuron will fire irrespective of other inputs. Note: This is still just
+<A HREF="LinearRegresion.htm">y = mX+b</A>. The bias unit is b, (actually
+x<SUB>0</SUB> always set to 1, then times <STRIKE>O</STRIKE><SUB>0</SUB>
+so that <A HREF="../math/matrix.htm">matrix math</A> is easily applied).
+The inputs are X (vector) and the m are the weights
+<STRIKE>O</STRIKE><SUB>n</SUB>.
+<P>
+The internal function of a single neuron in the network can be modeled by
+a simple <A HREF="logisticregresions.htm">Logistic</A> unit using an 
+"activation" or "cost" function such as the sigmoid
+function<A HREF="https://en.wikipedia.org/wiki/Sigmoid_function">^</A>  Hyperbolic Tangent^, Rectifier e.g. ReLU (Rectified Linear Unit)<A HREF="https://en.wikipedia.org/wiki/Rectifier_(neural_networks)">^</A>,
+e.g. max(0,x)<A HREF="https://en.wikipedia.org/wiki/Rectifier_(neural_networks)">^</A>
+or SIREN<A HREF="https://vsitzmann.github.io/siren/">^</A>.
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>g = 1 ./ ( 1 .+ exp(-X*theta) ) ;
+</PRE>
+<P>
+<B>Multiple Layers:</B>
+<IMG SRC="NeuralNetSize.png" WIDTH="172" HEIGHT="43" ALIGN="Right">NNs can
+have multiple layers where the top layer, directly connected to the external
+data inputs, is connected through to another layer, which may be connected
+to another, and so on before connecting to the final, output, layer. The
+inner layers are called hidden layers. Each neuron in a layer is normally
+connected to ALL the neurons in the next layer, or to one of a few neurons
+or even a single neuron, in the case where the next layers has fewer neurons.
+For a multi-class classification NN, with K classes, there would be K output
+units and only one would come on at a time. It is common to have a single
+neuron on the last, or output, layer. In that case, the computation from
+the last layer looks a lot like Logistic Regression. In fact, each layer
+is it's own set of mapping input to recognized features.
+<P>
+<B>Multiple Parameter Vectors:</B> Because there may be multiple layers,
+we must add a new dimension to our vector of parameters
+&nbsp;<STRIKE>O</STRIKE>. The weights on a specific layer (j) may be represented
+by <STRIKE>O</STRIKE><SUP>(j)</SUP> and a specific weight between node (i)
+of the prior layer and (i') of the next layer as
+<STRIKE>O</STRIKE><SUB>i'i</SUB><SUP>(j)</SUP>.&nbsp;The activation, or value
+computed for output, of a specific neuron (i) in a specific layer (j) can
+be represented by a<SUB>i</SUB><SUP>(j)</SUP>.
+<B>a<SUB>i</SUB><SUP>(j)</SUP> = "activation" of unit i in layer j</B>. If
+a NN has s<SUB>j</SUB> units in layer j (not counting any bias units) and
+s<SUB>(j+1)</SUB> units in layer j+1, and each neuron is connected to every
+neuron in the next layer, then <B><STRIKE>O</STRIKE><SUP>(j) </SUP>will be
+a matrix of s<SUB>(j+1)</SUB> by s<SUB>j </SUB>+ 1</B>. That last "+1" is
+because of the bias unit. s<SUB>j </SUB>is the number of units not counting
+the bias unit.
+<H3>
+  <IMG SRC="NeuralNet1.png" WIDTH="680" HEIGHT="438" ALIGN="Right">Example
+</H3>
+<P>
+A Neural Net&nbsp;with 3 inputs, x<SUB>1</SUB>-x<SUB>3</SUB>, a bias unit,
+x<SUB>0</SUB>, a hidden layer with 3 nodes, and a single output, would require
+the following computations:
+<P>
+a<SUB>1</SUB><SUP>(2)</SUP>=g(<STRIKE>O</STRIKE><SUB>10</SUB><SUP>(1)</SUP>x<SUB>0</SUB>
++<STRIKE>O</STRIKE><SUB>11</SUB><SUP>(1)</SUP>x<SUB>1</SUB>
++<STRIKE>O</STRIKE><SUB>12</SUB><SUP>(1)</SUP>x<SUB>2</SUB>
++<STRIKE>O</STRIKE><SUB>13</SUB><SUP>(1)</SUP>x<SUB>3</SUB>)<BR>
+a<SUB>2</SUB><SUP>(2)</SUP>=g(<STRIKE>O</STRIKE><SUB>20</SUB><SUP>(1)</SUP>x<SUB>0</SUB>
++<STRIKE>O</STRIKE><SUB>21</SUB><SUP>(1)</SUP>x<SUB>1</SUB>
++<STRIKE>O</STRIKE><SUB>22</SUB><SUP>(1)</SUP>x<SUB>2</SUB>
++<STRIKE>O</STRIKE><SUB>23</SUB><SUP>(1)</SUP>x<SUB>3</SUB>)<BR>
+a<SUB>3</SUB><SUP>(2)</SUP>=g(<STRIKE>O</STRIKE><SUB>30</SUB><SUP>(1)</SUP>x<SUB>0</SUB>
++<STRIKE>O</STRIKE><SUB>31</SUB><SUP>(1)</SUP>x<SUB>1</SUB>
++<STRIKE>O</STRIKE><SUB>32</SUB><SUP>(1)</SUP>x<SUB>2</SUB>
++<STRIKE>O</STRIKE><SUB>33</SUB><SUP>(1)</SUP>x<SUB>3</SUB>)<BR>
+h<STRIKE><SUB>0</SUB></STRIKE>(x)= a<SUB>1</SUB><SUP>(3)</SUP>=
+g(<STRIKE>O</STRIKE><SUB>10</SUB><SUP>(2)</SUP>a<SUB>0</SUB><SUP>(2)</SUP>
++<STRIKE>O</STRIKE><SUB>11</SUB><SUP>(2)</SUP>a<SUB>1</SUB><SUP>(2)</SUP>
++<STRIKE>O</STRIKE><SUB>12</SUB><SUP>(2)</SUP>a<SUB>2</SUB><SUP>(2)</SUP>
++<STRIKE>O</STRIKE><SUB>13</SUB><SUP>(2)</SUP>a<SUB>3</SUB><SUP>(2)</SUP>)
+<P>
+Notice that the <SUP>(j)</SUP> superscript denotes the layer, the subscript
+denote the node i within that layer, and in the case of the weights,
+<STRIKE>O</STRIKE>, the first subscript is the node in the higher layer,
+and the second is the node in the lower layer. E.g.
+<STRIKE>O</STRIKE><SUB>10</SUB> is the weight, on a<SUB>1</SUB>, of
+x<SUB>0</SUB> from the prior layer.
+<P>
+Using Matrix math, the computations that must take place are:
+<UL>
+  <LI>
+    z<SUP>(2)</SUP> = <STRIKE>O</STRIKE><SUP>(1)</SUP>X
+  <LI>
+    a<SUP>(2)</SUP> = g(z<SUP>(2)</SUP>)
+  <LI>
+    z<SUP>(3)</SUP> = <STRIKE>O</STRIKE><SUP>(2)</SUP>a<SUP>(2)</SUP>
+  <LI>
+    h<SUB><STRIKE>O</STRIKE></SUB>(X) = a<SUP>(3)</SUP> = g(z<SUP>(3)</SUP>)
+</UL>
+<P>
+Another way of saying the same thing is:
+<UL>
+  <LI>
+    a<SUP>(2)</SUP> = g(<STRIKE>O</STRIKE><SUP>(1)</SUP>X)
+  <LI>
+    a<SUP>(3)</SUP> = g(<STRIKE>O</STRIKE><SUP>(2)</SUP>a<SUP>(2)</SUP>)
+</UL>
+<P>
+<I>Note: this example did not include bias units in the hidden layer. </I>
+<H3 CLEAR="BOTH" STYLE="clear:both;">
+  Logic Functions
+</H3>
+<P>
+A very simple NN can be made with a single layer consisting of a single neuron
+with 2 binary inputs, 1 output, and manually assigned weights to compute
+the AND function. The hypothesis function might be:
+h<SUB><STRIKE>O</STRIKE></SUB>(X) = g( -15x<SUB>0</SUB> + 10x<SUB>1</SUB>
++ 10x<SUB>2</SUB> ). Keeping in mind that x<SUB>0</SUB> = 1, and that anything
+more than 5 is effectively 1, and less than -5 is 0 from the sigmoid function
+g(), we can write the output for all possible input values:
+<TABLE BORDER CELLSPACING="1" CELLPADDING="2">
+  <TR>
+    <TD>x<SUB>1</SUB></TD>
+    <TD>x<SUB>2</SUB></TD>
+    <TD>h<SUB><STRIKE>O</STRIKE></SUB>(X) = g( -15x<SUB>0</SUB> + 10x<SUB>1</SUB>
+      + 10x<SUB>2</SUB> )</TD>
+  </TR>
+  <TR>
+    <TD>0</TD>
+    <TD>0</TD>
+    <TD>0 = g(-15) = g(-15&#183;1 + 10&#183;0 + 10&#183;0)</TD>
+  </TR>
+  <TR>
+    <TD>0</TD>
+    <TD>1</TD>
+    <TD>0 = g(-5) = g(-15&#183;1 + 10&#183;0 + 10&#183;1)</TD>
+  </TR>
+  <TR>
+    <TD>1</TD>
+    <TD>0</TD>
+    <TD>0 = g(-5) = g(-15&#183;1 + 10&#183;1 + 10&#183;0)</TD>
+  </TR>
+  <TR>
+    <TD>1</TD>
+    <TD>1</TD>
+    <TD>1 = g(+5) = g(-15&#183;1 + 10&#183;1 + 10&#183;1)</TD>
+  </TR>
+</TABLE>
+<P>
+The binary OR function would be g( -10x<SUB>0</SUB> + 20x<SUB>1</SUB> +
+20x<SUB>2</SUB> ). NOT is g( 10 - 20x<SUB>1</SUB> ). Other functions can
+be expressed by the same basic formula simply by changing the weights. If
+h<SUB><STRIKE>O</STRIKE></SUB>(X) = g(
+<STRIKE>O</STRIKE><SUB>0</SUB>x<SUB>0</SUB> +
+<STRIKE>O</STRIKE><SUB>1</SUB>x<SUB>1</SUB> +
+<STRIKE>0</STRIKE><SUB>2</SUB>x<SUB>2</SUB> ) Then AND is <STRIKE>O</STRIKE>
+= [-15 10 10] and OR is <STRIKE>O</STRIKE> = [-10&nbsp;20 20] and NOT is
+<STRIKE>O</STRIKE> = [10 -20]. NAND is <STRIKE>O</STRIKE> = [30 -20 -20]
+<P>
+Multiple layers of a NN can be assembled just like multiple gates in a
+<A HREF="../../logic/tutorial.htm">digital logic circuit</A>. For example,
+XOR can be made from 2 layers: <BR>
+<STRIKE>O</STRIKE><SUP>(1)</SUP> = [-15 10 10; 10 -20 -20];
+<STRIKE>O</STRIKE><SUP>(2)</SUP> = [-10 20 20]
+<P>
+a<SUB>1</SUB><SUP>(2)</SUP> = g( -15x<SUB>0</SUB> + 10x<SUB>1</SUB> +
+10x<SUB>2</SUB> ) this is AND<BR>
+a<SUB>2</SUB><SUP>(2)</SUP> = g( 10x<SUB>0</SUB> - 20x<SUB>1</SUB> -
+20x<SUB>2</SUB> ) this is NOR (NOT OR)<BR>
+a<SUB>1</SUB><SUP>(3)</SUP> = g( -10a<SUB>0</SUB><SUP>(2)</SUP> +
+20a<SUB>1</SUB><SUP>(2)</SUP> + 20a<SUB>2</SUB><SUP>(2)</SUP> ) this is OR
+<P>
+The result is equivalent to XOR = (A AND B) OR NOT(A OR B) where A is
+x<SUB>1</SUB> and B is x<SUB>2</SUB>
+<H3>
+  Forward Propagation Algorithm
+</H3>
+<P>
+Given a two dimensional matrix of weights for a specific layer,
+<STRIKE>O</STRIKE><SUP>(l)</SUP>, and the activation of that layer as a vector
+a<SUP>(l)</SUP>, the activation of the next layer, l + 1 is given
+by:&nbsp;&nbsp;a<SUP>(l+1)</SUP> =
+g(<STRIKE>O</STRIKE><SUP>(l)</SUP>a<SUP>(l)</SUP>). Note that for l=1, the
+activation is actually the input vector X. However, since bias units don't
+get an activation, the size of the l+1 matrix may not match. We can fix this
+by breaking the calculation into two steps where we first calculate the
+activations for the real nodes in the next layer, and then add a set of bias
+units of value 1 to fill out all the nodes for the next cycle:
+<OL>
+  <LI>
+    z<SUP>(l+1)</SUP> = g<BIG>(</BIG>
+    <STRIKE>O</STRIKE><SUP>(l)</SUP>a<SUP>(l)</SUP> <BIG>)</BIG>
+  <LI>
+    a<SUP>(l+1)</SUP> = [1's z<SUP>(l+1)</SUP>]
+</OL>
+<P>
+Note: When propagating from one layer to the next in a NN, it's critical
+that the size of the matrix match, including any bias unit columns. For Matrix
+multiply or
+divide<A HREF="https://en.wikipedia.org/wiki/Matrix_multiplication#General_definition_of_the_matrix_product">^</A>,
+for A*B, the second dimension of A must match the first dimension of B, and
+the result will be a matrix which is the first dimension of A by the second
+dimension of B.<BR>
+<B>If A is <I>n</I> x <I>m</I> and B is <I>m</I> x <I>p</I> the result AB
+will be <I>n</I> x <I>p.</I>&nbsp;</B>[<FONT COLOR="Navy">n</FONT> x
+<FONT COLOR="Red">m</FONT>]*[<FONT COLOR="Red">m</FONT> x
+<FONT COLOR="Navy">p</FONT>] = [<FONT COLOR="Navy">n</FONT> x
+<FONT COLOR="Navy">p</FONT>]
+<P>
+For a 2 layer NN with weights Theta1 and Theta2 for the layers, prediction
+can be made in <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>m = size(X, 1);
+a1 = [ones(m, 1) X]; <FONT COLOR="Green">%add a column for bias units</FONT>
+z2 = sigmoid(a1 * Theta1'); <FONT COLOR="Green">%propagate to the inner layer</FONT>
+a2 = [ones(m, 1) z2]; <FONT COLOR="Green">%add a column for bias units</FONT>
+a3 = sigmoid(a2 * Theta2'); <FONT COLOR="Green">%propagate the output layer</FONT>
+[val, p] = max(a3, [], 2); <FONT COLOR="Green">%find the node with the highest output</FONT>
+</PRE>
+<H3>
+  Back Propagation Algorithm:
+</H3>
+<H4>
+  Cost Function
+</H4>
+<P>
+A cost function for a NN can be similar to that for
+<A HREF="logisticregresions.htm">Logistic Regression</A>:<BR>
+<IMG SRC="LogisticCost.png" WIDTH="357" HEIGHT="58"><IMG SRC="LogisticReg.png"
+    WIDTH="77" HEIGHT="58">
+<P>
+except that there is an additional dimension for the extra units (k). Also,
+because there are parameters (weights) between each node of the prior layer
+for each node of the next layer, there are two additional dimensions for
+the regularization (j,i,l) Note that we still do not include the 0th elements
+(the bias units) so the indexes start with 1 not 0. Don't confuse that with
+Octave which starts indexing from 1. In Octave, start the regularization
+from 2, or zero out index 1 after computing the cost before regularization.
+<P>
+<IMG SRC="NeuralNetCost.png" WIDTH="761" HEIGHT="88"><IMG SRC="NeuralNetReg.png"
+    WIDTH="255" HEIGHT="78">
+<P>
+Note this cost function is not convex and can, but rairly does, get stuck
+at a local minima.
+<P>
+To calculate this cost function, the standard code can be used, but for a
+classifier NN, we must convert y from individual values, into a set of sets
+of vectors of zeros and ones where the value is represented by a 1 in the
+corrisponding location. e.g. if K = 3 and y(m)=2 then class_y(m) = [0; 1;
+0]. If y(m) was 1, it would be [1; 0; 0]. To do this (at least for numerical
+values) we use an identity matrix. In Octave, eye returns an identity matrix.
+E.g. <TT>eye(3)</TT> returns [1 0 0; 0 1 0; 0 0 1]. We can index that matrix
+on both dimensions, returning the y'th row, and all the columns in that row.
+e.g. <TT>eye(3)([2 3 1],:)</TT> returns [0 1 0; 0 0 1; 1 0 0] (1 in the 2nd
+column, 1 in the 3rd column, 1 in the 1st column).
+<PRE>class_y = eye(K)(y,:); <FONT COLOR="Green">%how tricky is that?</FONT><BR>costs = -class_y .* log(a3) - (1-class_y) .* log(1-a3);
+J = sum(costs(:))/m; <FONT COLOR="Green">%costs is a matrix now. (:) makes a vector.</FONT>
+</PRE>
+<P>
+To calculate the regularization, we must compensate for there being multiple
+thetas, and that they are matrixs instead of vectors... and we still need
+to cut out the <STRIKE>O</STRIKE><SUB>0</SUB> elements (now called bias units).
+<TT>Theta1(:,2:end)</TT> gives us all the rows of Theta1, but leaves out
+the first column. <TT>(:)</TT> turns the resulting matrix into a vector
+containing all those elements. This is so the sum doesn't miss the columns
+and the element-wise power doesn't care. e.g. for a system with 2 layers:
+<PRE>reg1 = sum(Theta1(:,2:end)(:).^2);
+reg2 = sum(Theta2(:,2:end)(:).^2);
+J = J + (lambda/(2*m)) * (reg1+reg2);
+</PRE>
+<P>
+Note that we sum all the values before multiplying by lambda and dividing
+by 2m.
+<P>
+<I>TODO: Write a version of this that works for L layers. </I>
+<H4>
+  Gradients
+</H4>
+<P>
+Computing the slope of the error for multiple layers is complicated by the
+fact that there are many parameters.
+<STRIKE>O</STRIKE><SUB>ij</SUB><SUP>(l)</SUP> vs simply
+<STRIKE>O</STRIKE><SUB>j</SUB>. We can think about the error of a specific
+node <I>j</I> in a specific layer <I>l</I> as
+<STRIKE>d</STRIKE><I><SUB>j</SUB></I><SUP>(<I>l</I>)</SUP>. For the output
+layer <I>L</I>,
+<STRIKE>d</STRIKE><I><SUB>j</SUB></I><SUP>(<I>L</I>)</SUP> =
+a<I><SUB>j</SUB></I><SUP>(<I>L</I>)</SUP> - y<SUB><I>j</I></SUB> &nbsp;or
+as a vector of j nodes, <STRIKE>d</STRIKE><SUP>(<I>L</I>)</SUP> =
+a<SUP>(<I>L</I>)</SUP> - y Because we are talking about the output layer,
+j must be K; the number of outputs. For the earlier layers, again, as a
+vector/maxtix (not showing the ij node indexes) we have
+&nbsp;<STRIKE>d</STRIKE><SUP>(<I>l</I>)</SUP> =
+(<STRIKE>O</STRIKE><SUP>(l)</SUP>)<SUP>T</SUP><STRIKE>d</STRIKE><SUP>(<I>l+1</I>)</SUP>
+.* g'(z<SUP>(<I>l</I>)</SUP>). Note the .* or element wise multiplication.
+g'(z<SUP>(<I>l</I>)</SUP>) is the derivative (note the ' or "prime" which
+means derivative) of the activation function g evaluated at the input functions
+given by z(l). Although the math to prove it is very complex, it is know
+that g'(z<SUP>(<I>l</I>)</SUP>) = a<SUP>(l)</SUP> .* (1-a<SUP>(l)</SUP>).
+There is no
+<STRIKE>d</STRIKE><I><SUB>j</SUB></I><SUP>(<I>l</I>)</SUP> for the first
+layer. Note that we only have the values needed to calculate the prior layers
+after we calculate the later layers, hence the name back propagation. Note
+this doesn't include regularization.
+<P>
+Here is the overall method for calculating the gradients in a non-matrix
+format; there is a loop for each training example, and the vectors inside
+the loop consider that example only.
+<P>
+<STRIKE>D</STRIKE><I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> = 0 for all l,
+i, j. <FONT COLOR="Green">%accumulator</FONT><BR>
+for m = 1:sizeof(y) <FONT COLOR="Green">%for each training
+example.</FONT><BR>
+&nbsp; &nbsp;a<SUP>(1) </SUP>= x<SUP>(m)</SUP> <FONT COLOR="Green">%load
+that examples input</FONT><BR>
+&nbsp; &nbsp;for l = 2:L <FONT COLOR="Green">%forward through layers to
+output</FONT><BR>
+&nbsp; &nbsp; &nbsp; z<SUP>(l)</SUP> = g<BIG>(</BIG>
+<STRIKE>O</STRIKE><SUP>(l-1)</SUP>a<SUP>(l-1)</SUP> <BIG>)
+</BIG><FONT COLOR="Green">%forward_propagate</FONT><BIG><BR>
+&nbsp; &nbsp; &nbsp; </BIG>a<SUP>(l)</SUP> = [1's z<SUP>(l)</SUP>]
+<FONT COLOR="Green">%add bias units</FONT><BR>
+&nbsp; &nbsp;<STRIKE>d</STRIKE><SUP>(<I>L</I>)</SUP> =
+a<SUP>(<I>L</I>)</SUP> - y<SUP>(m)</SUP> <FONT COLOR="Green">%error for this
+examples output</FONT><BR>
+&nbsp; &nbsp;for l = L-1:2 <FONT COLOR="Green">%backward through hidden
+layers</FONT><BR>
+&nbsp; &nbsp; &nbsp; <STRIKE>d</STRIKE><SUP>(<I>l</I>)</SUP> =
+<STRIKE>O</STRIKE><SUP>(l)T</SUP><STRIKE>d</STRIKE><SUP>(<I>l+1</I>)</SUP>
+.* <BIG>(</BIG>
+a<SUP>(<I>l</I>)</SUP>.*(1-a<SUP>(<I>l</I>)</SUP>) <BIG>)</BIG>
+<FONT COLOR="Green">%? calculate partial derivative for all i,
+j.&nbsp;&nbsp;</FONT><BR>
+&nbsp;
+&nbsp;<STRIKE>D</STRIKE><I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> :=
+<STRIKE>D</STRIKE><I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> +
+a<I><SUB>j</SUB></I><SUP>(<I>l</I>)T</SUP><STRIKE>d</STRIKE><I><SUB>i</SUB></I><SUP>(<I>l+1</I>)</SUP>
+<FONT COLOR="Green">%accumulate partial derivatives</FONT><BR>
+&nbsp; &nbsp;<FONT COLOR="Green">% in vector form
+<STRIKE>D</STRIKE><SUP>(<I>l</I>)</SUP> :=
+<STRIKE>D</STRIKE><SUP>(<I>l</I>)</SUP> +
+<STRIKE>d</STRIKE><SUP>(<I>l+1</I>)</SUP>
+a<SUP>(<I>l</I>)T</SUP></FONT><BR>
+D<I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> := <SUP>1</SUP>/<SUB>m</SUB>
+<BIG>(</BIG>
+<STRIKE>D</STRIKE><I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> + lambda
+<STRIKE>O</STRIKE><SUB>ij</SUB><SUP>(l)</SUP> <BIG>)</BIG> if j is not 0<BR>
+D<I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> := <SUP>1</SUP>/<SUB>m</SUB>
+<STRIKE>D</STRIKE><I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP> if j is 0
+<FONT COLOR="Green">%don't regularize bias term. </FONT>
+<P>
+Note that the delta values for the backwards propagation can be calculated
+to simplify the matrix math, but they will be disgarded duing forward
+propagation. The matrix multiplication
+<STRIKE>d</STRIKE><SUP>(<I>l+1</I>)</SUP>
+<STRIKE>O</STRIKE><SUP>(l)</SUP>&nbsp;is summing, for
+example,&nbsp;<STRIKE>d</STRIKE><SUB>1</SUB><SUP>(<I>l+1</I>)</SUP>
+<STRIKE>O</STRIKE><SUB>12</SUB><SUP>(l)</SUP>&nbsp;+
+<STRIKE>d</STRIKE><SUB>2</SUB><SUP>(<I>l+1</I>)</SUP>
+<STRIKE>O</STRIKE><SUB>22</SUB><SUP>(l)</SUP>&nbsp;so again,
+<FONT COLOR="Red">?</FONT> we must transpose
+<STRIKE>O</STRIKE><SUP>(l)</SUP> to make the matrix line up. Also, for
+<STRIKE>d</STRIKE><I><SUB>i</SUB></I><SUP>(<I>l+1</I>)</SUP>a<I><SUB>j</SUB></I><SUP>(<I>l</I>)</SUP>
+in matrix form
+<STRIKE>d</STRIKE><SUP>(<I>l+1</I>)</SUP>a<SUP>(<I>l</I>)</SUP> we must transpose
+a<SUP>(<I>l</I>)</SUP>
+<P>
+Here is an <A HREF="../../language/octave.htm">Octave</A>&nbsp;matrix
+implementation for a NN with 3 layers:
+<PRE>d3 = a3 - class_y;
+d2 = d3 * Theta2(:,2:end); <FONT COLOR="Green">%dont include bias units column</FONT>
+d2 = d2 .* (z2 .* (1-z2)); <FONT COLOR="Green">%partial derivative<BR>% z2 excludes bias column. Could use a2 and all Theta2 &amp; remove first column</FONT>
+grad1 = (d2' * a1) ./ m;
+grad2 = (d3' * a2) ./ m;
+</PRE>
+<H4>
+  Regularization
+</H4>
+<P>
+To regularize the gradients, simply scale <STRIKE>O</STRIKE> by lambda /
+m while avoiding the bias units. e.g.
+<PRE>Theta1(:,1) = 0; <FONT COLOR="Green">%remove bias units.</FONT>
+grad1 = grad1 + (Theta1 .* (lambda/m));
+</PRE>
+<H4>
+  Regression
+</H4>
+<P>
+The theta and gradient values are no longer vectors, but are now matrixes.
+The D or delta's also matrix. To use standard regression algorithems like
+fminunc etc... we must "unroll" them into vectors. For example, in a 3 layer
+vector, if there are 10 units in the first two layers and 1 in the last.
+<PRE>thetaVec = [ Theta1(:); Theta2(:); ... ]
+gradVec = [ grad1(:); grad2(:); ... ]
+
+Theta1 = reshape(thetaVec(1:110), 10, 11]
+Theta2 = reshape(thetaVec(111:220), 10, 11]
+Theta3 = reshape(thetaVec(221:231), 1, 11]
+</PRE>
+<H4>
+  Gradient Checking
+</H4>
+<P>
+This is a diagnostic technique to make sure that your implementation of the
+gradient part of the cost function is valid. To validate
+D<I><SUB>ij</SUB></I><SUP>(<I>l</I>)</SUP>, we can take the value of the
+cost curve at a point just past and just before the point and one value should
+be more, while the other value should be less. This should be familiar as
+part of the definition of how derivatives are calculated. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>s_guess = (cost(theta + e) - cost(theta - e)) / (2*e); <FONT COLOR="Green">%approximate derivative of J(theta)</FONT>
+</PRE>
+<P>
+We can make such an estimate for each element of a vector theta, by computing
+the estimate for the cost function once per element, but with only that one
+element being "tweaked" by e.
+<PRE>for i = 1:num_parms
+  theta_up = theta; theta_up(i) = theta_up(i)+e;
+  theta_dn = theta; theta_dn(i) = theta_dn(i)-e;
+  s_guess(i) = (cost(theta_up) - cost(theta_dn)) / (2*e);
+</PRE>
+<H4>
+  Initial Weights
+</H4>
+<P>
+If all the theta weights are set to the same value, then all the errors will
+be the same, and all the back propagation corrections will be the same, and
+so on. It is critically important that the initial values are different so
+they can further differentiate in the correct directions. Random values work
+well. The range should be some small value distributed around zero. The range
+can be based on the number of units in the network. e.g.
+<TT>sqrt(6)/sqrt(sum(s()))</TT>. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>ThetaJ = rand(s(j),s(j)+1) * (2*init_e) - init_e;
+</PRE>
+<H3>
+  Choosing a Network Architecture
+</H3>
+<P>
+Inputs: Number of features
+<P>
+Outputs: Number of classifications
+<P>
+Hidden layers: Start with one. Make each hidden layer the same size; same
+number of units. More units is better, but expensive. More units in the hidden
+layers than input.
+<P>
+The <A HREF="SupportVectorMachine.htm">Gaussian Kernel SVM</A>&nbsp;may be
+better for small feature sets ( n &lt; 1000 ) and reasonable sample sets
+( 10 &lt; m &lt; 10,000 ). <A HREF="logisticregresions.htm">Logistic</A>
+or <A HREF="LinearRegresion.htm">Linear</A> Regression may be better for
+simpler problems with very large training sets or features.
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="../../com/dspguide/www/http/CH26.htm">The Scientist and Engineer's
+    Guide to Digital Signal Processing: <B>Chapter 26. Neural
+    Networks</B>&nbsp;</A><BR>
+    &nbsp;
+  <LI>
+    <A HREF="../../new/primer.htm">Embedded Processor and Microcontroller primer
+    and FAQ: 7.4) Fuzzy Logic and Neural Networks</A>&nbsp;
+    <BLOCKQUOTE>
+      Fuzzy Logic and neural networks are two design methods that are coming into
+      favor in embedded systems. The two methods are very different from each other,
+      from conception to implementation. However, the advantages and disadvantages
+      of the two can complement each other.
+      <P>
+      The advantage of neural networks is that it is possible to design them without
+      completely understanding the underlying logical rules by which they operate.
+      The neural network designer applies a set of inputs to the network and "trains"
+      it to produce the required output. The inputs must represent the behavior
+      of the system that is being programmed, and the outputs should match the
+      desired result within some margin of error. If the network's output does
+      not agree with the desired result, the structure of the neural network is
+      altered until it does. After training it is assumed that the network will
+      also produce the desired output, or something close to it, when it is presented
+      with new and unknown data.
+      <P>
+      In contrast, a fuzzy-logic system can be precisely described. Before a fuzzy
+      control system is designed, its desired logical operation must be analyzed
+      and translated into fuzzy-logic rules. This is the step where neural networks
+      technology can be helpful to the fuzzy-logic designer. The designer can first
+      train a software neural network to produce the desired output from a given
+      set of inputs and outputs and then use a software tool to extract the underlying
+      rules from the neural network. The extracted rules are translated into
+      fuzzy-logic rules.
+      <P>
+      Fuzzy logic is not a complete design solution. It supplements rather than
+      replaces traditional event control and PID (proportional, integral, and
+      derivative) control techniques. Fuzzy logic relies on grade of membership
+      and artificial intelligence techniques. It works best when it is applied
+      to non-linear systems with many inputs that cannot be easily expressed in
+      either mathematical equations used for PID control or IF-THEN statements
+      used for event control.
+      <P>
+      In an effort to change fuzzy logic from a "buzzword" (as it is in most parts
+      of the world) to a well established design method (as it is in Japan), most
+      manufacturers of microcontrollers have introduced fuzzy logic software. Most
+      software generates code for specific microcontrollers, while other generates
+      C code which can be compiled for any microcontroller.<BR>
+      &nbsp;
+    </BLOCKQUOTE>
+  <LI>
+    <A HREF="../../net/infi/home/http/~wtnewton/otherwld/selfwire.html">A Self-Wiring
+    Array of "Bicores" for Robotic Control by Terry Newton</A> (Neural Network
+    adjacent)<BR>
+    &nbsp;
+  <LI>
+    <A HREF="../../new/letter/news0307.htm">July 2003 MassMind Newsletter</A>
+    CMAC: Cerebellar Model Articulation Controller (Neural Network adjacent)
+</UL>
+<P>
+
+
+
+
+
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45158.4505208333" HREF="https://www.youtube.com/watch?v=TkwXa7Cvfr8" TARGET="_top">
+https://www.youtube.com/watch?v=TkwXa7Cvfr8</A> 
+An excellent overview of the up and down sides of NN, and how the input functions have a massive effect on their ability to learn.<!-- 45158.4505208333 EOR -->
+
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45078.4719212963" HREF="https://mlu-explain.github.io/neural-networks/" TARGET="_top">
+https://mlu-explain.github.io/neural-networks/</A> 
+An absolutely excellent set of animations and a live demo that explain Neural Networks from simple linear algebra up. This is a perfect companion for the Google Tensorflow Playground.<!-- 45078.4719212963 EOR -->
+
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45068.4635300926" HREF="https://docs.google.com/spreadsheets/d/1oAwO9nievYRLyyC_2sgkXaHF3AuYlgEr_2kuAN_EQrw/edit?usp=sharing" TARGET="_top">
+https://docs.google.com/spreadsheets/d/1oAwO9nievYRLyyC_2sgkXaHF3AuYlgEr_2kuAN_EQrw/edit?usp=sharing</A> 
+A spreadsheet which models the operation of a simple Neural Network. This is a Sheets update of an original design for Lotus 1-2-3, from the '90's. It relies on self referencing calculations which are enabled in the settings. See the text copied below the sheet to understand it's operation.<!-- 45068.4635300926 EOR -->
+
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="43816.9313425926" HREF="https://en.wikipedia.org/wiki/Geoffrey_Hinton" TARGET="_top">
+https://en.wikipedia.org/wiki/Geoffrey_Hinton</A> 
+Geoffrey Hinton made many advances in machine learning:<UL>
+<LI><a href="https://www.scientificamerican.com/author/geoffrey-e-hinton/">https://www.scientificamerican.com/author/geoffrey-e-hinton/</a>
+<LI><a href="https://en.wikipedia.org/wiki/Boltzmann_machine">https://en.wikipedia.org/wiki/Boltzmann_machine</a>
+<LI><a href="https://arxiv.org/abs/1710.09829">https://arxiv.org/abs/1710.09829</a>
+<LI><a href="https://openreview.net/forum?id=HJWLfGWRb&noteId=HJWLfGWRb">https://openreview.net/forum?id=HJWLfGWRb&noteId=HJWLfGWRb</a>
+</UL><!-- 43816.9313425926 EOR -->
+
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="43814.5640046296" HREF="https://youtu.be/aircAruvnKk" TARGET="_top">
+https://youtu.be/aircAruvnKk</A> 
+This absolutely excellent video series explains neural networks very completely and yet easily.<!-- 43814.5640046296 EOR -->
+
+   <LI>
+
+
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43493.6017592593" HREF="https://towardsdatascience.com/learning-to-drive-smoothly-in-minutes-450a7cdb35f4"
+	TARGET="_top">https://towardsdatascience.com/learning-to-drive-smoothly-in-minutes-450a7cdb35f4</A>
+    Using Auto-Encoders to implement Reinforcement Learning for self driving
+    vehicles.<!-- 43493.6017592593 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43478.9534259259" HREF="https://medium.com/dair-ai/a-simple-neural-network-from-scratch-with-pytorch-and-google-colab-c7f3830618e0"
+	TARGET="_top">https://medium.com/dair-ai/a-simple-neural-network-from-scratch-with-pytorch-and-google-colab-c7f3830618e0</A>
+    Nearly perfect match to the above, in python.<!-- 43478.9534259259 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43209.913599537" HREF="https://js.tensorflow.org/"
+	TARGET="_top">https://js.tensorflow.org/</A> <!-- 43209.913599537 EOR -->
+  <LI>
+    <A HREF="https://itnext.io/18-tips-for-training-your-own-tensorflow-js-models-in-the-browser-3e40141c9091">https://itnext.io/18-tips-for-training-your-own-tensorflow-js-models-in-the-browser-3e40141c9091</A>
+    Training Tensorflow in the browser.
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42823.9106134259" HREF="https://github.com/samjabrahams/tensorflow-on-raspberry-pi"
+	TARGET="_top">https://github.com/samjabrahams/tensorflow-on-raspberry-pi</A>
+    The Google Tensorflow Neural Network can be installed on a Raspberry
+    Pi.<!-- 42823.9106134259 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42779.9895833333" HREF="http://playground.tensorflow.org/"
+	TARGET="_top">http://playground.tensorflow.org/</A> Google has an in-browser
+    playground for experimenting with neural
+    networks.<!-- 42779.9895833333 EOR
+    -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42709.8427083333" HREF="https://en.m.wikipedia.org/wiki/Spiking_neural_network"
+	TARGET="_top">https://en.m.wikipedia.org/wiki/Spiking_neural_network</A>
+    Encorporates time.<!-- 42709.8427083333 EOR --> See also
+    <A HREF="natural_language.htm">Natural Language processing.</A>
+  <LI>
+    <A HREF="http://neuralnetworksanddeeplearning.com/">http://neuralnetworksanddeeplearning.com/</A>
+    free book on NN
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42613.935787037" HREF="http://rimstar.org/science_electronics_projects/backpropagation_neural_network_software_3_layer.htm"
+	TARGET="_top">http://rimstar.org/science_electronics_projects/backpropagation_neural_network_software_3_layer.htm</A>
+    Sample neural network library and examples in GCC C. Also a very nice
+    video.<!-- 42613.935787037 EOR -->
+  <LI>
+    Byte Magazine, V14#8 August 1989, "Time to get fired up (Neural Networks)"
+    by K. K. Obermeier and J. J. Barron, "What's hidden in the hidden layers?"
+    by D. S. Touretzky and D. A. Pomerleau, "Building blocks for speech (Neural
+    Networks)" by A. Waibel and J. Hampshire
+  <LI>
+    <A HREF="http://web.archive.org/web/20150330014451/http://ijeat.org/attachments/File/v3i5/E3123063514.pdf">http://www.ijeat.org/attachments/File/v3i5/E3123063514.pdf</A>
+    Artificial Neural Network Implementation in Microchip PIC 18F45J10 8-Bit
+    Microcontroller
+  <LI>
+    <A HREF="http://devblogs.nvidia.com/parallelforall/embedded-machine-learning-cudnn-deep-neural-network-library-jetson-tk1/">http://devblogs.nvidia.com/parallelforall/embedded-machine-learning-cudnn-deep-neural-network-library-jetson-tk1/</A>
+    A deep neural net library that runs on NVIDIA GPU's.
+  <LI>
+    <A HREF="http://robotics.hobbizine.com/arduinoann.html">http://robotics.hobbizine.com/arduinoann.html</A>
+    A 3 layer neural network for Arduino, very nicely explained. Sample used
+    to recognize digits from 7 segment display data. Could also be used to train
+    bot to use IR sensors vs bump switches (e.g. to automatically callibrate
+    IR readings).
+</UL>
+</BODY></HTML>
+

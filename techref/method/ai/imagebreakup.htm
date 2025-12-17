@@ -1,0 +1,113 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 22-Oct-2015 -->
+  <!-- AP: Last modified: 25-Feb-2020 -->
+  <TITLE>Image Recognition Methods for Breaking out Features</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="../../datafile/images.htm">Image</A>
+  <A HREF="../ais.htm">Recognition</A> <A HREF="../../methods.htm">Methods</A>
+</H1>
+<H2>
+  Breaking out Features
+</H2>
+<P>
+<B>Sliding Window</B>: A common way of breaking up features in an image,
+such as characters or words, is to use a <I>Sliding Window</I> to "cut out"
+parts of the picture, which are then compared against previously trained
+sample data of good places to split characters vs bad places. The window
+is then moved by some step size and that is repeated all over the image.
+Then that is repeated again with a slightly larger window. This is very costly,
+but works well.
+<P>
+<B>Outline Tracing</B>: Joseph Watson shared
+<BLOCKQUOTE>
+  "an algorithm used by a simple system intended to read books. In this system,
+  the idea was to explore an image consisting of only black and white pixels
+  to determine what printed letters might be found there. Needless to say,
+  the pixels were much smaller than the printed letters.
+  <P>
+  The first part of the algorithm consists simply of scanning around in the
+  white image until a black pixel is found. Then the following rules are applied
+  with each successive pixel check. Each move is made by moving only in X or
+  in Y, never along a diagonal. <BR>
+  1. If you have turned the same way three times in a row, turn the other way.
+  <BR>
+  2. If the sampled pixel is black, turn right. <BR>
+  3. If the sampled pixel is white, turn left.
+  <P>
+  What this algorithm accomplishes is that it traces around the perimeter of
+  the black character shape. When the trace action around a character begins
+  to retrace the same pixels, it is terminated, the character was then recognized
+  by the maximum and minimum points reached in the X and Y axes and the order
+  in which they are found."
+</BLOCKQUOTE>
+<P>
+<B>Objectness Measures</B>: Attempts to find general areas where an object
+of any type is likely vs areas of background, noise, etc... This then guides
+the use of sliding windows and systems trained to recognize a specific type
+of object.
+<UL>
+  <LI>
+    <A HREF="http://groups.inf.ed.ac.uk/calvin/objectness/">http://groups.inf.ed.ac.uk/calvin/objectness/</A>
+  <LI>
+    <A HREF="http://groups.inf.ed.ac.uk/calvin/Publications/alexe12pami.pdf">http://groups.inf.ed.ac.uk/calvin/Publications/alexe12pami.pdf</A>
+    "While object detectors are specialized for one object class, such as cars
+    or swans, in this paper we define and train a measure of objectness generic
+    over classes. It quantifies how likely it is for an image window to cover
+    an object of any class. Objects are standalone things with a well-defined
+    boundary and center, such as cows, cars, and telephones, as opposed to amorphous
+    background stuff, such as sky, grass, and road"
+</UL>
+<P>
+This is done through a series of test, taking cues of different types from
+the image, which are combined in a Bayesian framework
+<UL>
+  <LI>
+    Multi-scale Saliency (MS): "For every scale s  {16, 24, 32, 48, 64} and
+    channel c we rescale the image to s &#215; s and then compute MS(w, &#184;s
+    MS) using one integral image [10] (indicating the sum over the saliency of
+    pixels in a rectangle)."
+  <LI>
+    Color Contrast (CC): "We convert the image to the quantized LAB space
+    4&#215;8&#215;8 and then compute CC(w, &#184;CC ) using one integral image
+    per quantized color."
+  <LI>
+    Edge Density (ED): "We rescale the image to 200 &#215; 200 pixels and then
+    compute ED(w, &#184;ED) using one integral image (indicating the number of
+    edgels in a rectangle)."
+  <LI>
+    Superpixels Straddling (SS): "
+  <LI>
+    Location and Size (LS)
+</UL>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://www.qelzal.com/">http://www.qelzal.com/</A> is doing impressive
+    work with seperating out objects in a complex realtime image using motion
+    to prevent collisions.
+  <LI>
+    <A HREF="https://www.coursera.org/lecture/convolutional-neural-networks/yolo-algorithm-fF3O0">https://www.coursera.org/lecture/convolutional-neural-networks/yolo-algorithm-fF3O0</A>
+    How YOLO: You Only Look Once works
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42441.4873148148" HREF="https://plus.google.com/u/0/+JamesNewton/posts/Wwq7k3CYMxx"
+	TARGET="_top">https://plus.google.com/u/0/+JamesNewton/posts/Wwq7k3CYMxx</A>
+    Extract moving objects from successive frames, build a 3D model to predict
+    future frames, focus on the different between predictions and actual frames
+    to improve the model.<!-- 42441.4873148148 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42337.7938773148" HREF="https://www.ted.com/talks/pawan_sinha_on_how_brains_learn_to_see/transcript?language=en"
+	TARGET="_top">https://www.ted.com/talks/pawan_sinha_on_how_brains_learn_to_see/transcript?language=en</A>
+    Motion is critical to the development of the ability to separate objects
+    in humans.<!-- 42337.7938773148 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42315.8129513889" HREF="https://www.youtube.com/watch?v=uihBwtPIBxM"
+	TARGET="_top">https://www.youtube.com/watch?v=uihBwtPIBxM</A> How edge detection
+    filters work. Including finding the angle of the edge, which can help to
+    find objects in the picture.<!-- 42315.8129513889 EOR -->
+</UL>
+</BODY></HTML>

@@ -1,0 +1,19 @@
+<HTML><HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <TITLE>Neural Networks vs Genetic Algorithms</TITLE>
+  </HEAD>
+<BODY>
+  <H2><A HREF="NeuralNets.htm">Neural Networks</A> vs <A HREF="genetics.htm">Genetic Algorithms</A></H2>
+  <P>
+  
+This is not a valid comparison: Neural Networks are a system for simulating neurons and Genetic Algorithms are a means of adjusting any system by selecting attributes of prior settings based on highest performance and some random mutation. You can, for example, use a GA to adjust the weights in a NN.
+<P>
+The better comparison is GA versus <A HREF="LinearRegresion.htm#GadientDescent">Gradient Descent</A>. And NN vs <A HREF="/techref/new/letter/news0307.htm">CMAC</A>.
+<P>
+In both GA and GD, there must be some objective measure of how well the system is doing. In the case of a GD, you must also know which direction to adjust the system to improve it's performance. With a GA, you don't need to know that, but improvement is far slower. It's still better than purely random adjustments, because you are using "parents" who have the best performance out of a population. As long as some characteristic of the systems makes some better than others, and those characteristics can be selected into a new generation, then a method of selecting the helpful characteristics can be found. GD "converges" (improve) faster because they require direction about which way to correct; "should it move this way, or that to be better?" 
+<P>
+NN use a series of nodes to sum activation levels multiplied by weights from all the nodes in a prior layer or inputs. CMACs sum values from several nodes selected based on an input value. Small changes in the input result in only one of the selections nodes changing; one node is removed and another added. Larger input variations select completely different nodes. The NN is tuned by changing the weights connecting the layers. the CMAC is tuned by changing the values of the selected nodes. How those values or weights are changed could be via GA or GD or some other method.
+</BODY></HTML>
+
+
+

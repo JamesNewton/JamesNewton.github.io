@@ -1,0 +1,90 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 3-May-2022 -->
+  <!-- AP: Last modified: 3-May-2022 -->
+  <TITLE>STRIPS</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  STRIPS: "STanford Research Institute Problem <A HREF="../ais.htm">Solver</A>"
+</H1>
+<P>
+The Stanford Research Institute Problem Solver (STRIPS) is a classical problem solving system (now called a PDDL: Planning Domain Definition Language) which develops a list of actions
+which will reach a goal state from an initial state given a list of possible
+actions. STRIPS was developed for <A HREF="/Techref/robot/shakey.htm">Shakey</A>
+<P>
+It is an automated planning technique that works by executing a domain and problem to find a goal. With STRIPS, you first describe the world. You do this by providing objects, actions, preconditions, and effects. These are all the types of things you can do in the game world.
+<P>
+Once the world is described, you then provide a problem set. A problem consists of an initial state and a goal condition. STRIPS can then search (often using <A HREF="../a-star.htm">A*</A>) all possible states, starting from the initial one, executing various actions, until it reaches the goal.
+<P>
+STRIPS Terms:
+<UL>
+  <LI>
+    States: A list of knowns without variables or functions; in other words,
+    they are limited to literals. Unlisted states are assumed to be false. May
+    be:
+    <UL>
+      <LI>
+	propositions e.g. "Big ^ Tall"
+      <LI>
+	first-order e.g. "At(Billy, Desk)"
+    </UL>
+  <LI>
+    Goal: The final desired state. 
+  <LI>
+    Actions: In three parts, 
+    <OL>
+      <LI>
+	Name and parameter list
+      <LI>
+	Preconditions: The states which must be true before the action can be used.
+	Variables are allowed.
+      <LI>
+	Effects: A list of function-free literals. Variables are allowed if they
+	appear in the actions parameter list.
+    </OL>
+</UL>
+<P>
+Example: 
+<PRE>Action: PushBox(x, y)
+Precond: BoxAt(x)
+Effect: BoxAt(y), &#172; BoxAt(x)
+</PRE>
+<P>
+Note: &#172; indicates that the state is deleted. 
+<P>
+Note that your must describe the world at a very high symatic level (e.g. "block A is on block B" rather than "block A is at 2,7,5, block B is at 2,7,0 and is 4.9 high"). This very high level description enables efficient solution planning, and simple actions.
+
+<P><A TITLE="JMN-EFP-786" NAME="45096.6899189815">
+STRIPS and PDDL planning in general has both good and bad features:<UL>
+<LI>The world is black and white; everything that is known is true, and everything else is false. "Billy" must be "At" somewhere and is therefore NOT at every other place. Billy can not be both at his desk and at work. Billy can be at his desk and <i>doing</i> work. 
+<LI>The search for a set of actions to a goal state can become very very costly to find, when the initial and goal states are very far apart (not incremental), and there are many possible actions which are incremental rather than major updates. To avoid this, it is critical to remember prior action sets as new single actions, and to train the system with incremental goals. Search optimization can also help; e.g. throwing out paths that seem to be increasing the goal distance, or prioritizing paths that most close the gap. <a href="../a-star.htm">A*</a> or other path planning systems can help. 
+<LI>Without typing (which is available in many more modern PDDLs), it's possible for the system to confuse e.g. locations and objects. e.g. At(Billy, Banana) vs Buy(Billy, Banana). 
+<LI>Raising detailed sensor data to accurate high level semantic representations is often difficult. In the same way, translating high level action descriptions into low level commands can be error prone. 
+</UL></A>
+
+<!-- 45096.6899189815 EOR -->
+<P>
+
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="44793.5292939815" HREF="https://github.com/lmarsbrown/STRIPS" TARGET="_top">
+https://github.com/lmarsbrown/STRIPS</A> 
+An excellent implementation of STRIPS in Javascript. Examples include use of the system for solving block stacking problems in real life with a robot arm.<!-- 44793.5292939815 EOR -->
+
+  <LI><A href="http://www.primaryobjects.com/2015/11/06/artificial-intelligence-planning-with-strips-a-gentle-introduction/">http://www.primaryobjects.com/2015/11/06/artificial-intelligence-planning-with-strips-a-gentle-introduction/</A> An implementation of STRIPS using PDDL in Javascript
+
+  <LI>
+    <A href="https://wiki.ubc.ca/Planning_with_Certainty">https://wiki.ubc.ca/Planning_with_Certainty</A>
+  <LI>
+    <A href="https://ai.stanford.edu/users/nilsson/OnlinePubs-Nils/PublishedPapers/strips.pdf">https://ai.stanford.edu/users/nilsson/OnlinePubs-Nils/PublishedPapers/strips.pdf</A>
+  <LI>
+    <A href="https://sicp-s4.mit.edu/_static/fall21/lectures/lec11/L11-PDDL.pdf">https://sicp-s4.mit.edu/_static/fall21/lectures/lec11/L11-PDDL.pdf</A>
+</UL>
+
+
+</BODY></HTML>
+

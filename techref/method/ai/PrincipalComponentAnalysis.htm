@@ -1,0 +1,146 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 24-Aug-2015 -->
+  <!-- AP: Last modified: 29-Jan-2019 -->
+  <TITLE>Machine Learning Method: Principal Component Analysis</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="Troubleshooting.htm">Improvement</A>
+  <A HREF="../../methods.htm">Method:</A> <BR>
+  Principal Component Analysis
+</H1>
+<P>
+PCA is a statistical method for reducing the number of feature variables
+by combining those which are more similar. E.g. If you are classifying some
+objects which are all made of the same basic material, and have measures
+for size and weight, those might combine nicely into a new feature (call
+it "bigness"?) which still generally represents the same data.
+<H2>
+  Uses
+</H2>
+<P>
+<B>Faster:</B> Although it might not be obvious, large feature sets can often
+be compressed to an amazing degree without significantly effecting their
+accuracy, thereby greatly increasing speed and in some cases, fit. Applying
+this method to large datasets with many features can significantly speed
+up other learning methods. As computers become faster, this becomse less
+of an issue.
+<P>
+<B>Compression</B>: Reducing the dataset has the obvious advantage of requiring
+less memory.
+<P>
+<B>Visualization:</B> By reducing the feature dimensions to 2D or 3D data,
+we can visualize the information for human insight and troubleshooting.
+<P>
+<B>Overfitting? No</B>: PCA is often missused to reduce overfitting.
+<A HREF="Regularization.htm">Regularization</A> is a better way to do this.
+<P>
+<IMG SRC="PrincipalComponentAnalysis.png" WIDTH="334" HEIGHT="233" ALIGN="Right">
+<H2>
+  Description
+</H2>
+<P>
+PCA can be thought of as fitting an n-dimensional ellipsoid to the data,
+where each axis of the ellipsoid represents a principal component. If some
+axis of the ellipse is small, then the variance along that axis is also small,
+and by omitting that axis and its corresponding principal component from
+our representation of the dataset, we lose only a commensurately small amount
+of information.
+<P>
+The goal of PCA is to find a direction (line, plane, n-dimensions) in a lower
+dimension upon which to project the current data, and to find the direction
+which causes the projection to be as close as possible to the original. So
+if we have 2 dimensions, we want to find a single line (a number line of
+1 dimension) and tilt it at an angle on the 2D graph, then map the 2D points
+onto positions along that line. For higher dimensional problems, the idea
+is the same. 3D data is projected onto a 2D plane oriented within the 3D
+space.
+<P>
+When projecting the point to the (e.g.) line, the movement is done at right
+angles to the line, and not vertically along the axis, as would be the case
+in <A HREF="LinearRegresion.htm">Linear Regression</A>.
+<P>
+In the diagram shown here, direction 1 is better than direction 2, because
+the point Xi will be mapped to Z<SUB>i1</SUB>, which is a smaller movement
+than if it were mapped to Z<SUB>i2</SUB>.
+<H2>
+  Method
+</H2>
+<H3>
+  Preprocessing
+</H3>
+<P>
+We must perform mean
+<A HREF="LinearRegresion.htm#FeatureNormalization" # FEATURENORMALIZATION>normalization</A>
+and may need to scale the range of the different features so that they are
+similar.
+<H3>
+  Covariance <A HREF="../math/matrix.htm">Matrix</A>
+</H3>
+<P>
+We then compute the covariance matrix which tells us far our dataset is spread
+out, much like the standard deviation. A covariance matrix is a matrix whose
+element in the i, j position is the covariance between the i th and j th
+elements. In our case, this is:
+sum<SUB>i=1</SUB><SUP>n</SUP>(X<SUP>(i)</SUP> X<SUP>(i)T</SUP>)/m or <TT>sigma
+= (X'*X)./m</TT> in Octave where X is the data matrix of n dimensions by
+m samples. A covariance matrix is always symmetric ( A =A' ).
+<H3>
+  <A HREF="eigens.htm">Eigenvectors</A> of Covariance
+  <A HREF="../math/matrix.htm">Matrix</A>
+</H3>
+<P>
+We can use either <TT>eig(sigma)</TT> or <TT>[U,S,V] = svd(sigma) </TT>in
+<A HREF="../../language/octave.htm">Octave</A>. U is our covariance matrix.
+S is a diagonal matrix of singular values which we can use later to compute
+the compression error.
+<H3>
+  Select the first K columns times X
+</H3>
+<P>
+If k is the number of dimensions we want, (k &lt; n), then take the first
+k columns of the U matrix and multiply that times the X data matrix. Do not
+include X<SUB>0</SUB> = 1 offset parameters. So
+<PRE>Ur = U(:,1:k); %reduced subset of U taking first k columns
+Z = X * Ur; %new k dimensional data based on original data.
+</PRE>
+<H3>
+  <IMG SRC="PCMVariance.png" WIDTH="540" HEIGHT="128" ALIGN="Right">Expansion
+  and Error
+</H3>
+<P>
+After finding Ur and Z, we may wish to reproduce a new approximate X, Xa,
+from those values, which has the original number of dimensions.
+<P>
+Xa = Z * Ur'; %note Ur is transposed
+<P>
+If our dimensional reduction was effective, Xa and X will be close. k should
+generally be chosen so that the average squared projection error divided
+by total variation is less than 0.01 as shown by the figure to the right.
+This error can be calculated for any value of k by summing the S matrix returned
+by the svd function along the diagonal for k elements, then dividing that
+by the total diagonal sum of S and subtracting the result from 1. e.g.
+<PRE>1 - <BIG>(</BIG> sum(S(1:k,1:k)(:) / sum(S(:)) <BIG>)</BIG>
+</PRE>
+<P>
+This allows us to quickly find the value of k which produces the desired
+total variation. <I>Pro tip, instead of subtracting from 1, just look for
+the divisor that gives &gt; 0.99.</I>
+<P>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://en.wikipedia.org/wiki/Principal_component_analysis">https://en.wikipedia.org/wiki/Principal_component_analysis</A>
+  <LI>
+    <A HREF="https://liorpachter.wordpress.com/2014/05/26/what-is-principal-component-analysis/">https://liorpachter.wordpress.com/2014/05/26/what-is-principal-component-analysis/</A>
+</UL>
+<P>Excellent and simple video that explains it in small steps:<br>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/FgakZw6K1QQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<P>
+
+</BODY></HTML>
+

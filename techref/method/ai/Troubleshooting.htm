@@ -1,0 +1,402 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 15-Aug-2015 -->
+  <!-- AP: Last modified: 21-Sep-2018 -->
+  <TITLE>Troubleshooting Machine Learning Methods</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Troubleshooting <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Methods</A>
+</H1>
+<P>
+The percentage that are miss-classified is called the "0/1 misclassification
+error" metric. Diagnostics can take time, but give a clear direction to proceed.
+In fact, instead of trying to intuit the best system, it is often best to
+start with a very basic, very quick system that doesn't work well, but will
+provide a starting point for diagnostics to lead you to a better system.
+Use your intuition to find better features, interactions, or to try to see
+the pattern in mistakes. Test each model change against the validation data
+to find out which is better.
+<P>
+<B>Training, Validation, and Test Data:</B> Always use part, randomly selected,
+of your training example set as a test set. Train on part and test against
+the rest. By definition, the training error is only valid for the training
+data. If the fit is valid, you will find it works well for the test data
+as well. Without the separate test data, you may think you are getting a
+good fit when you are not.
+<P>
+When trying multiple models, with different number of features, or polynomials,
+or Lambda, or whatever, split the data into 3 parts:
+<OL>
+  <LI>
+    Training set (most of the data)
+  <LI>
+    (Cross) Validation set (20%?)
+  <LI>
+    (Final) Test set (20%?). <BR>
+    &nbsp;
+</OL>
+<P>
+<B><I>Train all test models on the training set. Test each model against
+the validation set. Select the best model and test against the final test
+set.</I></B>
+<P>
+<B><IMG SRC="BiasVariation.png" WIDTH="104" HEIGHT="400" ALIGN="Right"><A
+    NAME="BiasvsVariance">Bias vs Variance</A>: </B><BR>
+As we increase the number of polynomials, our <FONT COLOR="Green">training
+error J<SUB>t</SUB></FONT> decreases, and our <FONT COLOR="Red">validation
+J<SUB>v</SUB> </FONT>(and test) errors will initially also decrease, then
+increase again as we begin to over fit. While both are decreasing, we are
+under fitting. This is "Bias". (left side of top graph). When training error
+is decreasing, but test error is increasing, we are over fitting. This is
+"Variance". (right side of top graph)
+<P>
+As we increase the Lambda <A HREF="Regularization.htm">regularization</A>,
+our training error J<SUB>t</SUB> increases, and our validation J<SUB>v</SUB>
+(and test) errors will initially decrease, then increase again as we begin
+to under fit. While both are increasing, we are under fitting. This is "Bias".
+(right side of bottom graph). When training error is increasing, but test
+error is decreasing, we are over fitting. This is "Variance". (left side
+of bottom graph)
+<P>
+<B>High <A NAME="Bias">Bias</A>:</B> (e.g. too few polynomials, too little
+regularization) If you start with very few training examples (m), and increase
+your dataset, the training error will start low (it's easy to fit a
+<I>few</I> points with any model) then quickly increase and level off as
+the fit can't match the new data. At the same time, the validation / test
+error will start very high and then decrease but never pass below the training
+error. Starting with a small subset of the training data, and then increasing
+that set while tracking training and validation errors, can diagnose the
+High Bias case.
+<P>
+<B>High <A NAME="Variance">Variance</A>:</B> (e.g. too many polynomials,
+too much regularization) As the training set size increases, the training
+error will start and remain low (perhaps increasing a little). But the validation
+error will start high, stay high, and never come down to the training set
+error. When we track the errors as the size of the training set increases,
+and we see this curve, we know we are in the High Variance case.
+<I>However</I>: If the validation error is continuing to decrease, it may
+be that we simply need <A HREF="BigData.htm">more training data</A>, and
+that the data we have is "noisy" or that the function is very difficult to
+fit.
+<H3>
+  Tracking error as lambda increases:
+</H3>
+<PRE>%in <A HREF="../../language/octave.htm">Octave</A>
+lambda_vec = [0 0.001 0.003 0.01 0.03 0.1 0.3 1 3 10]; <FONT COLOR="Green">%known good values</FONT>
+error_train = zeros(length(lambda_vec), 1);
+error_val = zeros(length(lambda_vec), 1);
+X = [ones(size(y), 1) X]; <FONT COLOR="Green">%no need to do this each time</FONT>
+Xval = [ones(size(yval), 1) Xval]; <FONT COLOR="Green">%no need to do this each time</FONT>
+for i = 1:length(lambda_vec)
+    lambda = lambda_vec(i);
+    theta = train(X, y, lambda);
+    error_train(i) = cost([ones(size(y), 1) X], y, theta, 0);
+    <FONT COLOR="Green">%note lambda is passed as 0 here to give the true cost. </FONT>
+    error_val(i) = cost(Xval, yval, theta, 0);
+    <FONT COLOR="Green">%note we check against ALL the validation data.</FONT>
+    end
+</PRE>
+<H3>
+  Tracking error as training set size increases:
+</H3>
+<PRE>%in <A HREF="../../language/octave.htm">Octave</A>
+m = size(y);
+error_train = zeros(m, 1);
+error_val   = zeros(m, 1);
+Xval = [ones(size(yval), 1) Xval]; <FONT COLOR="Green">%no need to do this each time</FONT>
+for i = 1:m
+    Xsub = X(1:i,:); <FONT COLOR="Green">%cut out the first ith examples</FONT>
+    ysub = y(1:i);
+    theta = train([ones(i, 1) Xsub], ysub, lambda);
+    error_train(i) = cost([ones(i, 1) Xsub], ysub, theta, 0);
+    <FONT COLOR="Green">%note lambda is passed as 0 here to give the true cost. </FONT>
+    error_val(i) = cost(Xval, yval, theta, 0);
+    <FONT COLOR="Green">%note we check against ALL the validation data.</FONT>
+    end
+</PRE>
+<P>
+Note: In the above code samples <TT>train(X, y, lambda)</TT> is a function
+which must be provided to train the system using those parameters. Similarly,
+<TT>cost(X, y, theta, lambda)</TT> should return the cost (and probably the
+slope for use in training) for the current theta and other parameters.
+<H3>
+  Common approaches to improve fit to new data.
+</H3>
+<UL>
+  <LI>
+    More training examples <I>may</I> help in the case of high variance, with
+    difficult curves, or noisy data. But can be costly to obtain. And if the
+    data isn't actually well related to the output, it does no good. Could a
+    human make a prediction?
+    <UL>
+      <LI>
+	Getting <I>better</I> data may help. E.g. for spam, look at the header. Check
+	for misspelled words.
+      <LI>
+	Get more data when already using many features (or NN with many layers) and
+	we aren't overfitting.
+    </UL>
+  <LI>
+    High Variance / Over fitting? to avoid over fitting
+    <UL>
+      <LI>
+	Increase Lambda <A HREF="Regularization.htm">regularization</A> to bias towards
+	smaller parameters
+      <LI>
+	Smaller set of features (trying to find the ones that are more important)
+	<A HREF="PrincipalComponentAnalysis.htm">Principal Component Analysis</A>
+      <LI>
+	Add more data (see above)
+    </UL>
+  <LI>
+    High Bias / Under fitting?
+    <UL>
+      <LI>
+	Decrease Lambda <A HREF="Regularization.htm">regularization</A> to bias towards
+	larger parameters
+      <LI>
+	Additional features <I>may</I> help if they are more related to the outcome
+      <LI>
+	Additional polynomial features (look for interactions between features).
+	E.g.
+	<PRE>function [F] = polyFeatures(X, p)
+for i = 1:p; %for each new order of poly
+  F(:,i) = X .^ i; %add a new column of X<SUP>p</SUP>
+  end %note .^ not ^<BR> 
+</PRE>
+      <LI>
+	Move to <A href="NeuralNets.htm">Neural Net</A>
+    </UL>
+</UL>
+<P>
+Making these changes gives you new models. Finding the best model is called
+Model Selection.
+<P>
+Smaller Neural Networks are easier to compute and much easier to train. NN
+with a large number of nodes, while expensive, generally work better; they
+can over fit, but that can be addressed by higher Lambda.
+<P>
+One cheap way of combining different words (e.g. "fishing", "fished", and
+"fisher" are all about "fish") is using only the first few letters of each
+word and is called "stemming". Search for "Porter stemmer" for more.
+<H3>
+  Statistical <A NAME="Terms">Terms</A> and <A NAME="Issues">Issues</A>
+</H3>
+<P>
+<B>Prevalence:</B> The actual likelihood of some fact being true in the
+population. E.g. "1 in 12 dogs have fleas" or "the rate of sexual abuse of
+girls is 20%". It is very important to note that <U>prevalence can be very
+difficult to know with certainty in the real world</U>. We usually estimate
+prevalence by sampling a statistically significant subset, which gives us
+an answer very likely to be correct. In machine learning, we rely on accurately
+labeled training data, and that may not be infallible, unless we have generated
+the training data ourselves. Using auto-generated data vs collected data
+is a good troubleshooting technique to detect poorly labeled data.
+<P>
+<A NAME="SkewedClasses"><B>Skewed classes</B></A>: When you have a low
+prevalence, far more examples of one output vs another. E.g. when only 0.5%
+of your examples is in a given class when y=1 vs 0. It can be very difficult
+to know if your error calculation is actually working. Just predicting that
+the output isn't in that class, always predicting y as 0, can be more accurate
+than a real test! Instead of accuracy, use Precision/Recall. Use
+<A HREF="#BayesRule">Bayes Rule</A> to check that your predictions are
+significant in a skewed population.
+<P>
+<TABLE BORDER CELLPADDING="2">
+  <TR>
+    <TD ROWSPAN=2 COLSPAN=2></TD>
+    <TD COLSPAN=2>Actual<BR>
+      Class y=</TD>
+  </TR>
+  <TR>
+    <TD>1</TD>
+    <TD>0</TD>
+  </TR>
+  <TR>
+    <TD ROWSPAN=2>Predicted<BR>
+      Class</TD>
+    <TD>1</TD>
+    <TD>True <BR>
+      Positive</TD>
+    <TD>False <BR>
+      Positive <SUP>I</SUP></TD>
+  </TR>
+  <TR>
+    <TD>0</TD>
+    <TD>False <BR>
+      Negative <SUP>II</SUP></TD>
+    <TD>True <BR>
+      Negative</TD>
+  </TR>
+</TABLE>
+<P>
+<SUP>I</SUP> False Positive is a "Type I error" aka "error of the first kind",
+"alpha error". It is hypochondria, excessive credulity, hallucination, false
+alarm, or&nbsp;"crying wolf"<BR>
+<SUP>II</SUP> False Negative is a "Type II error" aka "error of the second
+kind", "beta error". It is denial, avoidence, excessive skepticism, myopia,
+or "ignoring the gorilla in the room"
+<P>
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>true_positives = sum((predictions == 1) &amp; (y == 1)); <FONT COLOR="Green">%we predicted true, and it was</FONT>
+true_negatives = sum((predictions == 0) &amp; (y == 0)); <FONT COLOR="Green">%we predicted false, and it was</FONT>
+false_positives = sum((predictions == 1) &amp; (y == 0)); <FONT COLOR="Green">%we predicted true, and it was false</FONT> 
+false_negatives = sum((predictions == 0) &amp; (y == 1)); <FONT COLOR="Green">%we predicted false, and it was true</FONT>
+</PRE>
+<P>
+<A HREF="https://github.com/myazdani/subset-smote">https://github.com/myazdani/subset-smote</A>
+A collection of Python classes to perform SubsetSMOTE oversampling and to
+create class- balanced Bagged classifiers
+<P>
+<B><A NAME="Specificity">Specificity</A> (against type I error)
+</B>p(<FONT color="blue">&#172;</FONT>B|<FONT color="blue">&#172;</FONT>A)
+is the number of True Negatives vs the number of False Positives and True
+Negatives. A specificity of 100% means the test recognizes all actual negatives
+- for example all healthy people are recognized as health. Of course, this
+can be achieved by a test that always reports negative by returning 0, so
+specificity tells us nothing about how well we detect positives. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>specificity = true_negatives / (true_negatives + false_positives);
+</PRE>
+<P>
+<B><A NAME="Recall">Recall</A> aka <A NAME="Sensitivity">Sensitivity</A>
+(against type II error) </B>p(B|A) is the number of True Positives vs the
+number of True Positives and False Negatives. If you just guess 0, the recall
+will be 0 which is a much better measure of the model than the percent accuracy.
+A sensitivity of 100% means that the test recognizes all actual positives
+- for example, all sick people are recognized as being ill. We can improve
+Recall by lowering the cut off, E.g. instead of saying y=1 when
+h<STRIKE><SUB>o</SUB></STRIKE>(x)&gt;0.5, we may use
+h<SUB><STRIKE>o</STRIKE></SUB>(x)&gt;0.3. Of course, this lowers Precision.
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>recall = true_positives /&nbsp;(true_positives + false_negatives);
+</PRE>
+<P>
+<B><A NAME="Precision">Precision</A> </B>is the number of True Positives
+vs the number of True and False Positives. We can increase precision by
+increasing the cutoff value for this classification. E.g. instead of saying
+y=1 when h<STRIKE><SUB>o</SUB></STRIKE>(x)&gt;0.5, we may use
+h<SUB><STRIKE>o</STRIKE></SUB>(x)&gt;0.7 or even 0.9. This means we classify
+only when very confident. But this can lower our Recall. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>precision = true_positives / (true_positives + false_positives);
+</PRE>
+<P>
+<B><A NAME="F1Score">F1 Score</A>:</B> There is always a trade off between
+Precision (P) and Recall (R). We can compute the average of P and R, but
+that can lead to extremes and is not recommended. Instead, we might use the
+"F score" or "F<SUB>1</SUB> score" which is 2PR/(P+R). This keeps P or R
+from becoming very small or large. Higher values of F1 are better. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>F1 = (2*precision*recall) / (precision + recall);
+</PRE>
+<P>
+<B><A NAME="LikelyhoodRatios">Likelyhood Ratios</A> (LR)</B>: Expressed as
+Positive (<A NAME="PLR">PLR</A>) or Negative (<A NAME="NLR">NLR</A>). Do
+not depend of prevelance and should be used to report results with
+<A HREF="#Skewed">skewed data</A>. e.g. the Carisome Prostate cMV1.0 Test
+with 85% sensitivity and 86% specificity has a PLR of 0.85/(1-0.86) or 6
+so you are 6 times more likely to test positive if you have prostate cancer.
+It's NLR is (1-0.85)/0.86 or 0.17.
+<P>
+<TT>PLR = sensitivity / (1 - specificity)<BR>
+NLR = (1 - sensitivity) / specificity</TT>
+<P>
+<B><A NAME="PredictiveValue">Predictive Value</A> (PV)</B>: Expressed as
+Positive (<A NAME="PPV">PPV</A>) or Negative (<A NAME="NPV">NPV</A>). Commonly
+used in studies to evaluate the efficacy of a diagnostic test. Note that
+PV is influenced by <A HREF="#Skewed">skewed data</A> and should only be
+used in conjuction with a control group which has the same prevelance as
+the studied population. e.g. given that prostate cancer is 0.02% prevalent
+among men, then the cMV1.0 Test has a PPV of &nbsp;(0.85*.0002)/(0.85*.0002
++ (1-0.86)*(1-0.0002) ) or less than a 1/10 of 1 percent. If the cancer rate
+were 2%, it's PPV would be 11%
+<P>
+<TT>PPV = (sensitivity*prevalence) / ( sensitivity*prevalence + (1 -
+specificity)*(1 - prevalence) )</TT><BR>
+<TT>NPV = ( specificity*(1 - prevalence) ) / ( specificity*(1 - prevalence)
++ (1 - sensitivity)*prevalence )</TT>
+<P>
+<A HREF="bayesrule.htm" NAME="BayesRule">Bayes Rule</A>
+<B><A HREF="https://en.wikipedia.org/wiki/Bayes%27_theorem">^</A>:</B> Helps
+with skewed data sets by taking into consideration the (low) probability
+of the event.
+<P>
+<TT> p(A|B) = ( p(B|A) * p(A) ) / p(B)</TT>
+<P>
+Where A and B are events. p(A) and p(B) are the probabilities of those events.
+p(B|A) is the probability of seeing B if A is true. p(B) can be calculated
+as <TT>p(B|A) * p(A) + p(B|<FONT color="blue">&#172;</FONT>A) *
+p(<FONT color="blue">&#172;</FONT>A)</TT> where
+<FONT color="blue">&#172;</FONT> denotes NOT. e.g.
+p(<FONT color="blue">&#172;</FONT>A) = 1 - p(A)
+<FORM ACTION="test" onSubmit="return false;">
+  The javascript in this form calculates it. Values are preloaded from the
+  cMV1.0 Test <BR>
+  Test Sensitivity p(B|A)
+  <INPUT TYPE="text" NAME="sensitivity" VALUE="85" SIZE="4" MAXLENGTH="4">%
+  Test specificity
+  p(<FONT color="blue">&#172;</FONT>B|<FONT color="blue">&#172;</FONT>A)
+  <INPUT TYPE="text" NAME="specificity" VALUE="86" SIZE="4" MAXLENGTH="4">%
+  Probability A
+  <INPUT TYPE="text" NAME="probability" VALUE=".02" SIZE="4" MAXLENGTH="4">%
+  <INPUT TYPE=submit VALUE="Calculate" onClick="
+var pBA=parseFloat(this.form.sensitivity.value)/100;
+var pBnA=1-parseFloat(this.form.specificity.value)/100;
+var pB=parseFloat(this.form.probability.value)/100;
+var pnB=1-pB;
+this.form.positive.value=(pBA*pB/(pBA*pB+pBnA*pnB))*100;
+return false;
+      "> Actual percent chance of A given B
+  <INPUT TYPE="text" NAME="positive" SIZE="4" MAXLENGTH="4">%
+</FORM>
+<P>
+<H3>
+  Slow Learning
+</H3>
+<P>
+Use <A HREF="PrincipalComponentAnalysis.htm">Principal Component Analysis</A>
+to reduce large feature sets.
+<P>
+Use optimized libraries to process the data faster.
+<H3>
+  Where to Focus in a Complex System
+</H3>
+<P>
+Given a complex system with multiple stages and subsystems, it can be difficult
+to know which part of the system needs to be improved in order to increase
+the overall accuracy of the system as a whole.
+<P>
+<B>Ceiling Analysis:</B> Take each sub-system and "fake" perfect operation,
+while measuring how much that improves the overall outcome. Work on the subsystem
+that makes the biggest difference in the overall system.
+<P>
+<B>Binary Troubleshooting:</B> If you have a metric for the accuracy of the
+data after each sub system, check the center. E.g. if there are 4 sub systems,
+check for errors first between sub systems 2 and 3. If the system is accurate
+to that point, check between 3 and 4. If not, check between 1 and 2.
+<P>
+<P>
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="44794.7691666667" HREF="https://www.youtube.com/watch?v=DleXA5ADG78" TARGET="_top">
+https://www.youtube.com/watch?v=DleXA5ADG78</A> 
+Avoid overfitting and improve generalization by dropping out half the nodes in the hidden layers when training (but divide by two when running to regularize). Even better if you also drop out some percentage of the inputs. Note: Dropping all but one input turns a NN into a Naive Bayes Classifier.<!-- 44794.7691666667 EOR -->
+
+  <LI>
+    <A HREF="https://medium.com/@OpenMLETC/explaining-complex-machine-learning-models-52c38bb3b8f0">https://medium.com/@OpenMLETC/explaining-complex-machine-learning-models-52c38bb3b8f0</A>
+    <A HREF="https://github.com/slundberg/shap">SHAP</A> and
+    <A HREF="https://github.com/marcotcr/lime">LIME</A> are methods for visualizing
+    the reasons why a ML solution is making a choice.
+    <BR>
+    <A HREF="https://colab.research.google.com/drive/1jGoE-OWztyX0io-9G49wgWkyEae30TcB">https://colab.research.google.com/drive/1jGoE-OWztyX0io-9G49wgWkyEae30TcB</A>
+    An updated Jupyter playground for introducing these libraries. 
+</UL>
+<P>
+</BODY></HTML>
+

@@ -1,0 +1,111 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 22-Oct-2015 -->
+  <!-- AP: Last modified: 22-Oct-2015 -->
+  <TITLE>Image Recognition Method: Local Binary Patterns (LBP)</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="../../datafile/images.htm">Image</A>
+  <A HREF="../ais.htm">Recognition</A> <A HREF="../../methods.htm">Methods</A>
+</H1>
+<H2>
+  <B>Local Binary Patterns (LBP)</B>
+</H2>
+<P>
+Starting from each pixel, compare it's value with each of it's 8 neighbors,
+always going in the same direction around the center pixel. Record a 0 if
+the center pixel is dimmer, or a 1 if it was brighter. Because we are looking
+at relative intensity, variations in lighting are eliminated. <BR>
+<TABLE>
+  <TR>
+    <TD><TABLE>
+	<TR>
+	  <TD style="background-color: rgb(0, 0, 0);">&nbsp; &nbsp;</TD>
+	  <TD style="background-color: rgb(0, 0, 0);">&nbsp; &nbsp;</TD>
+	  <TD style="background-color: rgb(128, 128, 128);">&nbsp; &nbsp;</TD>
+	</TR>
+	<TR>
+	  <TD style="background-color: rgb(0, 0, 0);">&nbsp; &nbsp;</TD>
+	  <TD style="border: 1px solid red; background-color: rgb(128, 128, 128);">&nbsp;
+	    &nbsp;</TD>
+	  <TD style="background-color: rgb(192, 192, 192);">&nbsp; &nbsp;</TD>
+	</TR>
+	<TR>
+	  <TD style="background-color: rgb(128, 128, 128);">&nbsp; &nbsp;</TD>
+	  <TD style="background-color: rgb(192, 192, 192);">&nbsp; &nbsp;</TD>
+	  <TD style="background-color: rgb(255, 255, 255);">&nbsp; &nbsp;</TD>
+	</TR>
+      </TABLE>
+    </TD>
+    <TD><TABLE>
+	<TR>
+	  <TD>&nbsp;1</TD>
+	  <TD>&nbsp;1&nbsp;</TD>
+	  <TD>&nbsp;1&nbsp;</TD>
+	</TR>
+	<TR>
+	  <TD>&nbsp;1&nbsp;</TD>
+	  <TD style="border: 1px solid red;">&nbsp; &nbsp;</TD>
+	  <TD>&nbsp;0&nbsp;</TD>
+	</TR>
+	<TR>
+	  <TD>&nbsp;1&nbsp;</TD>
+	  <TD>&nbsp;0&nbsp;</TD>
+	  <TD>&nbsp;0&nbsp;</TD>
+	</TR>
+      </TABLE>
+    </TD>
+    <TD><P ALIGN=Center>
+      (clockwise, <BR>
+      from top left)<BR>
+      1 1 1 0 0 0 1 1</TD>
+  </TR>
+</TABLE>
+<P>
+&nbsp;<BR>
+Where there are few&nbsp;transitions from 0 to 1 or back, there is probably
+an edge. The angle of the edge is given by the number of digits which are
+the same before the first transition. e.g. 11100000 has a darker section
+along the top, and only 1 transition. 10000011 has a darker secton on the
+left and 2 transitions. 11101110 has a light line through the center horizontally
+and 3 transitions. <BR>
+&nbsp;<BR>
+<B>Uniform Patterns:</B> Those with 2 or fewer transitions are called Uniform
+Patterns. Because these uniform patterns are of greater interest, we can
+label them individually and then place all other patterns into a single label.
+This reduces the total from 256 possible patterns to just 59 possible labels.
+<BR>
+&nbsp;<BR>
+We can characterize the image (or part of an image) by developing a histogram
+showing how many of each type of pattern label is present.<BR>
+&nbsp;<BR>
+This data then works well with <A HREF="SupportVectorMachine.htm">SVG Machine
+Learning</A> for texture classification.<BR>
+&nbsp;<BR>
+<B>Volume Local Binary Patterns (VLBP)</B> when we want to look at changes
+to each pixel <B>over time</B>, we could add comparisons to the prior and
+next frames as well, but that means comparing the center pixel to 8 neighbors
+in it's frame, and then to 9 pixels is the prior and 9 more in the next frame
+for a total of 26 comparison bits. It turns out that this is not necessary.
+We can make fewer comparisons with the next and previous frame, using only
+the center pixel, and the neighbors above, below, left, and right. This reduces
+the data to 18 bits.
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://www.youtube.com/watch?v=-Ja-vLbHWLc">https://www.youtube.com/watch?v=-Ja-vLbHWLc</A>
+    Brilliant animation showing texture classifcation with LBP.
+  <LI>
+    <A HREF="https://www.youtube.com/watch?v=wpAwdsubl1w">https://www.youtube.com/watch?v=wpAwdsubl1w</A><BR>
+    <A HREF="https://www.youtube.com/watch?v=v-gkPTvdgYo">https://www.youtube.com/watch?v=v-gkPTvdgYo</A>
+  <LI>
+    <A HREF="http://www.scholarpedia.org/article/Local_Binary_Patterns">http://www.scholarpedia.org/article/Local_Binary_Patterns</A>
+  <LI>
+    <A HREF="http://www.cse.oulu.fi/CMV/Downloads/LBPMatlab">http://www.cse.oulu.fi/CMV/Downloads/LBPMatlab</A>
+    Code for MatLab / Octave<BR>
+</UL>
+<P>
+</BODY></HTML>

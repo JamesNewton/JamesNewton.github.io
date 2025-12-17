@@ -1,0 +1,60 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 21-Mar-2017 -->
+  <!-- AP: Last modified: 21-Mar-2017 -->
+  <TITLE>Convolutional Neural Networks</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Convolutional <A HREF="NeuralNets.htm">Neural Networks</A> for
+  <A HREF="../imgRecog.htm">Image Recognition</A>
+</H1>
+<P>
+As per Wikipedia: In machine learning, a convolutional neural network (CNN,
+or ConvNet) is a type of feed-forward artificial neural network in which
+the connectivity pattern between its neurons is inspired by the organization
+of the animal visual cortex. Individual cortical neurons respond to stimuli
+in a restricted region of space known as the receptive field. The receptive
+fields of different neurons partially overlap such that they tile the visual
+field. The response of an individual neuron to stimuli within its receptive
+field can be approximated mathematically by a convolution operation.
+Convolutional networks were inspired by biological processes[2] and are
+variations of multilayer perceptrons designed to use minimal amounts of
+preprocessing. They have wide applications in image and video recognition,
+recommender systems[4] and natural language processing.[5]
+<P>
+This youTube video does a good job of explaining how it works:
+<BR>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/FmpDIaiMIeA?start=120"
+frameborder="0" allowfullscreen></iframe>
+<P>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://eric-yuan.me/cnn/">http://eric-yuan.me/cnn/</A>
+</UL>
+<P>
+
+<P><A TITLE="JMN-EFP-786" NAME="44927.6900347222">
+
+<P>
+This talk by Vincent Sitzmann of CSAIL 
+<BR><A HREF="https://www.youtube.com/watch?v=Or9J-DCDGko">youtube.com/watch?v=Or9J-DCDGko</A>
+ had a very interesting tidbit near the end, where he showed a VERY well captured 3D scene of a room which was encoded in a 1MB (!) set of neural network weights. I was sort of blown away at that image compression. Basically, the NN had learned to reproduce the 3D scene independent of voxel resolution. Obviously, the training time for that would be prohibitive for real time operation, but as a way of transferring the initial 3D scan of the work area, it might be quite useful.
+<BR><A HREF="https://vsitzmann.github.io/">vsitzmann.github.io/</A>
+"Implicit Neural Representations with Periodic Activation Functions"
+<BR><A HREF="https://vsitzmann.github.io/siren/">vsitzmann.github.io/siren/</A>
+The specific section on "learning" 3D structure from a point cloud is:
+<BR><A HREF="https://github.com/TalFurman/Implict_neural_representation_of_images#sdf-experiments">github.com/TalFurman/Implict_neural_representation_of_images#sdf-experiments</A>
+<P>
+Sample code in a Google Colab (free online) is here (under Community...)
+<BR><A HREF="https://arxiv.org/abs/2006.09661">arxiv.org/abs/2006.09661</A>
+Sadly, the 3D example is not included.
+<P>
+More in-depth discussion of the method:
+<BR><A HREF="https://www.youtube.com/watch?v=Q5g3p9Zwjrk">www.youtube.com/watch?v=Q5g3p9Zwjrk</A></A>
+
+<!-- 44927.6900347222 EOR -->
+</BODY></HTML>

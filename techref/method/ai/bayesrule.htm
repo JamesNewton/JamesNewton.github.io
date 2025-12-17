@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 19-Apr-2017 -->
+  <!-- AP: Last modified: 19-Apr-2017 -->
+  <TITLE>Bayes Rule</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Bayes
+  Rule<B><A HREF="https://en.wikipedia.org/wiki/Bayes%27_theorem">^</A>:</B>
+</H1>
+<P>
+Is a critical tool for avoiding errors while working with skewed data. Assuming
+an event A, such as a percentage of patients with cancer, or the number of
+actual drug users in a population. And an event B which is a positive test
+result for cancer, drug use, whatever... If the test is positive when the
+actual event has occurred some percentage of the time p(B|A), and negative
+when it should be by some percentage
+p(<FONT color="blue">&#172;</FONT>B|<FONT color="blue">&#172;</FONT>A) aka
+the opposite of it being positive when it should not be
+p(B|<FONT color="blue">&#172;</FONT>A),&nbsp;Bayes Rule tells us what the
+actual chance that the event A has happened give a positive test result B.
+<P>
+<TT> p(A|B) = ( p(B|A) * p(A) ) / p(B)</TT>
+<P>
+Where A and B are events. p(A) and p(B) are the probabilities of those events.
+p(B|A) is the probability of seeing B if A is true. p(B) can be calculated
+as <TT>p(B|A) * p(A) + p(B|<FONT color="blue">&#172;</FONT>A) *
+p(<FONT color="blue">&#172;</FONT>A)</TT> where
+<FONT color="blue">&#172;</FONT> denotes NOT. e.g.
+p(<FONT color="blue">&#172;</FONT>A) = 1 - p(A)
+<FORM ACTION="test" onSubmit="return false;">
+  The javascript in this form calculates it. Values are preloaded from the
+  cMV1.0 Test <BR>
+  Test Sensitivity p(B|A)
+  <INPUT TYPE="text" NAME="sensitivity" VALUE="85" SIZE="4" MAXLENGTH="4">%
+  Test specificity
+  p(<FONT color="blue">&#172;</FONT>B|<FONT color="blue">&#172;</FONT>A)
+  <INPUT TYPE="text" NAME="specificity" VALUE="86" SIZE="4" MAXLENGTH="4">%
+  Probability A
+  <INPUT TYPE="text" NAME="probability" VALUE=".02" SIZE="4" MAXLENGTH="4">%
+  <INPUT TYPE=submit VALUE="Calculate" onClick="
+var pBA=parseFloat(this.form.sensitivity.value)/100;
+var pBnA=1-parseFloat(this.form.specificity.value)/100;
+var pB=parseFloat(this.form.probability.value)/100;
+var pnB=1-pB;
+this.form.positive.value=(pBA*pB/(pBA*pB+pBnA*pnB))*100;
+return false;
+      "> Actual percent chance of A given B
+  <INPUT TYPE="text" NAME="positive" SIZE="4" MAXLENGTH="4">%
+</FORM>
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="bayesian.htm">Machine Learning Method, Bayesian Classification</A>
+  <LI>
+    <A HREF="Troubleshooting.htm">Troubleshooting Machine Learning Methods</A>
+  <LI>
+    <A HREF="../localization.htm">Localization (computing position over time
+    from sensor readings)</A>
+</UL>
+<P>
+</BODY></HTML>

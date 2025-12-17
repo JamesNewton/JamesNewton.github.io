@@ -1,0 +1,50 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 2-Aug-2015 -->
+  <!-- AP: Last modified: 29-Aug-2015 -->
+  <TITLE>Machine Learning Method Logistic Classifier</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A>
+  <A HREF="logisticregresions.htm">Logistic</A> Classifier
+</H1>
+<P>
+Sample use In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>X = [<I>m rows of training data, where each row is a vector of n input values.</I>]
+y = [<I>is a vector of m correct values between 0 and num_labels</I>]
+num_labels = <I>the number of possible different lables to find for the data</I>
+lambda = 0.1;
+m = size(X, 1);
+n = size(X, 2);
+class_thetas = zeros(num_labels, n + 1);
+X = [ones(m, 1) X]; %add a column of ones.
+options = optimset('MaxIter', 50);
+guess = zeros(n+1, 1);
+
+for k = 1:num_labels;
+  [theta] = <A HREF="fmincg.htm">fmincg</A> (@(t)(Cost(t, X, (y==k), lambda)), guess, options);
+  class_thetas(k,:)=theta';
+  end
+</PRE>
+<P>
+At this point, we have a set of thetas to classify each label. To use those,
+given XX; a new matrix of test data, with rows of n input values:
+<PRE>[confidence, label] = max(sigmoid( XX * class_thetas'), [], 2); 
+</PRE>
+<P>
+This example uses the standard <A HREF="logisticregresions.htm">Logistic</A>
+Cost function, with Regularization.
+<PRE>function [J, S] = cost(theta, X, y)
+  m = length(y);
+  hyp = sigmoid(X*theta); 
+  %make a guess based on the sigmoid of our training data times our current paramaters. 
+  costs = -y' * log(hyp) - (1-y)' * log(1-hyp); %cost with sigmoid function
+  J = sum(costs)/m + (lambda * sum(theta(2:end).^2) / (2*m)); %mean cost + regularization
+  err = (hyp .- y); %actual error. <BR>  %Note this happens to be the derivative of our cost function.
+  S = (X' * err)./m + (lambda .* [0;theta(2:end)] ./ m ); %slope of the error + regularization 
+  end
+</PRE>
+</BODY></HTML>

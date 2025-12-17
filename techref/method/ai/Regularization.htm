@@ -1,0 +1,90 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 15-Aug-2015 -->
+  <!-- AP: Last modified: 4-Sep-2015 -->
+  <TITLE>Machine Learning Method Regularization</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Regularization
+</H1>
+<H3>
+  <A HREF="Troubleshooting.htm">Under and Over Fitting</A>
+</H3>
+<P>
+Not all data fits well to a straight line. This is called "underfitting"
+or we may say that the algorithm as a "high bias". We can try fitting a quadratic
+or even higher order equation. E.g. instead of
+<STRIKE>O</STRIKE><SUB>0</SUB> + <STRIKE>O</STRIKE><SUB>1</SUB>x, we might
+use <STRIKE>O</STRIKE><SUB>0</SUB> + <STRIKE>O</STRIKE><SUB>1</SUB>x +
+<STRIKE>O</STRIKE><SUB>2</SUB>x<SUP>2</SUP>. But, if we choose to use to
+high an order equation, then we might "overfit" or have an algorithm with
+"high variance", which would fit any function and isn't representing the
+function behind this data. Overfitting can therefore result in predictions
+for new examples which are not accurate even though it exactly predicts the
+data in the trianing set. The training data may well have some noise, or
+outliers, which are not actually representative of the true function.
+<P>
+If the data is in 2 or 3 features, it can be plotted and a human can decide
+if it is being over or under fit. But when there are many parameters, it
+can be impossible to plot. And using a human is sort of against the purpose
+of Machine Learning. It may help to reduce the number of features if we can
+find features that don't really apply. Another means of reducing overfitting
+is regularization.
+<H3>
+  Regularization
+</H3>
+<P>
+We can reduce, but not eliminate, the presence of some terms, &nbsp;by
+multiplying thier parameter values by a large number and adding that to the
+cost function. Note this is NOT adding the parameter times the data, but
+only the parameter itself. The only way the cost can be minimized, in that
+case, is if the parameter values are small. And if the parameter is small,
+the term will have less effect on the fit. So we can include higher order
+terms, without overfitting.
+<P>
+<IMG SRC="LogisticCost.png" WIDTH="357" HEIGHT="58"><IMG SRC="LogisticReg.png"
+    WIDTH="77" HEIGHT="58">
+<P>
+Question: Shouldn't we use lower weight parameters (more regularization)
+for higher order terms?
+<P>
+Don't regularize <STRIKE>O</STRIKE><SUB>0</SUB>. There are two ways to avoid
+<STRIKE>O</STRIKE><SUB>0</SUB> in Octave or other languages: 1. Make a copy
+of theta, and set the first element to 0 (memory hungry), then use that copy
+when computing the regularization. 2. use <TT>theta(2:end) </TT>to select
+a "slice" of the vector without <STRIKE>O</STRIKE><SUB>0</SUB> (can be optimized
+depending on the language).
+<P>
+Lambda is used as a parameter for the amount of regularization. e.g. the
+amount that the parameter values are multiplied by before adding them to
+the cost function. To large a lambda can result in underfitting. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<PRE>reg = lambda * sum(theta2.^2) / (2*m);
+J = J + reg;
+...
+reg = lambda .* theta2 ./ m ;
+S = S + reg;
+</PRE>
+<P>
+Where <TT>theta2</TT> is either:
+<PRE>theta2 = theta;
+theta2(1) = 0;
+</PRE>
+<P>
+Or <TT></TT>
+<PRE>[0; theta(2:end)] 
+</PRE>
+<P>
+(the <TT>[0;</TT> and <TT>]</TT> aren't needed for the cost calculation,
+only for the gradient / slope.
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="Troubleshooting.htm">Troubleshooting Machine Learning Methods</A>
+</UL>
+<P>
+</BODY></HTML>

@@ -1,0 +1,255 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 21-Sep-2015 -->
+  <!-- AP: Last modified: 8-Jun-2020 -->
+  <TITLE>SD Robotics Club at RoboLink ROS Workshop</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  SD <A HREF="../../robotics.htm">Robotics</A> Club at
+  <A HREF="http://www.RoboLink.com">RoboLink</A>:
+  <A HREF="../../robot/ROS.htm">ROS</A> Workshop
+</H1>
+<H2>
+  QuickStart Commands:
+</H2>
+<P>
+<TT>rostopic list</TT> - Displays a list of available topics, Topics are
+like channels, through which messages flow.
+<P>
+<TT>rostopic echo /<I>topic</I></TT> - Current values from the messages flowing
+through this topic
+<P>
+<TT>rosparam list</TT> - shows variables / settings
+<P>
+<TT>rosmake <I>node</I></TT> - Makes a node. A node is like a program, or
+more accuratly, a programs folder. You only need to make it if it's not already
+compiled.
+<P>
+<TT>rosrun <I>node</I> <I>nodename</I></TT> - Runs a node. The nodename is
+the name of the binary. It's normally the same name as the node. E.g.
+<TT>rosrun rviz rviz</TT>
+<P>
+<TT>roscd <I>node</I></TT> - cd to the folder of the node. Note that you
+don't have to be in the folder to run the binary... rosrun seems to know
+where all the nodes are. In the folders, messages will be in the msg folder.
+They will be in .msg files and the files contain the types of the data in
+that topic.
+<P>
+<H2>
+  The Turtle Tutorial
+</H2>
+<P>
+From:
+<BR>
+<A HREF="http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics">http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics</A>
+<P>
+Open a new terminal window (press Ctrl+Alt+T see Linux notes below) and type
+<TT>roscore</TT>. The core should start and no prompt will be returned. Minimize
+the window. On a real robot, this would be started automatically when the
+OS started.
+<P>
+Open another terminal window and type <TT>rosrun turtlesim turtlesim_node</TT>
+you should see the TurtleSim screen with the turtle in the center. You can
+minimize the terminal window, but leave the TurtleSim screen up.
+<P>
+Open another terminal window and type <TT>rosrun turtlesim turtle_teleop_key
+</TT>This terminal window will pick up arrow key presses (when you have the
+window selecte) and send them to the turtle. Make sure it's visable, but
+you can re-size it to make it smaller.
+<P>
+Open another terminal window and type <TT>rostopic list</TT> you should see
+the new turtle topics. For example, you can type <TT>rostopic echo
+/turtle1/cmd_vel</TT> and then switch back to the <TT>turtle_teleop_key</TT>
+window and press the arrow keys to see the changes in velocity of the turtle.
+(Note: in Xbuntu, When you minimize a program, it goes to the TOP, not the
+bottom.)
+<P>
+Open another terminal window and type: <BR>
+<TT>sudo apt-get install ros-jade-rqt <BR>
+sudo apt-get install ros-<distro>-rqt-common-plugins <BR>
+rosrun rqt_graph rqt_graph </TT>
+<P>
+This should creates a dynamic graph of what's going on in the system. If
+you place your mouse over /turtle1/command_velocity it will highlight the
+ROS nodes (in circles) and topics (on lines). As you can see, the turtlesim_node
+and the turtle_teleop_key nodes are communicating on the topic named
+/turtle1/command_velocity.
+<P>
+<H2>
+  Additional Tools
+</H2>
+<P>
+<TT>rosrun rviz rvis</TT> - 3D Robot Visualizer
+<P>
+MoveIt! is state of the art software for mobile manipulation, incorporating
+the latest advances in motion planning, manipulation, 3D perception, kinematics,
+control and navigation. It provides an easy-to-use platform for developing
+advanced robotics applications, evaluating new robot designs and building
+integrated robotics products for industrial, commercial, R&amp;D and other
+domains.<BR>
+<A HREF="moveit.ros.org">moveit.ros.org</A>
+<P>
+SMACH is a state machine for high level behaviors. <BR>
+<A HREF="http://wiki.ros.org/smach">http://wiki.ros.org/smach</A>
+<H2>
+  Setup:
+</H2>
+<P>
+Assuming you have a 64 bit processor running Windows, Macintosh, or Solaris:
+<OL>
+  <LI>
+    Download and install <A HREF="../../os/virtualbox.htm">VirtualBox</A> from
+    <BR>
+    <A HREF="https://www.virtualbox.org/wiki/Downloads">https://www.virtualbox.org/wiki/Downloads</A>
+  <LI>
+    Download Ubuntu 14.04.3 LTS (Trusty Tahr) 64-bit PC (AMD64) desktop image
+    iso <BR>
+    <A HREF="http://releases.ubuntu.com/14.04/ubuntu-14.04.3-desktop-amd64.iso">http://releases.ubuntu.com/14.04/ubuntu-14.04.3-desktop-amd64.iso</A>
+    (this is 1GB or several hours on a good connection)
+  <LI>
+    Create new VirtualBox VM with 20GB drive (can be dynamic) - for RAM I did
+    4096MB.
+    <UL>
+      <LI>
+	New, give it a name e.g. "Ubuntu" and select the OS type: Linux... the Version
+	should default to Ubuntu (64-Bit)
+      <LI>
+	Change the memory to 4096 if you have 8GB, or half of your actual RAM.
+      <LI>
+	Next, create a virtual hard dist now, use VDI, Next, Dynamically allocated,
+	Next, hit the little folder with the green upchuck to change the location
+	and change the size to 20GB.
+    </UL>
+  <LI>
+    Attach iso to storage of new VM (so it will boot from image)
+    <UL>
+      <LI>
+	Devices / Optical Drive / browse to the .iso file from above.
+    </UL>
+  <LI>
+    Boot VM and install Ubuntu (pick default options for installation questions).
+    <UL>
+      <LI>
+	Press the green start arrow. Ubuntu installer should start from the ISO image
+	in the fake CD drive and start going through the install. Standard stuff...
+	pick a name, set a password, language, etc...
+      <LI>
+	The scary part is telling Ubuntu to format the hard drive and install. Don't
+	worry, that's the "fake" hard drive you make for the VM.
+      <LI>
+	When it asks you to restart, you have to force remove the ISO image from
+	the Virtual CD drive, Devices / Optical Drive / Remove disk... Force... then
+	Machine / Reset. The restart hangs because it don't let go of the CD.
+    </UL>
+  <LI>
+    Reboot into Ubuntu and install VM guest additions
+    <UL>
+      <LI>
+	Click Devices / Insert Guest Additions CD Image, and Ubutu will ask you if
+	you want to run. You can't see the Run button because it's off the tiny screen,
+	but it's to the right of Cancel. Then you will have to enter the password
+	you chose and hit enter. That runs for a while, then waits for you to press
+	enter, which you can't see because it's off the bottom of the tiny screen.
+	Scroll down.
+      <LI>
+	Restart Ubutu with the gear in the upper right corner, Shutdown, Restart.
+      <LI>
+	Now you can change the screen size with View / Virtual Screen 1
+	/&nbsp;resize.<BR>
+	<BR>
+	Some notes about Linux:
+	<UL>
+	  <LI>
+	    Ctrl + C to get out of stuff.
+	  <LI>
+	    Hit Ctrl + Alt + T for a terminal window. If you see an instruction to enter
+	    a command, like $ cd somefolder, the $ is the prompt and you don't enter
+	    that. You get to the $ prompt by opening a terminal window.
+	  <LI>
+	    On standard Ubuntu, there is a list of common programs on the left side of
+	    the screen. Xbuntu does away with that. Under Xbuntu:
+	  <LI>
+	    The main menu is in the upper right corner. It sort of looks like a dead
+	    white animal on a blue background. You can get to a browser there.
+	  <LI>
+	    When you minimize a program, it goes to the TOP, not the bottom.
+	  <LI>
+	    From the VM window, Devices, Shared Clipboard, set to Bidirectional, allows
+	    you to Ctrl + Shift + V paste, or Edit / Paste in the terminal window<BR>
+	    &nbsp;
+	</UL>
+    </UL>
+  <LI>
+    Install Xubuntu $ sudo apt-get install xubuntu-desktop
+    <UL>
+      <LI>
+	Hit Ctrl + Alt + T for a terminal window.
+      <LI>
+	type in <BR>
+	<TT>sudo apt-get install xubuntu-desktop</TT><BR>
+	and press enter. It will ask for your password again, and then ask for your
+	approval to use more disk space (why?) by enterying Y. It works for a LONG
+	time. Is xubunut really required for this?
+    </UL>
+  <LI>
+    Reboot again and install ROS Jade (now the fun really starts)<BR>
+    <A HREF="http://wiki.ros.org/jade/Installation/Ubuntu">http://wiki.ros.org/jade/Installation/Ubuntu</A>
+    <UL>
+      <LI>
+      <LI>
+	(P.S. Devices, Shared Clipboard, Bidirectional, allows you to Ctrl + Shift
+	+ V paste, or Edit / Paste in the terminal window)
+      <LI>
+	Ctrl + Alt +T again for a terminal window. Just stay in it after this.
+      <LI>
+	Enter (or paste)<BR>
+	<TT>sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release
+	-sc) main" &gt; /etc/apt/sources.list.d/ros-latest.list'</TT><BR>
+	it will ask for your password again, but as long as you keep the same terminal
+	open, that's it.
+      <LI>
+	<TT>sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key
+	0xB01FA116</TT><BR>
+	bunch of junk with imported: 1 at the end.
+      <LI>
+	<TT>sudo apt-get update</TT><BR>
+	That takes a while.
+      <LI>
+	I'm assuming the FULL is what what want.<BR>
+	<TT>sudo apt-get install ros-jade-desktop-full</TT><BR>
+	Confirm the extra space with Y. That takes a LONG time.
+      <LI>
+	<TT>sudo rosdep init</TT>
+      <LI>
+	<TT>rosdep update</TT>
+      <LI>
+	<TT>echo "source /opt/ros/jade/setup.bash" &gt;&gt; ~/.bashrc</TT>
+      <LI>
+	<TT>source ~/.bashrc</TT>
+      <LI>
+	<TT>sudo apt-get install python-rosinstall</TT><BR>
+	Y to continue. Takes a bit.
+    </UL>
+</OL>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://wiki.ros.org/ROS/Higher-Level%20Concepts">http://wiki.ros.org/ROS/Higher-Level
+    Concepts</A>
+  <LI>
+    <A HREF="http://wiki.ros.org/ROS/Tutorials">http://wiki.ros.org/ROS/Tutorials</A>
+  <LI>
+    <A HREF="http://wiki.ros.org/turtlesim">http://wiki.ros.org/turtlesim</A>
+    and <BR>
+    <A HREF="http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics">http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics</A>
+  <LI>
+    <A HREF="http://moveit.ros.org/">http://moveit.ros.org/</A>
+  <LI>
+    <A HREF="http://juxi.net/workshop/ros-2018/">http://juxi.net/workshop/ros-2018/</A>
+    a simular but more up to date and more extensive intro to ROS.
+</UL>
+<P>
+</BODY></HTML>

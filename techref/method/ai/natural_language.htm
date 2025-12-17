@@ -1,0 +1,141 @@
+<HTML>
+<HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <!-- AP: Last modified: 27-Aug-2019 -->
+  <TITLE>Natural Language processing.</TITLE>
+</HEAD>
+<BODY>
+<H2>
+  Natural Language <A HREF="../ais.htm">Machine Learning</A> Processing.
+</H2>
+<P>
+AI programs that attempt to understand, manipulate, and interpret human language. It can make use of machine learning, as well as statistical, and computational linguistics. The rise of Large Language Models (LLMs) has provided exciting opportunities, but really hasn't changed the issues related to understanding and taking actions based on human language input; although chatGPT et all can reply in useful ways, it struggles to DO what we want instead of just talking. 
+<P>
+<A NAME="43217.9181597222" HREF="../../idea/website/dict.htm" TARGET="_top">
+Dictionary</A> <!-- 43217.9181597222 EOR -->
+<P>
+<A NAME="43215.4179398148" HREF="mschatbot.htm" TARGET="_top"> Microsoft
+Chatbot AI</A> <!-- 43215.4179398148 EOR -->
+<P>
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="45106.8696064815" HREF="https://blog.varunramesh.net/posts/intro-parser-combinators/" TARGET="_top">
+https://blog.varunramesh.net/posts/intro-parser-combinators/</A> 
+Great educational post about classical language parsing.<!-- 45106.8696064815 EOR -->
+
+  <LI>
+    <A HREF="https://medium.com/explore-artificial-intelligence/an-introduction-to-recurrent-neural-networks-72c97bf0912">https://medium.com/explore-artificial-intelligence/an-introduction-to-recurrent-neural-networks-72c97bf0912</A>
+    The Recurrent <A HREF="NeuralNets.htm">Neural Network </A>(RNN) allows
+    information to persist from one cycle to the next. Like a
+    <A HREF="../process/states.htm">state machine</A>, part of the input is from
+    the output. Since they allow us to operate over sequences of vectors, we
+    can effectively implement variable models with not only one to one, but also
+    one to many, many to one, or many to many mappings in various shapes. There
+    are no constrains on the lengths of sequences, since the transformation is
+    fixed and can be applied as many times as we like. RNN's are implemented
+    as 3 <A HREF="../math/matrix.htm">matrixes</A>: xh, applied to the current
+    input, hh, applied to the previous hidden state, and hy, applied to the output.
+    The RNN is first initialized with random values in those matrixes and then
+    they are updated over many training samples each with a sequence of inputs
+    and desired outputs,&nbsp;to produce the desired output at each step in the
+    sequence. One the RNN is trained, the matrixes are initialized with the learned
+    values at the start of each sequence, and the hidden matrix (hh) is modified
+    during each step. Example code:
+    <PRE>
+class RNN:
+  # ...
+  def step(self, x):
+     # update the hidden state
+     self.h = np.tanh(np.dot(self.W_hh, self.h) + np.dot(self.W_xh, x))
+     # compute the output vector
+     y = np.dot(self.W_hy, self.h)
+     
+     return y
+</PRE>
+    <P>
+    <BR>
+    The <TT>np.tanh </TT>(hyperbolic tangent) function implements a non-linearity
+    that squashes the activations to the range [-1, 1]. The input, x, is combined
+    with the xh matrix via the numpy dot product vector operation. It is added
+    to the dot product of the internal state and the hh matrix, then squashed
+    to produce a new internal state. Finally, the output is processed through
+    the hy matrix and returned.<BR>
+    &nbsp;
+  <LI>
+    <A HREF="http://colah.github.io/posts/2015-08-Understanding-LSTMs/">http://colah.github.io/posts/2015-08-Understanding-LSTMs/</A>
+    The major limitation of standard RNN's is that they are not really able to
+    access data from several states before the current state. LSTMs address that
+    issue. In each step, LSTMs process the data from the prior step in several
+    ways each using "gates" which are composed of a signmoid NN and a dot product.
+    <BR>
+    <BR>
+    The first gate removes data from the prior state,
+    <I>C<SUB>t-</SUB></I><SUB>1</SUB>, using the prior state and the new input,
+    <I>x<SUB>t</SUB></I>. <I>f<SUB>t</SUB> = &oacute;</I>(<I>W<SUB>f</SUB>
+    </I>&#149;[<I>h<SUB>t-1</SUB>, x<SUB>t</SUB></I>]<I> +
+    b<SUB>f</SUB></I>)<I> </I>This resets data that is no longer applicable based
+    on input. E.g. when transitioning from one subject to another in a sentence.
+    "John is tall, but Paul is short" needs to forget "tall" when transitioning
+    from John to Paul.<BR>
+    <BR>
+    The next gate adds in new information from the input vector. This is done
+    in two parts: A sigmoid NN decides which information to update,
+    <I>i<SUB>t</SUB> = &oacute;</I>(<I>W<SUB>i</SUB>
+    </I>&#149;[<I>h<SUB>t-1</SUB>, x<SUB>t</SUB></I>]<I> +
+    b<SUB>i</SUB></I>)<I> </I>&nbsp;and a tanh layer builds new data from input
+    <I>~C<SUB>t</SUB> = </I>tanh(<I>W<SUB>c</SUB>
+    </I>&#149;[<I>h<SUB>t-1</SUB>, x<SUB>t</SUB></I>]<I> +
+    b<SUB>C</SUB></I>)<I> </I>. These are combined with the prior gate to update
+    the internal state. <I>C</I><SUB>t </SUB>= <I>f</I><SUB>t</SUB> &#149;
+    <I>C<SUB>t-</SUB></I><SUB>1</SUB> + <I>i</I><SUB>t </SUB>&#149;
+    <I>~C</I><SUB>t</SUB><BR>
+    <BR>
+    Finally, the output is built from a filtered copy of the cell sate. First
+    a sigmoid layer decides which part to output <I>o</I><SUB>t</SUB> =
+    <I>&oacute;</I>(<I>W<SUB>o</SUB>
+    </I>&#149;[<I>h<SUB>t</SUB></I><SUB>-1</SUB><I>, x</I><SUB>t</SUB>]<I> +
+    b</I><SUB>o</SUB>)<I> </I>Then a tanh is used to ensure the result is between
+    -1 and 1 and that is multiplied by the output gate. <I>h</I><SUB>t</SUB>
+    = <I>o</I><SUB>t</SUB> &#149; tanh(<I>C</I><SUB>t</SUB>). <BR>
+    <BR>
+    Obviously, with the level of complexity here, training this is time consuming.
+    h and C are the same&nbsp;size. W<SUB>f</SUB>, W<SUB>i</SUB>, W<SUB>o</SUB>
+    are all the dimension of [h<SUB>t-1</SUB>, x<SUB>t</SUB>] X dimension of
+    C<SUB>t</SUB>. h<SUB>t-1</SUB> is stacked on the top of x<SUB>t</SUB> to
+    form a single vertical one D vector. Let the total height be N. So
+    W<SUB>f</SUB> is a matrix of height N and width M.So W<SUB>f</SUB> &#149;
+    [h<SUB>t-1</SUB>/x<SUB>t</SUB>]===&gt; [M x N][N x 1] gives [M x1] this the
+    dimension of C<SUB>t</SUB>.<BR>
+    &nbsp;
+  <LI>
+    <A HREF="https://notebooks.azure.com/hoyean-song/projects/tensorflow-tutorial/html/LSTM-breakdown-eng.ipynb">https://notebooks.azure.com/hoyean-song/projects/tensorflow-tutorial/html/LSTM-breakdown-eng.ipynb</A>
+    A notebook on Azure that demonstrates the above LSTM.
+  <LI>
+    <A HREF="http://proceedings.mlr.press/v37/jozefowicz15.pdf">http://proceedings.mlr.press/v37/jozefowicz15.pdf</A>
+    More on training RNNs and LSTMs
+  <LI>
+    <A HREF="https://towardsdatascience.com/a-practitioners-guide-to-natural-language-processing-part-i-processing-understanding-text-9f4abfd13e72">https://towardsdatascience.com/a-practitioners-guide-to-natural-language-processing-part-i-processing-understanding-text-9f4abfd13e72</A>
+    Start of a series on NLP, including the basics up through part of speech,
+    and other analysis. 
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43217.8895138889" HREF="https://chatbotsmagazine.com/contextual-chat-bots-with-tensorflow-4391749d0077"
+	TARGET="_top">https://chatbotsmagazine.com/contextual-chat-bots-with-tensorflow-4391749d0077</A>
+    Contextual Chat Bots with Tensorflow<!-- 43217.8895138889 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43215.4264814815" HREF="http://www.wildml.com/2016/04/deep-learning-for-chatbots-part-1-introduction/"
+	TARGET="_top">http://www.wildml.com/2016/04/deep-learning-for-chatbots-part-1-introduction/</A>
+    Deep learning for chatbots<!-- 43215.4264814815 EOR -->
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43215.4237152778" HREF="http://willschenk.com/bot-design-patterns/?imm_mid=0e50a2&amp;cmp=em-data-na-na-newsltr_20160622"
+	TARGET="_top">http://willschenk.com/bot-design-patterns/?imm_mid=0e50a2&amp;cmp=em-data-na-na-newsltr_20160622</A>
+    Bot Design Patterns<!-- 43215.4237152778 EOR -->l
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43215.4184375" HREF="https://github.com/github/hubot"
+	TARGET="_top">https://github.com/github/hubot</A> Build your own bots based
+    on Github's Hubot<!-- 43215.4184375 EOR -->
+</UL>
+<P>
+</BODY></HTML>
+

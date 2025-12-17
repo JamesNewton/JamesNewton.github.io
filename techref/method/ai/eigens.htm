@@ -1,0 +1,182 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 27-Jan-2019 -->
+  <!-- AP: Last modified: 16-Feb-2020 -->
+  <TITLE>Eigenvector / Eigenvalue for Machine Learning</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  Eigenvector / Eigenvalue for <A HREF="../ais.htm">Machine Learning</A>
+</H1>
+<P>
+Eigenvectors and eigenvalues have many uses. They can be used to
+eliminate <A HREF="PrincipalComponentAnalysis.htm">strongly correlated features
+(principle components)</A>&nbsp;and can help reduce over-fitting. It helps to think of them as a much simpler / smaller but "close enough" copy of a larger, more complex matrix. They summarize the complexity and extract the base "meaning" from the data. This is a form of "lossy" data compression but one which can be applied to complex matrices. Because they express commonalities while rejecting disparate perturbations, they are used to reduce noise in data.
+<P>
+An Eigen (<I>eye-gun</I>; "proper" in German) Vector is a type of vector.
+A vector is a list of numbers (called components) which describe a direction
+as well as magnitude, especially as determining the position of one point
+in space relative to another. For example, [1,1] is a vector that says "go
+up one, and go right one" assuming an X, Y plane. 
+[10,10] has the same direction, but more than 10 times the magnitude. [1,5,3] might describe the relative motion
+in 3D space: X, Y, and Z. Vectors are a subclass of
+<A HREF="../math/matrix.htm">Matrix</A> with only one row or column. A matrix
+with more than one row is written with semicolons ";" separating the rows.
+E.g. [a, b; c, d] is a two by two matrix with a, b as the first row
+and c, d as the second. The first column is a, c and the second b, d. 
+<P>
+Math operations are applied in specific ways to all the components of a vector.
+For example, you can multiple every component by the same value. This does
+not change the vectors direction, only it's magnitude. Think about the vector
+[1,1]. If you go up one, and over one, you have traveled at 45 degrees. If
+you multiply this vector by 10, producing the new vector [10,10], and now
+you are going 10 times further, but you are still traveling at 45 degrees.
+This is true of any vector. How can we be sure? The angle of a vector is
+<TT>arctan(rise/run)</TT>. And <TT>rise/run = rise*scale/run*scale </TT>so
+the scale drops out. Multiplying every component of a vector by the same
+value is called <A HREF="../math/matrix.htm#scaling">scaling</A>, and scaling
+is a type of <I>linear transformation</I>.
+<P>
+There are other types of linear transformation, such as multiplication by
+a matrix which is commonly used in <A HREF="../ais.htm">Machine Learning</A>,
+especially in <A HREF="NeuralNets.htm">Neural Nets</A>. For example, a very
+simple NN which computes the logical AND function, can be made by multiplying
+an input vector of [1, In1, In2] by a matrix (actually a vertical vector)
+of [-15; 10; 10] to give a value that is less than -5 if it's false and more
+than 5 if true. Or to rotate a point, [X, Y] by 90 degrees clockwise, multiply
+it by [0,-1;1,0] or for any angle, <STRIKE>O</STRIKE> use
+[cos(<STRIKE>O</STRIKE>), -sin(<STRIKE>O</STRIKE>); sin(<STRIKE>O</STRIKE>),
+cos(<STRIKE>O</STRIKE>)]
+<P>
+With most vectors, applying linear transformations other than scaling will
+cause the vector to change direction, but an eigenvector will not change
+direction when transformed linearly. Any linear transformation only has the
+effect of scaling an eigenvector. We could do the same thing by multiplying
+the eigenvector by a value; by simply scaling it. The value that is multiplied
+by the eigenvector, used to scale it, is called the eigenvalue.
+<P>
+So, if we have a matrix, called "A", an eigenvector "x" and an eigenvalue
+"<I><TT>l</TT></I>" and we multiply the matrix times the eigenvector, and
+then subtract the eigenvalue times the eigenvector, we should get zero. (Note:
+To add or subtract Matrices, every value in one is paired with the one in
+the same position in the other and they <I>must</I> be the same size; same
+number of columns, same number of rows. See
+<A HREF="../math/matrix.htm#Addition">Matrix: Addition</A> for more)
+<BLOCKQUOTE>
+  <TT>x * A - x * <I>l</I> = 0</TT>
+</BLOCKQUOTE>
+<P>
+How do we find the eigenvector, x and the eigenvalue, <I>l</I> ?
+<P>
+First we have to make sure that A is not <I>invertable</I>. A matrix is
+invertable if there exists some other matrix, call it "B" which, when multiplied
+by A, or if A is multiplied by B, equals an <I>identity matrix </I>of the
+same size. An identity matrix is just a matrix of mostly zeros, with a diagonal
+pattern of 1's from upper left to lower right. e.g. For a size of 3, the
+identity matrix is:
+<TABLE>
+  <TR>
+    <TD>I<SUB>3</SUB> =</TD>
+    <TD><TABLE CELLSPACING="0" CELLPADDING="2">
+	<TR>
+	  <TD STYLE="border-left: 1px solid; border-top: 1px solid;"></TD>
+	  <TD>1,</TD>
+	  <TD>0,</TD>
+	  <TD>0;</TD>
+	  <TD STYLE="border-right: 1px solid; border-top: 1px solid;"></TD>
+	</TR>
+	<TR>
+	  <TD STYLE="border-left: 1px solid;"></TD>
+	  <TD>0,</TD>
+	  <TD>1,</TD>
+	  <TD>0;</TD>
+	  <TD STYLE="border-right: 1px solid;"></TD>
+	</TR>
+	<TR>
+	  <TD STYLE="border-left: 1px solid;border-bottom: 1px solid;"></TD>
+	  <TD>0,</TD>
+	  <TD>0,</TD>
+	  <TD>1;</TD>
+	  <TD STYLE="border-right: 1px solid;border-bottom: 1px solid;"></TD>
+	</TR>
+      </TABLE>
+    </TD>
+  </TR>
+</TABLE>
+<P>
+So a matrix, A is invertable if <TT>A*B = B*A = I<SUB>n</SUB></TT>. B is
+the inverse of A, sort of like it's reciprocal. It is found by a complex
+series of operations, that it turns out we don't need. We can know the matrix
+is NOT invertable if it's <I>determinant</I> is zero. The determinant is
+a slightly less complex series of operations. For a 2x2 matrix, the determinant
+is the sum of the opposite corners multiplied together. For M = [a, b; c,
+d] it's a*d+b*c. For larger matrices, we can
+<A HREF="../math/matrix.htm#Determinant">find the determinant</A> by computing
+the determinant of a bunch of 2x2 matrix subsets of the full matrix in a
+specified order.
+<P>
+If we want to solve <TT>x*A - x*<I>l</I> = 0</TT> for <TT><I>l</I></TT>,
+first we need to factor out the <TT>x</TT> but that would give us <TT>x*(A
+- <I>l</I></TT>)<TT> </TT>and A is a matrix, while <TT><I>l</I></TT> is a
+scalier (single number) so they can't be subtracted: In matrix math, you can
+only subtract things of the same size. Luckily, a magical property of the
+identity matrix is that you can multiply any matrix times it and basically
+not change the value; it's like multiplying by 1 so we can multiply both
+sides by <TT>I<SUB>n</SUB></TT> where n is the size of A.
+<BLOCKQUOTE>
+  <TT>I<SUB>n</SUB>*x*A - I<SUB>n</SUB>*x*<I>l</I> = I<SUB>n</SUB>*0</TT>
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+  <TT>x*(A - I<SUB>n</SUB>*<I>l</I>) = 0</TT>
+</BLOCKQUOTE>
+<BLOCKQUOTE>
+  <TT>x(A - I<SUB>n</SUB> * <I>l</I>) = 0</TT>
+</BLOCKQUOTE>
+<P>
+At this point, we need to make sure that we don't find a solution for
+<TT><I>l</I></TT> which leads us to a solution for an x which is zero. If
+we could just divide both sides by <TT>(A - I<SUB>n</SUB> * <I>l</I>) </TT>then
+we would have x = 0/<TT>(A - I<SUB>n</SUB> * <I>l</I>) </TT>&nbsp;which is
+x = 0. So to make sure that can't happen, we need to make sure that <TT>(A
+- I<SUB>n</SUB> * <I>l</I>) </TT>is "non-invertable"; meaning that it isn't
+a valid denominator (remember this is matrix math so we can't divide, we
+can only invert). So we do that by assuming it's determinant is zero, which
+says it can't be inverted.
+<P>
+<TT>Determinant(A - I<SUB>n</SUB> * <I>l</I>) = 0 </TT>
+<P>
+Following the rules of matrix math, we can expand all the calculations required
+to solve for l. This is not simple and is best done by a computer. E.g. in
+<A HREF="../../language/octave.htm">Octave</A> or MatLab using <TT>eig</TT>
+<A HREF="https://octave.org/doc/v4.4.0/Basic-Matrix-Functions.html#XREFeig"><SUP>1</SUP></A>
+. We will get back multiple possible values as there are more than one Eigenvalue
+for a given matrix. Given an Eigenvalue, we can put it back into the equation
+<P>
+<TT>x(A - I<SUB>n</SUB> * <I>l</I>) = 0</TT>
+<P>
+in place of <TT>l</TT> and then, again, follow the rules of matrix math to
+solve for the values of <TT>x</TT>, the eigenvector. As ever, this is best
+done by a computer; the eig function can also return the eigenvectors with
+the eigenvalues. 
+<P>
+Each Eigenvector represents the key values in the matrix A. 
+<P>
+<P>
+
+See also:
+<UL>
+   <LI>
+<A TITLE="JMN-EFP-786" NAME="43924.8524421296" HREF="https://math.stackexchange.com/questions/243533/how-to-intuitively-understand-eigenvalue-and-eigenvector" TARGET="_top">
+https://math.stackexchange.com/questions/243533/how-to-intuitively-understand-eigenvalue-and-eigenvector</A> 
+<!-- 43924.8524421296 EOR -->
+
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="43493.5588773148" HREF="https://medium.com/fintechexplained/what-are-eigenvalues-and-eigenvectors-a-must-know-concept-for-machine-learning-80d0fd330e47"
+	TARGET="_top">https://medium.com/fintechexplained/what-are-eigenvalues-and-eigenvectors-a-must-know-concept-for-machine-learning-80d0fd330e47</A>
+    What are Eigenvalues and Eigenvectors?<!-- 43493.5588773148 EOR -->
+</UL>
+</BODY></HTML>
+
+
+

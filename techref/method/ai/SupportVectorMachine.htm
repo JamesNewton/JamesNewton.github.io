@@ -1,0 +1,215 @@
+<HTML>
+<HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <!-- AP: Last modified: 6-Mar-2019 -->
+  <TITLE>Support Vector Machine</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="../ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Support Vector
+  Machine<A HREF="https://en.wikipedia.org/wiki/Support_vector_machine">^</A>
+</H1>
+<P>
+The SVM algorithm classifies data points into categories by finding a boundry
+between groups that leaves the largest possible gap. Where the boundry is
+clear, but the data is distributed, <A HREF="logisticregresions.htm">Logistic
+Regression</A> may be less costly. SVMs can efficiently perform non-linear
+classification and commonly&nbsp;uses the kernal trick which provides training
+features related to the distance of each data point from the others. Highly
+optimized librarys of code are available to implement SVMs such as
+liblinear<A HREF="http://ntucsu.csie.ntu.edu.tw/~cjlin/liblinear/">^</A>
+or libsvm<A HREF="http://www.csie.ntu.edu.tw/~cjlin/libsvm/">^</A>. This
+is a discriminative model which directly predicts the output class
+division&nbsp;rather than look at the distribution of the classes. It works
+best where the data is not clustered, but has a clear boundry. Unlike regression,
+SVM will find the best possible boundry, centered between the data. When
+the data is grouped in obvious clusters, <A HREF="bayesian.htm">Naive Bayes</A>
+may work better. 
+<P>
+<IMG SRC="../../../images/AiModelsDisGen.png" WIDTH="458" HEIGHT="190">
+<P>
+<P>
+<TABLE CELLPADDING="5" ALIGN="RIGHT">
+  <TR>
+    <TD><IMG SRC="LogisticCost.png" WIDTH="357" HEIGHT="58"><IMG SRC="LogisticReg.png"
+	  WIDTH="77" HEIGHT="58"><BR>
+      <I> &nbsp; Logistic Regression Cost</I>
+      <P>
+      &nbsp;<IMG SRC="SVMCost.png" WIDTH="408" HEIGHT="51"><BR>
+      <I>&nbsp; SVM Cost</I></TD>
+  </TR>
+</TABLE>
+<P>
+SVM is very similar to <A HREF="logisticregresions.htm">Logistic
+Regression</A>. The major difference is that in order to more easily support
+the Kernel trick described below, the cost function for SVM has been changed
+as follows:
+<P>
+&#149; Instead of using lambda to scale the weight of the theta parameters
+for <A HREF="Regularization.htm">regularization</A>, we use "C" to scale
+the weight of the main part of the cost function. So, where a large lambda
+would penalize parameters, now a small C does the same; leaving the parameters
+large while the rest of the function becomes small.
+<UL>
+  <LI>
+    Small C: Higher <A HREF="Troubleshooting.htm#Bias">Bias</A>, low
+    <A HREF="Troubleshooting.htm#Variance">Variance</A>.
+  <LI>
+    Large C: Low <A HREF="Troubleshooting.htm#Bias">Bias</A>, high
+    <A HREF="Troubleshooting.htm#Variance">Variance</A>.
+</UL>
+<P>
+&#149; The regularization term, can then be written as
+<STRIKE>O</STRIKE><SUP>T</SUP><STRIKE>O</STRIKE>&nbsp;if we exclude
+<STRIKE>O</STRIKE><SUB>0</SUB>. Some implmentations use a different transform
+for regularization inorder to further reduce computational cost.
+<P>
+&#149; Because we don't need to worry about derivatives in the same way,
+we can remove the division by m. Since m is a constant, the cost function
+will still help us converge on the same minimum.
+<P>
+<IMG SRC="SVMCostFunctions.png" WIDTH="332" HEIGHT="102" ALIGN="Right">&#149;
+Instead of using the sigmoid function, we replace that with two separate
+cost functions, cost<SUB>0</SUB> and cost<SUB>1</SUB>. They produce a graph
+very much like the sigmoid, but with straight lines instead of a curve.
+<P>
+&#149; The cost0 and cost1 functions are more selective because we set the
+boundary at 1 and -1 instead of at 0. E.g. We look for <BR>
+<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(i)</SUP> &gt;= 1 &nbsp; &nbsp;if
+y<SUP>(i)</SUP> = 1<BR>
+<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(i)</SUP> &lt;= -1 &nbsp; if
+y<SUP>(i)</SUP> = 0
+<P>
+Because of this "no mans land" or overlap between the costs, given
+<A HREF="Regularization.htm">regularization</A> to find the smallist possible
+values of <STRIKE>O</STRIKE> (theta), SVM not only finds a boundary, it finds
+the boundary that puts the most distance between it and the training examples.
+Note: Many SVM implementation already support multiple classes, but to add
+that support, you can simply train multiple SVMs, each recognizing only one
+class, then pick the class with the highest confidence; the highest
+<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(i)</SUP>.
+<P>
+&#149; Instead of features based directly on the data, we use Kernel features
+that describe the distance from each data point.
+<H3>
+  Kernels
+</H3>
+<P>
+Kernals compute the <I>simularity</I> between a "landmark" and any given
+training example.
+<P>
+One common type of Kernel is the <A HREF="../math/gaussian.htm">Gaussian</A>
+or RBF
+Kernel<A HREF="https://en.wikipedia.org/wiki/Radial_basis_function_kernel">^</A>
+or exp<BIG>( </BIG>-||x - l<SUP>(i)</SUP>||<SUP>2</SUP> /
+2<SMALL>&Oacute;</SMALL><SUP>2 </SUP><BIG>)</BIG>. The ||x -
+l<SUP>(i)</SUP>|| part is the distance between the landmark and the example.
+When they are close, the result is close to 1. When they are distant, it
+will be close to 0. The value of <SMALL>&Oacute;</SMALL> controls how sharply
+the comparison "falls off". e.g. with a large <SMALL>&Oacute;</SMALL> being
+anywhere near the landmark will register with that feature. With a small
+<SMALL>&Oacute;</SMALL>, as soon as the point moves away from the landmark,
+the feature quickly drops out.
+<UL>
+  <LI>
+    Large <SMALL>&Oacute;</SMALL>: Higher
+    <A HREF="Troubleshooting.htm#Bias">Bias</A>, low
+    <A HREF="Troubleshooting.htm#Variance">Variance</A>.
+  <LI>
+    Small <SMALL>&Oacute;</SMALL>: Low
+    <A HREF="Troubleshooting.htm#Bias">Bias</A>, high
+    <A HREF="Troubleshooting.htm#Variance">Variance</A>.
+</UL>
+<P>
+Each of the landmarks can be used to make a new feature for the polynomial.
+Using this feature would allow the system to learn if the outcome is related
+to the data point being "close" to this landmark. While training, we can
+place landmarks at <I>each</I> training example, so there are m landmarks
+i.e. one feature for each data point in the training set, instead of one
+feature for each dimension of those points. The resulting features can replace
+the original features from the training data because one of them will be
+0 distance from each data point. The means the polynomale features are comparing
+the distances between the data points. When points in one class are near
+each other, those features develop higher theta parameters. Computational
+cost is related to training set size, not to the dimensions of each data
+point. In the regularization part of the cost formula, n will equal m.
+<P>
+In <A HREF="../../language/octave.htm">Octave</A> a possible Gaussian Kernal
+is:
+<PRE>function sim = gaussianKernel(x1, x2, sigma)
+	x1 = x1(:); x2 = x2(:); %make column vectors
+	sim = exp(sum((x1-x2).^2) / (-2 * sigma.^2));
+	end
+</PRE>
+<P>
+<A HREF="svmtrain.htm">svmtrain</A> (from SVMLIB as
+installed<A HREF="https://github.com/cjlin1/libsvm/tree/master/matlab">^</A>
+in <A HREF="../../language/octave.htm">Octave</A> for example) takes training
+data X and y, and some value for C and sigma, then returns a model :
+<PRE>libsvm_options = ' '-c 1 -g 0.07 -b 1'; %-b only reqired for confidence
+model = svmtrain(y, X, libsvm_options);
+[predict, accuracy, confidence]  = svmpredict(yval, Xval, model); 
+%yval is required but can be random if accuracy is not required
+%Xval is the validation set
+% see <A HREF="https://github.com/cjlin1/libsvm/tree/master/matlab">https://github.com/cjlin1/libsvm/tree/master/matlab</A> for more
+</PRE>
+<P>
+<I>Note: Use <A HREF="LinearRegresion.htm#FeatureNormalization">feature
+scaling</A> if using the Gaussian Kernel. </I>
+<P>
+<I>Note: Only use similarity functions that satisfy "Mercer's
+Theorem"<A HREF="https://en.wikipedia.org/wiki/Mercer%27s_theorem">^</A>.
+There are many such functions, including: Polynomia, String, Chi-squared,
+Histogram, Intersection</I>
+<P>
+An SVM can be made with no Kernel (this is sometimes called a "linear kernel")
+This works well, and can avoid overfitting, for a large number of features
+and small sample set. (n &gt; m) or for a very large sample set ( m &gt;
+50,000 ) although <A HREF="logisticregresions.htm">Logistic
+Regression</A>&nbsp;may be a better choice.
+<P>
+The Gaussian Kernel SVM is best for small feature sets ( n &lt; 1000 ) and
+reasonable sample sets ( 10 &lt; m &lt; 10,000 ). Within this range,&nbsp;it
+can work as well as a <A HREF="NeuralNets.htm">Neural Net</A> and avoid the
+slow back propigation training.
+<P>
+In Python using svm.SVC from
+<A HREF="http://scikit-learn.org/stable/">SciKit-Learn.org</A>:
+<PRE>import sys
+from time import time
+import numpy
+from sklearn.svm import SVC
+
+### Load features_train, labels_train as numpy arrays of features and lables.
+### Make features_test, labels_test as subsets of the training data for testing.
+
+classifier = SVC(kernel='rbf',C=10000)
+### kernal could be linear, polynomial, rbf, or sigmoid
+
+t0 = time()
+fit = classifier.fit(features_train, labels_train)
+print "training time:", round(time()-t0, 3), "s"
+
+t0 = time()
+prediction = classifier.predict(features_test)
+print "prediction time:", round(time()-t0, 3), "s"
+print prediction
+
+score = classifier.score(features_test,labels_test)
+print score
+</PRE>
+<P>
+<P>
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="http://svmlight.joachims.org/">http://svmlight.joachims.org/</A>
+  <LI>
+    <A HREF="http://www.csie.ntu.edu.tw/~cjlin/libsvm/">http://www.csie.ntu.edu.tw/~cjlin/libsvm/</A>
+  <LI>
+    <A HREF="http://ntucsu.csie.ntu.edu.tw/~cjlin/liblinear/">http://ntucsu.csie.ntu.edu.tw/~cjlin/liblinear/</A>
+</UL>
+<P>
+</BODY></HTML>

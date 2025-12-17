@@ -1,0 +1,180 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 27-Aug-2015 -->
+  <!-- AP: Last modified: 29-Jan-2019 -->
+  <TITLE>Machine Learning, Anomaly Detection Method</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Anomaly Detection
+</H1>
+<P>
+Anomaly Detection answers questions of the type: Is a data point like the
+other data points in the set, or is it far enough out of the others to raise
+concern? It is used to reject products that are likely to fail, to look for
+outliers, to identify subjects that are behaving strangely, devices about
+to fail, etc... We could use a learning system like a
+<A HREF="LogisticClassifier.htm">Logistic Classifier</A>, but because, by
+definition, there are few anomalous data points, checking against the Normal
+Distribution can avoid <A HREF="Troubleshooting.htm#SkewedClasses">accuracy
+vs precision/recall issues</A> and still detect previously unseen anomalies
+of many different types.
+<H3>
+  <IMG SRC="NormalDistribution.png" WIDTH="360" HEIGHT="230" ALIGN="Right"><A
+      HREF="../math/gaussian.htm">Gaussian</A> (Normal) Distribution
+</H3>
+<P>
+If the probability distribution of X is
+Gaussian<A HREF="https://en.wikipedia.org/wiki/Normal_distribution">^</A>
+(aka Normal)&nbsp;with mean (&#181; or mu) and variance sigma squared
+(<I>&oacute;</I><SUP>2</SUP> or sigma2) we write X ~ <I>N</I>(&#181;,
+<I>&oacute;</I><SUP>2</SUP>). {ed, using <I>&oacute;</I> as the greek letter
+sigma}. &#181; gives us the center of the normal bell curve, <I>&oacute;</I>
+is the standard
+deviation<A HREF="https://en.wikipedia.org/wiki/Standard_deviation">^</A>
+or width from the center of the curve to the inflection
+point<A HREF="https://en.wikipedia.org/wiki/Inflection_point">^</A> where
+the slope of the curve changes from concave to convex.
+<I>&oacute;</I><SUP>2</SUP> is the variance.
+<P>
+In the figure here, the red line is the Normal distribution.
+<P>
+<B>Estimating:</B> &#181; can be estimated as the average value of X.
+<I>&oacute;</I><SUP>2</SUP> is the average of X .- &#181;
+<P>
+We can do this for each individual feature of a dataset as follows:<BR>
+<IMG SRC="EstimateDensity.png" WIDTH="313" HEIGHT="60"><BR>
+We do this for all features. If there are n features, j = 1:n. As a vector,
+&#181; = mean(X<SUP>(i)</SUP>); <I>&oacute;</I><SUP>2</SUP> =
+mean(X<SUP>(i)</SUP> - &#181;); As a <A HREF="../math/matrix.htm">matrix</A>
+of many features, in <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>mu = mean(X,1); %operate only along the first dimension
+sigma2 = var(X,1,1); %var is close enough
+%Note: the first 1 is OPT (option), which selects 1/m instead of 1/(m-1)
+</PRE>
+<P>
+Given a new data point, we can compare it's features to the &#181; and
+<I>&oacute;</I><SUP>2</SUP> of the other features<BR>
+<IMG SRC="EstimateDistribution.png" WIDTH="380" HEIGHT="99"><BR>
+if this value (called the <B>Probability Density</B>, p) is greater than
+some threshold, <I>e</I> or epsilon, the data point is anomalous. e.g. y=1.
+Below the threshold, it is not, e.g. y=0.
+<H2>
+  Multivariate Gaussian Distribution
+</H2>
+<P>
+One problem with the Normal system used above is that when the axis are somewhat
+related, e.g. power use and temperature (a device under load often consumes
+more power and runs a little hot), a datapoint can fall at the low end of
+one axis and at the high end of another... when plotted on the separate axis,
+it might not be outside of the acceptable range for either axis, e.g. devices
+sometimes consume little power, and sometimes get hot... but the combination
+places it well outside the grouping of data we have seen before. e.g. a unit
+running hot while at the same time consuming little power is abnormal. We
+can compinsate for this in the standard model by manually creating a new
+feature such as X<SUB>3</SUB> = X<SUB>1</SUB>/X<SUB>2 </SUB>where
+X<SUB>1</SUB> might be power use, and X<SUB>2</SUB> might be heat. Multivariate
+Gaussian Distribution can look for the <I>combination</I> of factors which
+are unusual together.
+<P>
+Instead of modeling each feature separately, we will model them all together
+by making sigma a matrix. By changing the values in this nxn version of sigma,
+we can control the distribution for different axis individually. For example
+if sigma = [1 0; 0 0.6] then X1 has a Normal distribution of 1, and X2 of
+0.6 meaning that X2 is expected to take on a more narrow range of values.
+If sigma = [1 0.5; 0.5 1] then X1 and X2 cover the same range, but now we
+are modeling correlations between the axis; we are saying that when X1 is
+large, we expect X2 to be large as well. The correlation is controlled by
+the size of the value; if sigma = [1 0.8; 0.8 1] then we are saying that
+X1 and X2 are <I>strongly</I> correlated and if X1 is large and X2 is small,
+that should fall outside our limit and trigger an alarm. Negative values
+indicate an inverse correlation; we expect X1 to be large when X2 is small.
+<P>
+Our new probablity density function is actually very close to the old one:
+(in fact, it's the same, if you constrain it such that the axies are aligned
+i.e. where sigma is a diagonal matrix.)<BR>
+<IMG SRC="MultivariateDistribution.png" WIDTH="588" HEIGHT="97"><BR>
+but we have rearranged terms to make it easier to compute as a matrix.
+<I>&oacute;</I><SUP> -1</SUP>is the same as 1/<I>&oacute;</I>. In matrix
+form, the |<I>&oacute;</I>| can be calculated in
+<A HREF="../../language/octave.htm">Octave</A> as <TT>det(sigma)</TT> where
+sigma is an nxn matrix. &#181; is an n dimensional vector.
+<P>
+As before, we are training &#181; = mean(X<SUP>(i)</SUP>) but now
+<I>&oacute;</I><SUP>2</SUP> = mean<BIG>( </BIG>(X<SUP>(i)</SUP> -
+&#181;)(X<SUP>(i)</SUP> - &#181;)<SUP>T</SUP> <BIG>)</BIG>;
+<P>
+So the advantage here is that it will automatically find correlations between
+features. It is, however, more computationally expensive, and does not scale
+as well as the standard Normal model. It also doesn't work as well unless
+m &gt; n (because <I>&oacute;</I> will be non-invertable) and perhaps m should
+be 10 or more times n in practice.<I> &oacute;</I> can also be non-invertable
+if you have redundant features, so carefully selecting features is important.
+<P>
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>k = length(mu);
+
+if (size(Sigma, 2) == 1) || (size(Sigma, 1) == 1)
+    Sigma = diag(Sigma);
+    end
+
+X = bsxfun(@minus, X, mu(:)');
+p = (2 * pi) ^ (- k / 2) * det(Sigma) ^ (-0.5) * ...
+    exp(-0.5 * sum(bsxfun(@times, X * pinv(Sigma), X), 2));
+</PRE>
+<P>
+<H3>
+  Selecting / Transforming Features
+</H3>
+<P>
+Select features which appear to fit the Normal distribution. The histogram
+plot (in Octave, use the hist command) can be helpful to visualize each features
+data. For important features, we might be able to "correct" the distribution
+by applying some sort of transform. E.g. if the histogram shows data skewed
+to the lower end of the scale, try using log(Xj) or take the square root
+(or some other power) to make a training feature which is more gaussian in
+shape.
+<P>
+We can also do error analysis on each feature to see which are more or less
+correlated with anomalies.
+<H3>
+  Training, Validation and Test
+</H3>
+<P>
+In most cases, by definition, training data will have many examples which
+are not-anomalous (y=0) and only a few which are (y=1). We can train the
+&#181; and <I>&oacute;</I><SUP>2</SUP> data from a sub set of the non-anomalous
+data then build a cross validation and test sets which split the anomalous
+examples and have the standard fractions of non-anomalous examples. Train
+on the training data (with no anomalous examples) then test against the CV
+and test sets.
+<P>
+Be sure to check false positives and negatives as well as true positives
+and negatives because the data is typically
+<A HREF="Troubleshooting.htm#SkewedClasses">skewed</A>. A machine that always
+predicts y=0 would have high accuracy.
+<P>
+Use the cross validation set to choose the parameter for <I>e</I>, the threshold
+by calculating the F1 score for many values of e between the minimum and
+maximum values of the data.
+<PRE>stepsize = (max(p) - min(p)) / 1000;
+for epsilon = min(p):stepsize:max(p)
+  predictions = (p &lt; epsilon);
+  F1 = findF1(predictions, epsilon); % see <A HREF="Troubleshooting.htm#SkewedClasses">Skewed Classes</A>
+  if F1 &gt; bestF1
+    bestF1 = F1;
+    bestEpsilon = epsilon;
+    end
+  end
+</PRE>
+<H3>
+  Find Outliers
+</H3>
+<P>
+Given the probability density (p) and a good value for our cut off point
+(epsilon) we can now easily find our outliers:
+<PRE>outliers = find(p &lt; epsilon);
+</PRE>
+</BODY></HTML>

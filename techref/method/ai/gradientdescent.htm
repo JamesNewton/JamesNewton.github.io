@@ -1,0 +1,64 @@
+<HTML>
+<HEAD>
+  <META http-equiv="Bulletin-Text" content="JMN-EFP-786">
+  <!-- AP: Last modified: 18-Nov-2019 -->
+  <TITLE>Gradient Descent</TITLE>
+</HEAD>
+<BODY>
+<H2>
+  Gradient Descent
+</H2>
+<P>
+If we have a complex, difficult to&nbsp;solve, system of equations for which
+we need to find a&nbsp;minimum value, it can be easier to just pick
+a&nbsp;random set of inputs, calculate the result (which is usually must
+easier) and then see if we can change the inputs to make the output value
+go down. If it goes up, we can move the inputs in the other direction. But
+there is an easier way to figure out which direction to move: Take the derivative
+of the original formula. That gives us the slope, and we can just role the
+input down the hill to the bottom. 
+<P>
+In practice, we have a guess, call it theta, which represents the inputs
+to the formula. In order to change theta to a better value, we can modify
+it by a small increment (represented by a or alpha) times the <I>slope</I>
+of our error. Doing this again and again will slowly move our prediction
+over the entire training set to an optimal line IF the value of alpha is
+small enough. If alpha is too large, the new predicted value of theta may
+overshoot the ideal value and bounce out of control. Of course, very small
+values of alpha may converge to the ideal parameters very slowly.
+<P>
+Note that we are computing the derivative of the cost function to find it's
+slope so that we know which direction to move and by how much. That's why
+we use half the MSE as our cost function: The derivative of
+&#189;x<SUP>2</SUP> is x which is easy to calculate. The slope for parameter
+<STRIKE>O</STRIKE><SUB>J</SUB> is simply (<STRIKE>O</STRIKE><SUP>T</SUP>X
+- y) X, or the actual error (difference not MSE) times X.
+<PRE><FONT COLOR="Green"><B>% Basic Linear Regression Gradient Decent with multiple parameters in <A HREF="../../language/octave.htm">Octave</A></B></FONT>
+alpha = 0.01; <FONT COLOR="Green">% try larger values 0.01, 0.03, 0.1, 0.3, etc...</FONT> 
+m = length(y); <FONT COLOR="Green">% number of training examples</FONT>
+p = size(X,2); <FONT COLOR="Green">% number of parameters (second dimension of X)</FONT>
+
+for iter = 1:num_iters
+  hyp = X*theta;  <FONT COLOR="Green">%calculate our hypothesis using current parameters</FONT>
+  err = (hyp .- y); <FONT COLOR="Green">%find the error between that and the real data</FONT>
+  s = ( X' * err )./m; <FONT COLOR="Green">%find the slope of the error.</FONT> <I>(should that be .' instead of '?)</I>
+  <FONT COLOR="Green">%Note: This is the derivative of our cost function</FONT>
+  theta = theta - alpha .* s; 
+  <FONT COLOR="Green">%adjust our parameters by a small distance along that slope.</FONT>
+  end
+</PRE>
+<P>
+Given an error curve that smoothly approaches a local minimum, the correction
+applied to each theta is decreased as our error slope decreases, even though
+alpha is not changed over each run. This helps us quickly converge when the
+error is large, but slow down and not overshoot our goal as we approach the
+best fit. This nice curve is not always present.
+<P>
+See also:
+<UL>
+  <LI>
+    <A HREF="https://www.mattkeeter.com/projects/constraints/">https://www.mattkeeter.com/projects/constraints/</A>
+    Very nice example in javascript which will run in the browser.
+</UL>
+<P>
+</BODY></HTML>

@@ -1,0 +1,325 @@
+<HTML>
+<HEAD>
+  <!-- Created with AOLpress/2.0 -->
+  <!-- AP: Created on: 24-Jul-2015 -->
+  <!-- AP: Last modified: 6-Mar-2019 -->
+  <TITLE>Machine Learning, Artificial Intelligence Method, Logistic Regression</TITLE>
+</HEAD>
+<BODY>
+<H1>
+  <A HREF="..\ais.htm">Machine Learning</A>
+  <A HREF="../../methods.htm">Method</A> Logistic Regression
+</H1>
+<P>
+A type of regression model (like <A HREF="LinearRegresion.htm">Linear
+Regression</A>) but where the dependent variable (the thing being predicted)
+is categorical, rather than continuously varying over a range. For example,
+Logistic Regression might be used to predict if a house split level or ranch
+based on the number of rooms, where linear regression would be used to predict
+something like the value or selling price. It discriminates between groups
+of data, but does not generalize either the best seperation between the groups,
+nor does it find the probable center or distribution of the groups. It works
+well and inexpensively when the data is spread out but has a clear and linear
+boundry. When the boundry is non-linear, or some (training) data may be spread
+away from the actual boundry, an <A HREF="SupportVectorMachine.htm">SVM</A>
+may work better. When the data is clustered or grouped, a
+<A HREF="bayesian.htm">Bayesian Classifier</A>&nbsp;may work better. 
+<P>
+<IMG SRC="../../../images/AiModelsDisGen.png" WIDTH="458" HEIGHT="190">
+<P>
+Although the prediction is binary, the model uses a <B>Percentage Chance
+Prediction</B> for each possible outcome. E.g. what is the percentage chance
+that a house is split level given that it has 5 rooms? So 0 &lt;
+h<STRIKE><SUB>o</SUB></STRIKE>(x) &lt;= 1. The probability that y=1, given
+x parameterized by <STRIKE>o</STRIKE>, can be written
+as:&nbsp;h<STRIKE><SUB>o</SUB></STRIKE>(x) = P(y=1:x;<STRIKE>o</STRIKE>)
+Assuming&nbsp;that y can only be 0 or 1, if P(y=1:x;<STRIKE>o</STRIKE>) =
+0.7, then we know there is a 70% chance that y is 1. There is then, obviously,
+a 30% chance that y is zero, or P(y=0:x;<STRIKE>o</STRIKE>) &nbsp;= 0.3.
+I.e. the total probabilities must add to 1.
+<P>
+As expected, our job is to find <STRIKE>o</STRIKE> such that x is transformed
+into a valid prediction of the probability that y is 1. We can then apply
+a <B>Decision Boundary</B> which divides the probability into a 1 or 0. For
+example, we might say that y is 1 when the probability of y being 1 is higher
+than 50%. So our hypothesis function needs to translate values of
+<STRIKE>O</STRIKE><SUP>T</SUP>x such that
+g(<STRIKE>O</STRIKE><SUP>T</SUP>x) will be &gt;= 0.5 when
+<STRIKE>O</STRIKE><SUP>T</SUP>x &gt;= 0 (positive) and less than 0.5 when
+<STRIKE>O</STRIKE><SUP>T</SUP>x &lt; 0 (i.e. negative) but the result will
+never be more than 1 or less than -1.
+<P>
+<IMG SRC="logistic-curve.png" WIDTH="218" HEIGHT="145" ALIGN="Right">Rather
+than use a hypothesis funciton of&nbsp;<STRIKE>O</STRIKE><SUP>T</SUP>x as
+in Linear Regression, we need to use the <B>Logistic Function</B>
+<A HREF="https://en.wikipedia.org/wiki/Generalised_logistic_function">^</A>
+g(<STRIKE>O</STRIKE><SUP>T</SUP>x) where g(z) is:
+<TABLE>
+  <TR>
+    <TD><P ALIGN=Center style="padding:0px; margin:0px;">
+      1</TD>
+  </TR>
+  <TR style="height:2px">
+    <TD style="height:2px">
+	<HR style="padding:0px; margin:0px;">
+    </TD>
+  </TR>
+  <TR>
+    <TD>1+e<SUP>-z</SUP></TD>
+  </TR>
+</TABLE>
+<P>
+which is also called the <B>Sigmoid
+Function</B><A HREF="https://en.wikipedia.org/wiki/Sigmoid_function">^</A>.
+In <A HREF="../../language/octave.htm">Octave</A>:
+<PRE>function g = sigmoid(z)
+%SIGMOID Compute sigmoid functoon
+%   J = SIGMOID(z) computes the sigmoid of z.
+% (z can be a matrix, vector, or scalar).
+  g = 1 ./ ( 1 .+ exp(-z) ) ;
+  end
+</PRE>
+<P>
+This sigmoid function simply limits our result into the maximum range we
+desire, with a rapid transition at <STRIKE>O</STRIKE><SUP>T</SUP>x = 0.
+<P>
+Note: The decision boundary may not be a straight line if the hypotheses
+includes terms which define other terms. E.g. x<SUP>2 </SUP>
+<P>
+<B>Cost Function:</B> The standard Mean Squared Error
+(MSE)<A HREF="https://en.wikipedia.org/wiki/Mean_squared_error">^</A> function
+doesn't work well as a&nbsp;cost function for sigmoid because it results
+in graph that is not convex, but instead is "pitted" with many local minima.
+Instead we use:<BR>
+-log(h<STRIKE><SUB>o</SUB></STRIKE>(x)) if y = 1<BR>
+-log(h<STRIKE><SUB>o</SUB></STRIKE>(x)) if y = 0
+<P>
+This produces a nice curve that, when y = 1, slowly approaches 0 as
+h<STRIKE><SUB>o</SUB></STRIKE>(x) approaches 1 yet quickly becomes infinite
+near zero 0 and does exactly the opposite when y = 1, i.e. it slowly approaches
+0 as h<STRIKE><SUB>o</SUB></STRIKE>(x) approaches 0, but quickly become infinite
+as it approaches 1. This gives us near infinate cost as our error is large,
+and very little change in cost as our error decreases toward zero, helping
+us to not overshoot our goal. Also, the relationship between the loss function
+and the parameters w still gives us a concave error function. Thus, we can
+rest assured that there is only a unique minimum on the error surface.
+<P>
+We can combine the two cases (y=0 or y=1) into one equation by multiplying
+one side by y and the other side by 1-y; which ever term is unwanted, will
+be multiplied by zero and drop out.
+<P>
+<IMG SRC="LogisticCost.png" WIDTH="357" HEIGHT="58">
+<P>
+h<STRIKE><SUB>O</SUB></STRIKE>(x<SUP>(i)</SUP>) =
+g(<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(i)</SUP>)
+<P>
+<B>Hypothesis Function:</B> If we transpose each x<SUP>(i)</SUP> and build
+a matrix X =
+[(x<SUP>(1)</SUP>)<SUP>T</SUP>;(x<SUP>(2)</SUP>)<SUP>T</SUP>;...(x<SUP>(m)</SUP>)<SUP>T</SUP>]
+given <STRIKE>O</STRIKE>&nbsp;=
+[<STRIKE>O</STRIKE><SUB>0</SUB>;<STRIKE>O</STRIKE><SUB>1</SUB>;...<STRIKE>O</STRIKE><SUB>n</SUB>]
+then the matrix product X<STRIKE>O</STRIKE> is
+[<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(1)</SUP>;<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(2)</SUP>;...<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(m)</SUP>].
+In other words, if we build a matrix X (note the capital X vs x) where each
+row is a set of input values (x<SUP>(i)</SUP>)<SUP>T</SUP>), then
+<STRIKE>O</STRIKE><SUP>T</SUP>x<SUP>(i)</SUP> becomes X<STRIKE>O</STRIKE>
+which is a vector with each element being the sum of the values of
+<STRIKE>O</STRIKE> times each input. We can then take the sigmoid function
+of each row to form our vector of hypothesis values. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<P>
+<TT>hyp = sigmoid(X*theta);</TT>
+<P>
+Calculating our cost then becomes simple <A HREF="../math/matrix.htm">matrix
+math</A> by taking the transpose of the y values or the (1-y) values times
+the hypothesis or 1 - hypothesis vector. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<P>
+<TT>errs = -y' * log(hyp) - (1-y)' * log(1-hyp);</TT>
+<P>
+The cost for a given set of parameters over the training set is then simply
+the sum of the costs divided by the number of errors. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<P>
+<TT>J = sum(errs)/m;</TT>
+<P>
+<B>Slope Function:</B> As with the MSE in Linear Regression, the Sigmoid
+function has a very simple derivative
+h<SUB><STRIKE>o</STRIKE></SUB>(x<SUP>(i)</SUP> - y<SUP>(i)</SUP>) *
+x<SUB>j</SUB><SUP>(i)</SUP> (it's quite difficult to take the derivative
+of it, but once you do, the result is this very simple equation) which makes
+it easy to calculate the slope of the error. This makes the gradient descent
+quick, which is why we picked it in the first place. Just like in Linear
+Regression we do:
+<P>
+<STRIKE>O</STRIKE><SUB>j</SUB> := <STRIKE>O</STRIKE><SUB>j</SUB> - a * sum
+i=1 to m <BIG>(</BIG>
+(h<SUB><STRIKE>o</STRIKE></SUB>(x<SUP>(i)</SUP>) - y<SUP>(i)</SUP>) *
+x<SUB>j</SUB><SUP>(i)</SUP> <BIG>)</BIG> / m
+<P>
+We have already calculated our
+h<SUB><STRIKE>o</STRIKE></SUB>(x<SUP>(i)</SUP>) for all i as
+X<STRIKE>O</STRIKE> which is a vector. The error is then that value less
+our known values of y. &szlig;<SUB>i </SUB>=
+h<SUB><STRIKE>o</STRIKE></SUB>(x<SUP>(i)</SUP>) - y<SUP>(i)</SUP> or in Matrix
+form &szlig; = X<STRIKE>O</STRIKE> - y which is still just a vector. In
+<A HREF="../../language/octave.htm">Octave</A>:
+<P>
+<TT>err = (hyp .- y)</TT>
+<P>
+To multiply by x<SUB>j</SUB><SUP>(i)</SUP> and sum, understand that we are
+calculating sum(&szlig;<SUB>i</SUB> x<SUP>(i)</SUP>) where x<SUP>(i)</SUP>
+is a vector (one set of inputs) and &szlig;<SUB>i</SUB> is a scaler (one
+hypothesis less the actual y value for that input). Multiplying each
+x<SUP>(i)</SUP> vector times each &szlig;<SUB>i</SUB> and summing the output,
+is the same as Matrix multiplying the transpose of X by the vector of scalers
+&szlig;.
+<P>
+sum(&szlig;<SUB>i</SUB> x<SUP>(i)</SUP>) = [x<SUP>(1)</SUP> x<SUP>(2)</SUP>
+... x<SUP>(m)</SUP> ] * [&szlig;<SUB>1</SUB> ; &szlig;<SUB>2</SUB> ; ...
+&szlig;<SUB>m</SUB> ] = X<SUP>T</SUP>&szlig;
+<P>
+<B>Gradient Decent:</B> Keeping in mind that we must simultaneously update
+all <STRIKE>O</STRIKE> and that h<SUB><STRIKE>O</STRIKE></SUB> is now a totally
+different equation based on the sigmoid function.
+<PRE><FONT COLOR="Green"><B>% Basic Logistic Regression via gradient decent with multiple parameters in <A HREF="../../language/octave.htm">Octave</A></B></FONT>
+alpha = 0.01; <FONT COLOR="Green">% try larger values 0.01, 0.03, 0.1, 0.3, etc... </FONT>
+m = length(y); <FONT COLOR="Green">% number of training examples</FONT>
+p = size(X,2); <FONT COLOR="Green">% number of parameters (second diminsion of X)</FONT>
+
+for iter = 1:num_iters <FONT COLOR="Green">%for some number of iterations</FONT>
+  hyp = sigmoid(X*theta); <FONT COLOR="Green">%calculate our hypothesis using current parameters</FONT>
+  err = (hyp .- y); <FONT COLOR="Green">%find the error between that and the real data</FONT>
+  s = sum( err .* X )./m; <FONT COLOR="Green">%find the slope of the error.</FONT> 
+  <FONT COLOR="Green">%Note: This is the derivative of our cost function</FONT>
+  theta = theta - alpha .* s; 
+  <FONT COLOR="Green">%adjust our parameters by a small distance along that slope.</FONT>
+  end
+</PRE>
+<H3>
+  <A HREF="Troubleshooting.htm">Under and Over Fitting</A>
+</H3>
+<P>
+Not all data fits well to a straight line. This is called "underfitting"
+or we may say that the algorithm as a "high bias". We can try fitting a quadratic
+or even higher order equation. E.g. instead of
+<STRIKE>O</STRIKE><SUB>0</SUB> + <STRIKE>O</STRIKE><SUB>1</SUB>x, we might
+use <STRIKE>O</STRIKE><SUB>0</SUB> + <STRIKE>O</STRIKE><SUB>1</SUB>x +
+<STRIKE>O</STRIKE><SUB>2</SUB>x<SUP>2</SUP>. But, if we choose an equation
+of too high an order, then we might "overfit" or have an algorithm with "high
+variance", which would fit any function and isn't representing the function
+behind this data. Overfitting can therefore result in predictions for new
+examples which are not accurate even though it exactly predicts the data
+in the trianing set. The training data may well have some noise, or outliers,
+which are not actually representative of the true function.
+<P>
+If the data is in 2 or 3 features, it can be plotted and a human can decide
+if it is being over or under fit. But when there are many parameters, it
+can be impossible to plot. And using a human is sort of against the purpose
+of Machine Learning. It may help to reduce the number of features if we can
+find features that don't really apply. Another means of reducing overfitting
+is regularization.
+<H3>
+  <A HREF="Regularization.htm">Regularization</A>
+</H3>
+<P>
+To keep the system from over fitting, and instead provide a more generalized
+fit, we can add the sum values of the theta parameters to the cost and slope
+of the error. Here is that new term added to the right of our cost function:
+<P>
+<IMG SRC="LogisticCost.png" WIDTH="357" HEIGHT="58"><IMG SRC="LogisticReg.png"
+    WIDTH="77" HEIGHT="58">
+<P>
+Question: Shouldn't we use lower weight parameters (more regularization)
+for higher order terms?
+<P>
+Don't regularize <STRIKE>O</STRIKE><SUB>0</SUB>.
+<P>
+Lambda is used as a parameter for the amount of regularization. e.g. the
+amount that the parameter values are multiplied by before adding them to
+the cost function. To large a lambda can result in underfitting.
+<PRE>reg = lambda * sum(theta2.^2) / (2*m);
+J = J + reg;
+...
+reg = lambda .* theta2 ./ m ;
+S = S + reg;
+</PRE>
+<P>
+Where <TT>theta2</TT> is either:
+<PRE>theta2 = theta;
+theta2(1) = 0;
+</PRE>
+<P>
+Or <TT></TT>
+<PRE>theta2 = [0; theta(2:end)] 
+</PRE>
+<P>
+(the <TT>[0;</TT> and <TT>]</TT> aren't needed for the cost calculation,
+only for the gradient / slope.
+<P>
+<B><BIG>Find Minimum Function:</BIG> <TT>fminunc( @[cost, slope] = cost(theta,
+X, y), theta, options )</TT></B>
+<P>
+But there are better (and more complex) means of adjusting the theta (parameter)
+values to minumize cost. fminuc is a common and powerful method. The fminunc
+function expects a reference to a function which will return cost and
+(optionally) slope / gradient values for a given set of parameters, training
+data, and training answers. It starts from an initial set of parameters and
+there are some options which can be set, such as the maximum number of
+iterations.
+<P>
+Here is a complete learning function in
+<A HREF="../../language/octave.htm">Octave</A> using fminunc:
+<PRE>function [J, S] = costSlope(theta, X, y, lambda)
+<FONT COLOR="Green">%return cost (J) and slope (S) given training data (X, y), current theta, and lambda</FONT>
+  m = length(y);
+  hyp = sigmoid(X*theta); 
+  <FONT COLOR="Green">%make a guess based on the sigmoid of our training data times our current paramaters.</FONT> 
+  costs = -y' * log(hyp) - (1-y)' * log(1-hyp); <FONT COLOR="Green">%costs with sigmoid function</FONT>
+  <FONT COLOR="Green">%costs = -y .* log(hyp) - (1-y) .* log(1-hyp); %more general version?</FONT>
+  J = sum(costs(:))/m; <FONT COLOR="Green">%mean cost. (:) required for higher dimensions</FONT>
+  reg = (lambda * sum(theta(2:end).^2) / (2*m)); <FONT COLOR="Green">%mean cost + regularization</FONT>
+  J = J + reg; <FONT COLOR="Green">%add in the regularization</FONT>
+  err = (hyp .- y); <FONT COLOR="Green">%actual error.</FONT> <BR>  <FONT COLOR="Green">%Note this happens to be the derivative of our cost function.</FONT>
+  S = (X' * err)./m; <FONT COLOR="Green">%slope of the error </FONT>
+  reg = lambda .* [0;theta(2:end)] ./ m; <FONT COLOR="Green">%Also regularize the slope</FONT>
+  S = S + reg; <FONT COLOR="Green">%add in the regularization</FONT>
+  end
+
+options = optimset('GradObj', 'on', 'MaxIter', 400);
+[theta, cost] = fminunc(@(t)(costSlope(t, X, y)), initial_theta, options);
+</PRE>
+<P>
+For more about the @(t) () syntax see
+<A HREF="../../language/octave.htm#AnonymousFunctions">Octave: Anonymous
+Functions</A>
+<P>
+Also: <A HREF="fmincg.htm">fmincg</A>. This works similarly to fminunc, but
+is more efficient when we are dealing with large number of parameters.
+<P>
+It's very easy to turn this into a&nbsp;"one hot"
+<A HREF="LogisticClassifier.htm">logistic classifier</A>
+<P>
+Also:
+<UL>
+  <LI>
+    <A HREF="LogisticClassifier.htm">Machine Learning Method Logistic
+    Classifier</A>
+  <LI>
+    <A NAME="42231.9645949074" HREF="SupportVectorMachine.htm" TARGET="_top">Support
+    Vector Machine</A> <!-- 42231.9645949074 EOR -->
+</UL>
+<P>
+See also:
+<UL>
+  <LI>
+    <A TITLE="JMN-EFP-786" NAME="42211.5935416667" HREF="http://www.stat.cmu.edu/~cshalizi/uADA/12/lectures/ch12.pdf"
+	TARGET="_top">http://www.stat.cmu.edu/~cshalizi/uADA/12/lectures/ch12.pdf</A>
+    Carnegie Melon University Statistics Class<!-- 42211.5935416667 EOR -->
+  <LI>
+    <A HREF="https://medium.freecodecamp.org/logistic-regression-the-good-parts-55efa68e11df">https://medium.freecodecamp.org/logistic-regression-the-good-parts-55efa68e11df</A>
+</UL>
+<P>
+<A TITLE="JMN-EFP-786" NAME="42211.5964236111"> </A>
+<P>
+</BODY></HTML>
