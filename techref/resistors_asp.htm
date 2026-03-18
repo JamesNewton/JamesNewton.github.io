@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Resistor Finder & Visualizer</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --primary-color: #2563eb;
+            --text-color: #1f2937;
+            /* Resistor Colors */
+            --res-0: #000000; --res-1: #8b4513; --res-2: #ff0000;
+            --res-3: #ff8c00; --res-4: #ffd700; --res-5: #008000;
+            --res-6: #0000ff; --res-7: #9400d3; --res-8: #808080;
+            --res-9: #ffffff; --res-10: #d4af37; --res-11: #c0c0c0;
+            --res-body: #d2b48c;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 { margin-top: 0; color: var(--primary-color); }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 2rem;
+        }
+
+        input, select, button {
+            padding: 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .visualizer-area {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .resistor-card { text-align: center; }
+
+        /* SVG Resistor Styling */
+        .resistor-svg { width: 200px; height: 80px; }
+        .resistor-body { fill: var(--res-body); stroke: #bc9b6c; stroke-width: 1; }
+        .wire { stroke: #4b5563; stroke-width: 4; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th { background: #f3f4f6; }
+
+        .standard-values {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Resistor Finder</h1>
+    <p>Enter Ohms (e.g., 1k2, 4.7k, 1M) to visualize color bands and find parallel pairs.</p>
+
+    <div class="controls">
+        <div>
+            <label>Resistance (Ω)</label><br>
+            <input type="text" id="ohmInput" placeholder="e.g. 4k7" value="1k">
+        </div>
+        <div>
+            <label>Tolerance</label><br>
+            <select id="toleranceInput">
+                <option value="1">1% (Brown)</option>
+                <option value="2">2% (Red)</option>
+                <option value="5" selected>5% (Gold)</option>
+                <option value="10">10% (Silver)</option>
+                <option value="20">20% (None)</option>
+            </select>
+        </div>
+        <button id="findPairBtn">Find Parallel Pair</button>
+    </div>
+
+    <div id="visualizer" class="visualizer-area">
+        </div>
+
+    <div id="results">
+        </div>
+
+    <div class="standard-values">
+        <strong>E6 Series basics:</strong> 
+        <span id="e6Buttons"></span>
+    </div>
+</div>
+
+<script>
+    const COLORS = [
+        '#000000', '#8b4513', '#ff0000', '#ff8c00', '#ffd700', 
+        '#008000', '#0000ff', '#9400d3', '#808080', '#ffffff', 
+        '#d4af37', '#c0c0c0', 'transparent'
+    ];
+
+    const TOLERANCE_MAP = { 1: 1, 2: 2, 5: 10, 10: 11, 20: 12 };
+
+    // Generate E24 Series for calculation
+    const E24_BASE = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1];
+    const ALL_RESISTORS = [];
+    for (let e = 0; e <= 6; e++) {
+        E24_BASE.forEach(v => ALL_RESISTORS.push(v * Math.pow(10, e)));
+    }
+
+    const parseOhms = (input) => {
+        input = input.trim().toLowerCase();
+        let match;
+        // Handles 1.2k, 1k2, 1200
+        if (match = input.match(/^(\d+)?([rkm])(\d+)?$/)) {
+            const mult = { r: 1, k: 1000, m: 1000000 }[match[2]];
+            const major = match[1] || 0;
+            const minor = match[3] || 0;
+            return (parseFloat(major) + parseFloat('0.' + minor)) * mult;
+        }
+        if (match = input.match(/^(\d+\.?\d*)([km])?$/)) {
+            const mult = { k: 1000, m: 1000000 }[match[2]] || 1;
+            return parseFloat(match[1]) * mult;
+        }
+        return parseFloat(input);
+    };
+
+    const getBands = (val, bandCount) => {
+        let sigFigs = bandCount === 3 ? 2 : 3;
+        let exponent = Math.floor(Math.log10(val)) - (sigFigs - 1);
+        let mantissa = Math.round(val / Math.pow(10, exponent));
+        
+        if (mantissa >= Math.pow(10, sigFigs)) {
+            mantissa /= 10;
+            exponent++;
+        }
+
+        const bands = String(mantissa).split('').map(Number);
+        bands.push(exponent);
+        return bands;
+    };
+
+    const createResistorSVG = (val, tolerance, bands) => {
+        const bandColors = getBands(val, bands);
+        const tolColor = COLORS[TOLERANCE_MAP[tolerance]];
+        
+        const bandElements = bandColors.map((c, i) => 
+            `<rect x="${40 + (i * 20)}" y="10" width="10" height="60" fill="${COLORS[c]}" />`
+        ).join('');
+
+        return `
+            <div class="resistor-card">
+                <h4>${bands + 1} Band (${val} Ω)</h4>
+                <svg class="resistor-svg" viewBox="0 0 200 80">
+                    <line class="wire" x1="0" y1="40" x2="200" y2="40" />
+                    <rect class="resistor-body" x="30" y="10" width="140" height="60" rx="10" />
+                    ${bandElements}
+                    <rect x="140" y="10" width="10" height="60" fill="${tolColor}" />
+                </svg>
+            </div>
+        `;
+    };
+
+    const updateUI = () => {
+        const val = parseOhms(document.getElementById('ohmInput').value);
+        const tol = document.getElementById('toleranceInput').value;
+        if (isNaN(val)) return;
+
+        const visualizer = document.getElementById('visualizer');
+        visualizer.innerHTML = createResistorSVG(val, tol, 3) + createResistorSVG(val, tol, 4);
+    };
+
+    const findParallelPairs = () => {
+        const target = parseOhms(document.getElementById('ohmInput').value);
+        const tol = parseFloat(document.getElementById('toleranceInput').value);
+        const resultsDiv = document.getElementById('results');
+        
+        let pairs = [];
+        for (let i = 0; i < ALL_RESISTORS.length; i++) {
+            for (let j = i; j < ALL_RESISTORS.length; j++) {
+                const r1 = ALL_RESISTORS[i];
+                const r2 = ALL_RESISTORS[j];
+                const combined = (r1 * r2) / (r1 + r2);
+                const diff = ((combined - target) / target) * 100;
+
+                if (Math.abs(diff) <= tol) {
+                    pairs.push({ r1, r2, combined, diff });
+                }
+            }
+        }
+
+        pairs.sort((a, b) => Math.abs(a.diff) - Math.abs(b.diff));
+        pairs = pairs.slice(0, 10); // Top 10 matches
+
+        let html = `<h3>Closest Parallel Matches</h3><table><tr><th>R1</th><th>R2</th><th>Combined</th><th>Error</th></tr>`;
+        pairs.forEach(p => {
+            html += `<tr>
+                <td>${p.r1} Ω</td>
+                <td>${p.r2} Ω</td>
+                <td>${p.combined.toFixed(2)} Ω</td>
+                <td style="color: ${p.diff > 0 ? 'red' : 'blue'}">${p.diff.toFixed(2)}%</td>
+            </tr>`;
+        });
+        html += `</table>`;
+        resultsDiv.innerHTML = html;
+    };
+
+    // Event Listeners
+    document.getElementById('ohmInput').addEventListener('input', updateUI);
+    document.getElementById('toleranceInput').addEventListener('change', updateUI);
+    document.getElementById('findPairBtn').addEventListener('click', findParallelPairs);
+
+    // Initial Load
+    const e6Values = [1.0, 1.5, 2.2, 3.3, 4.7, 6.8];
+    const e6Container = document.getElementById('e6Buttons');
+    e6Values.forEach(v => {
+        const btn = document.createElement('button');
+        btn.textContent = v;
+        btn.style.margin = '2px';
+        btn.onclick = () => {
+            document.getElementById('ohmInput').value = v;
+            updateUI();
+        };
+        e6Container.appendChild(btn);
+    });
+
+    updateUI();
+</script>
+
+</body>
+</html>
