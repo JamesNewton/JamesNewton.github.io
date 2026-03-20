@@ -40,7 +40,7 @@
 
         .controls {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
             align-items: end;
             margin-bottom: 2rem;
@@ -71,6 +71,9 @@
             margin: 2rem 0;
             background: #f9fafb;
             border-radius: 8px;
+            padding: 1rem;
+            min-height: 120px; /* Prevent layout shift when empty */
+            align-items: center;
         }
 
         .resistor-card { text-align: center; }
@@ -93,6 +96,13 @@
         }
 
         th { background: #f3f4f6; }
+        
+        /* Hover effect for clickable rows */
+        tr.clickable-row { cursor: pointer; transition: background-color 0.2s; }
+        tr.clickable-row:hover { background-color: #e5e7eb; }
+        
+        /* Highlight active row */
+        tr.selected-row { background-color: #dbeafe; }
 
         .standard-values {
             font-size: 0.875rem;
@@ -130,7 +140,13 @@
                 <option value="20">20% (None)</option>
             </select>
         </div>
-        <button id="findPairBtn">Find Parallel Pair</button>
+        <div>
+            <label>Display Style</label><br>
+            <select id="displayStyle">
+                <option value="3" selected>4-Band (Standard)</option>
+                <option value="4">5-Band (Precision)</option>
+                </select>
+        </div>
     </div>
 
     <div class="standard-values">
@@ -157,13 +173,18 @@
     const E6_BASE = [1.0, 1.5, 2.2, 3.3, 4.7, 6.8];
     // Generate E24 Series for calculation
     const E24_BASE = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1];
+    
+    // Expanded ALL_RESISTORS range (e = -1 to 7) to cover 0.1 ohm up to ~91M ohm for better pair finding
     const ALL_RESISTORS = [];
-    for (let e = 0; e <= 6; e++) {
+    for (let e = -1; e <= 7; e++) {
         E24_BASE.forEach(v => ALL_RESISTORS.push(v * Math.pow(10, e)));
     }
 
+    let inputTimeout = null; // Timer for debouncing the input
+    let currentPairView = null; // Tracks if we are viewing a specific parallel pair
+
     const parseOhms = (input) => {
-        input = input.trim().toLowerCase();
+        input = String(input).trim().toLowerCase();
         let match;
         // Handles 1.2k, 1k2, 1200
         if (match = input.match(/^(\d+)?([rkm])(\d+)?$/)) {
@@ -177,6 +198,15 @@
             return parseFloat(match[1]) * mult;
         }
         return parseFloat(input);
+    };
+
+    // Helper to extract the mantissa and determine if it belongs to standard series
+    const checkStandardness = (val) => {
+        const rawMantissa = parseFloat(parseFloat(val).toExponential().split('e')[0]);
+        const mantissa = Math.round(rawMantissa * 100) / 100;
+        const isE6 = E6_BASE.includes(mantissa);
+        const isE24 = E24_BASE.includes(mantissa);
+        return { mantissa, isE6, isE24, isStandard: isE6 || isE24 };
     };
 
     const getBands = (val, bandCount) => {
@@ -197,18 +227,17 @@
     const createResistorSVG = (val, tolerance, bands) => {
         const bandColors = getBands(val, bands);
         const tolColor = COLORS[TOLERANCE_MAP[tolerance]];
-        const rawMantissa = parseFloat(parseFloat(val).toExponential().split('e')[0]);
-        const mantissa = Math.round(rawMantissa * 100) / 100;
-        const standard = E6_BASE.includes(mantissa) ? ' (E6 Standard)' 
-                   : E24_BASE.includes(mantissa) ? ' (E24 Standard)' 
-                   : '(Non-standard)';
+        
+        const { mantissa, isE6, isE24 } = checkStandardness(val);
+        const standard = isE6 ? ' (E6 Standard)' : isE24 ? ' (E24 Standard)' : '(Non-standard)';
+        
         const bandElements = bandColors.map((c, i) => 
             `<rect x="${40 + (i * 20)}" y="10" width="10" height="60" fill="${COLORS[c]}" />`
         ).join('');
 
         return `
             <div class="resistor-card">
-                <div>${bands + 1} Band (${val} Ω)</div>
+                <div>${bands + 1} Band (${val.toFixed(2).replace(/\.00$/, '')} Ω)</div>
                 <div>${standard} ${mantissa}</div>
                 <svg class="resistor-svg" viewBox="0 0 200 80">
                     <line class="wire" x1="0" y1="40" x2="200" y2="40" />
@@ -220,13 +249,36 @@
         `;
     };
 
-    const updateUI = () => {
+    // Renders the visualizer at the top. Either shows the "ideal" resistor or the selected pair.
+    const renderVisualizer = () => {
         const val = parseOhms(document.getElementById('ohmInput').value);
         const tol = document.getElementById('toleranceInput').value;
-        if (isNaN(val)) return;
-        document.getElementById('results').innerHTML = '';
+        const bandCount = parseInt(document.getElementById('displayStyle').value);
         const visualizer = document.getElementById('visualizer');
-        visualizer.innerHTML = createResistorSVG(val, tol, 3) + createResistorSVG(val, tol, 4);
+
+        if (isNaN(val)) return;
+
+        if (currentPairView) {
+            // Show the two specific resistors from the list
+            visualizer.innerHTML = createResistorSVG(currentPairView.r1, tol, bandCount) + 
+                                   createResistorSVG(currentPairView.r2, tol, bandCount);
+        } else {
+            // Show the single requested resistor
+            visualizer.innerHTML = createResistorSVG(val, tol, bandCount);
+        }
+    };
+
+    // Helper triggered when the user clicks a row in the results table
+    const selectPairForViewing = (r1, r2) => {
+        currentPairView = { r1, r2 };
+        renderVisualizer();
+        
+        // Highlight the selected row
+        document.querySelectorAll('.clickable-row').forEach(row => row.classList.remove('selected-row'));
+        event.currentTarget.classList.add('selected-row');
+
+        // Scroll back to top so user sees the change
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const findParallelPairs = () => {
@@ -251,23 +303,60 @@
         pairs.sort((a, b) => Math.abs(a.diff) - Math.abs(b.diff));
         pairs = pairs.slice(0, 10); // Top 10 matches
 
-        let html = `<h3>Closest Parallel Matches</h3><table><tr><th>R1</th><th>R2</th><th>Combined</th><th>Error</th></tr>`;
-        pairs.forEach(p => {
-            html += `<tr>
-                <td>${p.r1.toFixed(0)} Ω</td>
-                <td>${p.r2.toFixed(0)} Ω</td>
-                <td>${p.combined.toFixed(2)} Ω</td>
-                <td style="color: ${p.diff > 0 ? 'red' : 'blue'}">${p.diff.toFixed(2)}%</td>
-            </tr>`;
-        });
-        html += `</table>`;
-        resultsDiv.innerHTML = html;
+        if (pairs.length > 0) {
+            // Automatically select and render the top pair instead of the impossible resistor
+            currentPairView = { r1: pairs[0].r1, r2: pairs[0].r2 };
+            renderVisualizer();
+
+            let html = `<h3>Closest Parallel Matches (Top match previewed above)</h3>
+                        <table><tr><th>R1</th><th>R2</th><th>Combined</th><th>Error</th></tr>`;
+            pairs.forEach((p, index) => {
+                const isSelected = index === 0 ? 'selected-row' : '';
+                html += `<tr class="clickable-row ${isSelected}" onclick="selectPairForViewing(${p.r1}, ${p.r2})">
+                    <td>${p.r1.toFixed(0)} Ω</td>
+                    <td>${p.r2.toFixed(0)} Ω</td>
+                    <td>${p.combined.toFixed(2)} Ω</td>
+                    <td style="color: ${p.diff > 0 ? 'red' : 'blue'}">${p.diff.toFixed(2)}%</td>
+                </tr>`;
+            });
+            html += `</table>`;
+            resultsDiv.innerHTML = html;
+        } else {
+            resultsDiv.innerHTML = '<p>No suitable pairs found within this tolerance.</p>';
+            currentPairView = null;
+            renderVisualizer();
+        }
+    };
+
+    // Main update function: Handles the typing delay, checks standard status, and triggers calculations
+    const updateUI = () => {
+        clearTimeout(inputTimeout);
+        
+        const val = parseOhms(document.getElementById('ohmInput').value);
+        if (isNaN(val)) return;
+
+        const { isStandard } = checkStandardness(val);
+
+        if (isStandard) {
+            // If it's a standard shelf value, just show the single resistor and clear the pairs list
+            currentPairView = null;
+            renderVisualizer();
+            document.getElementById('results').innerHTML = '';
+        } else {
+            // If it's non-standard, clear the visualizer temporarily and calculate pairs
+            document.getElementById('visualizer').innerHTML = '<div style="color: #6b7280;">Calculating best matches...</div>';
+            document.getElementById('results').innerHTML = '';
+            
+            inputTimeout = setTimeout(() => {
+                findParallelPairs();
+            }, 500);
+        }
     };
 
     // Event Listeners
     document.getElementById('ohmInput').addEventListener('input', updateUI);
     document.getElementById('toleranceInput').addEventListener('change', updateUI);
-    document.getElementById('findPairBtn').addEventListener('click', findParallelPairs);
+    document.getElementById('displayStyle').addEventListener('change', renderVisualizer); // Only redraw visualizer on style change
 
     // Initial Load
     const ButtonContainer = document.getElementById('e6Buttons');
@@ -305,7 +394,7 @@
             const ohmInput = document.getElementById('ohmInput');
             const v = parseFloat(ohmInput.value)
             ohmInput.value = v.toString() + m //*= m;
-            updateUI();
+                updateUI();
         };
         ButtonContainer.appendChild(btn);
     });
@@ -320,17 +409,18 @@
     };
     ButtonContainer.appendChild(btnx10);
 
-    const btn = document.createElement('button');
-    btn.textContent = '/10';
-    btn.style.margin = '2px';
-    btn.onclick = () => {
+    const btndiv10 = document.createElement('button');
+    btndiv10.textContent = '/10';
+    btndiv10.style.margin = '2px';
+    btndiv10.onclick = () => {
         const ohmInput = document.getElementById('ohmInput');
         const v = parseOhms(ohmInput.value) / 10;
         ohmInput.value = v;
         updateUI();
     };
-    ButtonContainer.appendChild(btn);
+    ButtonContainer.appendChild(btndiv10);
 
+    // Initial render
     updateUI();
 </script>
 
