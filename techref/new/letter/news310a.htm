@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>October 2003 MassMind Newsletter</title>
+    <style>
+        /* Standard Styles for Readability and Responsiveness */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3, h4 {
+            color: #000;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+
+        /* Fixes the "Collapsing" and Image Overlap Problem */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1em 0;
+        }
+
+        /* Maintains the original "Look and Feel" for Desktop */
+        @media (min-width: 600px) {
+            .img-right {
+                float: right;
+                margin-left: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Standardizes Code Blocks */
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            margin: 1em 0;
+            border-collapse: collapse;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        blockquote {
+            margin: 1em 0;
+            padding-left: 1em;
+            border-left: 4px solid #ccc;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>October 2003 MassMind <a href="index.htm">Newsletter</a></h1>
+
+    <h2>Ranging</h2>
+    <p>This issue is all about finding the distance from one point to another. Several methods are discussed:</p>
+    <ul>
+        <li><a href="#Laser">Laser</a></li>
+        <li><a href="news310b.htm">Sonar</a></li>
+        <li><a href="news310c.htm">Mechanical</a></li>
+        <li><a href="news310d.htm">Other</a></li>
+    </ul>
+
+    <hr>
+
+    <div class="clearfix">
+        <h3 id="Laser">
+            Laser
+        </h3>
+        <p>As an intermediary measure to using full stereometric vision, 
+        I have been experimenting with structured-light vision. 
+        Structured light vision techniques greatly simplify the process 
+        of triangulating the position of a point in space.</p>
+        <img class="img-right" src="news0310j.jpg" width="50%">
+        <div  class="clearfix">
+        <p>Using structured light techniques, one can do real time navigation without lots of horsepower. 
+        This is because one is able to project a beam with known coordinates. 
+        This provides information about at least one aspect of the geometry in front of the camera, 
+        so the triangulation equations are much easier and less computationally expensive. 
+        These are commonly called "Laser Line Modules."</p>
+        <p>Structured light techniques are far superior to sonar for range 
+        and shape measurements in quality and potentially cheaper. 
+        They are able to map out the region in front of the camera quickly and accurately. 
+        The angular resolution of structured light systems is quite good. 
+        Structured light techniques appear far superior to Sonar / Ping sensors.
+        A simple structured light system might be cheaper if one considers using a webcam or cell phone.</p>
+        </div>
+        <p>The basic idea with structured light vision is to project a light beam of known geometry onto a scene and then use a video camera to observe how it is distorted by objects. Using simple geometric formulas, one can reconstruct the shape of those objects. There are several optical attachments to laser diodes which produce wide planes of laser light without any moving parts. Additionally, one does not have to use a visible laser to perform the scan. Most CCD cameras will detect infrared laser beams quite well (some cameras are more sensitive to infrared light).</p>
+        <img  class="img-right" src="news0310k.jpg" width="50%">
+        <div class="clearfix">
+        <p>Here we see a self-scanning laser diode projecting a beam onto the region in front of it; above is the camera.</p>
+        <p>The basic idea is probably best shown by these pictures from the <a href="http://techref.massmind.org/techref/com/cyberg8t/www/http/pendragn/actlite.htm">cached version</a> of the original Actlite site:</p>
+
+        <table>
+            <tr>
+                <td><img src="news0310e.jpg" width="128" height="128" alt="Step 1"></td>
+                <td><strong>&nbsp;-&nbsp;</strong></td>
+                <td><img src="news0310f.jpg" width="128" height="128" alt="Step 2"></td>
+                <td><strong>&nbsp;=&nbsp;</strong></td>
+                <td><img src="news0310g.jpg" width="128" height="128" alt="Result"></td>
+            </tr>
+        </table>
+        <p>The first image is what the camera sees with the laser off. 
+        The second image is what the camera sees with the laser on. 
+        The third image is the mathematical difference of the two. 
+        By subtracting the first two images, only the difference between them is left: 
+        the laser projection. 
+        Finally, one may want to filter the difference image so that the 
+        scanned beam appears no thicker than one pixel. 
+        This will aid in map building.</p>
+        <p>At this point, the position of the laser line is used to calculate 
+        the depth of the object. 
+        This can be as basic as simply starting from the bottom of the image and 
+        iterating upwards through pixels in each column until we see a red pixel;
+        the count is proportional to the distance.
+        With some calibration, we can set a cutoff for how close is "too close" and 
+        we have a trigger for an alarm or wheel turning on our robot.</p>
+        </div>
+
+
+        <h4>Scene Geometry and Range Calculation</h4>
+                <img  class="img-right" src="news0310p.gif" width="50%">
+
+        <p>Now that we have a bitmap image of the laser scan on the objects 
+        (and knowing the geometry of the scanner and laser), 
+        we can reconstruct the geometry of the scene:</p>
+        <ul>
+            <li>h is height of the camera above the laser light plane,</li>
+            <li>r is the distance between the camera and the object,</li>
+            <li>y is the y-coordinate of the projection of the laser light 
+        on the object as seen on the camera bitmap</li>
+            <li>f is the focal length of the camera.</li>
+        </ul>
+        <p>Using similar triangles, we see that: (y / f) = h / (r + f) </p>
+        <p>Solving for r, we get: r = (f * h / y) - f</p>
+        <p>Since we know f and h, we can determine the range, r, as a function of y.</p>
+
+        <h4>Software Implementation</h4>
+
+        <p>We now merely have to scan the difference bitmap and calculate the 
+            range of any pixels that result from the laser projection. 
+            Here is "pseudo code" for this process:</p>
+<pre>
+    For y = 1 to Bitmap.YMax
+          For x = -Bitmap.XMax to Bitmap.XMax
+               If Bitmap.Pixel(x,y) != 0 then
+                    ry = f*h/y - f
+                    rx = x * (f+ry)/f
+                    rz = -h
+                   { Now do something with the knowledge        }
+                   { that a pixel maps to a particular position }
+                   { relative to the camera. Perhaps convert    }
+                   { to absolute coordinates and build a map    }
+               end if
+          next x
+     next y
+</pre>
+        <img class="img-right" src="news0310h.jpg" width="50%" alt="Laser 3D Scanner">
+        <p class="clearfix">I've had the joy of working on a really interesting project with a real 3D CAD expert. Mostly I helped with some math and spewed out ideas, but the simplicity and the results are astounding. The project is a laser 3D scanner built for much less than any commercial unit.</p>
+        
+    </div>
+
+    <h4>Hardware</h4>
+        <UL>
+        <LI>
+            Motor - Stepper Motor. The Stepper is mounted vertically
+            and a small wheel "table" is attached to the shaft for the target to set
+            up on.
+        <LI>
+            Stepper Motor Driver
+        <LI>
+            Laser - 3mW 6-12V Laser Line Module.
+        <LI>
+            Camera - Generic USB cam
+        <LI>
+            Power Supply
+        </UL>
+
+    <h4>Software</h4>
+    <p><strong>Get_Pictures Routine:</strong></p>
+    <pre>
+Laser True
+Wait 0.3
+ezVidCap1.SaveDIB ("c:\temp\laserOn.bmp")
+Picture2.Picture = LoadPicture("c:\temp\laserOn.bmp")
+Laser False
+Wait 0.3
+ezVidCap1.SaveDIB ("c:\temp\laserOff.bmp")
+Picture1.Picture = LoadPicture("c:\temp\laserOff.bmp")
+Step_Clock
+    </pre>
+
+    <p><strong>TransformImage Routine:</strong> (Adapted from Rod Stephens' Visual Basic Graphics Programming)</p>
+    <pre>
+For Y = 0 To Picture1.ScaleHeight - 1
+  For X = 0 To Picture1.ScaleWidth - 1
+    With pixels(X, Y)
+      .rgbRed = Abs(CInt(.rgbRed) - pixels2(X, Y).rgbRed)
+      .rgbGreen = Abs(CInt(.rgbGreen) - pixels2(X, Y).rgbGreen)
+      .rgbBlue = Abs(CInt(.rgbBlue) - pixels2(X, Y).rgbBlue)
+      If (.rgbRed > filter) And (.rgbGreen > filter) And (.rgbBlue > filter) Then
+         .rgbRed = 0: .rgbGreen = 0: .rgbBlue = 0
+      Else
+         .rgbRed = 255: .rgbGreen = 255: .rgbBlue = 255
+      End If
+    End With
+  Next X
+Next Y
+    </pre>
+
+    <div class="clearfix">
+        <img class="img-right" src="news0310i.jpg" width="514" height="372" alt="Point Cloud Result">
+        <p>The result is a <strong>"point cloud"</strong> that describes your subject. Additional software can process these points into lines or faces to reduce complexity.</p>
+    </div>
+
+</body>
+</html>
+
