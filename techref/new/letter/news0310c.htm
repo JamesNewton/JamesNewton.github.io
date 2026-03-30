@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>October 2003 MassMind Newsletter</title>
+    <style>
+        /* Standard Styles for Readability and Responsiveness */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3, h4 {
+            color: #000;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+
+        /* Fixes the "Collapsing" and Image Overlap Problem */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1em 0;
+        }
+
+        /* Maintains the original "Look and Feel" for Desktop */
+        @media (min-width: 600px) {
+            .img-right {
+                float: right;
+                margin-left: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Standardizes Code Blocks */
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        table {
+            margin: 1em 0;
+            border-collapse: collapse;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        blockquote {
+            margin: 1em 0;
+            padding-left: 1em;
+            border-left: 4px solid #ccc;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>October 2003 MassMind <a href="index.htm">Newsletter</a></h1>
+
+    <h2>Ranging</h2>
+    <p>This issue is all about finding the distance from one point to another. Several methods are discussed:</p>
+    <ul>
+        <li><a href="news310a.htm">Laser</a></li>
+        <li><a href="news310b.htm" disabled>Sonar</a></li>
+        <li><a href="#Mechanical">Mechanical</a></li>
+        <li><a href="news310d.htm">Other</a></li>
+    </ul>
+
+    <hr>
+
+    <div class="clearfix">
+<H3 id="Mechanical">
+  <A NAME="Mechanical">Mechanical</A>
+</H3>
+<P>
+Mechanical ranging is old news, but it is seldom done really well. Here are
+a couple "better" ideas.
+<IMG ALIGN="Right" WIDTH="228" HEIGHT="376" SRC="news0310m.gif">
+<H4>
+  Bumpers
+</H4>
+<div class="clearfix"><p>Bumpers don't
+give enough warning because they are generally simple on/off things that
+don't stick out very far. One of the most brilliant things I've ever seen
+was the design of a "sane" car that had a huge spring "bumper" that looped
+out in front of the car and extended a little out to each side. The attachment
+points on either side were hinged and then extended so that they crossed
+under the car. At that point, they intersected a "joystick" which ran up
+to the driver through a ball joint. I've drawn up a little picture and the
+red dot is the joystick. The left and right edges of the spring have rollers
+which are designed to follow a special curb at either side of each lane.
+When they are "squeezed" the result is that the stick is pushed forward,
+increasing the speed of the car. Contact with the front of the spring pulls
+the stick back, slowing the vehicle. Any misalignment of left to right pressure
+causes the car to steer to a corrective course and thereby follow the "curbs."
+Dead simple, hopefully reliable, and... <I>proportional</I>. It was designed
+by a little girl for her science fare entry and I've never been able to forget
+it. I wish I knew where she ended up.</p>
+<p>
+For smaller applications, the connection points can be pots or other rotary
+encoders. The difference between the readings indicates front/back contact.
+The addition of the readings is proportional to the amount of left/right
+contact.</p>
+</div>
+<H4>
+  Particle gun
+</H4>
+<P>
+Huh? The idea here is to throw some small object and see if it bounces back.
+Won't that mess up the area? Not if you throw particles of the environment
+around you. "Throw" air. Look for the returning breeze. Or water, sand, etc...
+This is the same method that gives you that weird sense of solid objects
+close by when you are not able to see and the hair on your face or arms pick
+up the little currents of air that are bounding off the wall you will walk
+into just before you have time to stop. This is heightened the more skin
+exposed and can be quite accurate when leaving a pitch dark house out the
+back door without ones clothes. Don't ask.
+<P>
+It was first suggested to me by one of the few ladies on the PICList but
+the only implementation of this I have ever seen was an entry in a robot
+"firefighter" competition by an obviously brilliant engineer. He (sorry girls,
+it was a he) started off with the fact that the candle needed to be blown
+out. Rather than depend on accurate positioning, he realized that he could
+just "spit" air in all directions at the given height of the candle. So he
+mounted a whisper fan <I>vertically</I> and found an inverted cone-like baffle
+that would direct the air to all sides. After setting that up, he realized
+that the air from the top was being circulated back to the bottom faster
+when the bot was up near a wall. His bumpers became nothing more than flags
+and never contacted anything under normal operation. When he ran the 'bot
+we realized that another advantage of the <I>proportional</I> sensing of
+wall proximity allowed him to go much faster and round the corners without
+slowing down because he had some room between first sensing the wall and
+actually hitting it. The 'bot had no brains to speak of, it just turned away
+from any flag that dropped down. Sadly, the rules of the competition didn't
+allow the 'bot to just blow out the candle and keep going; the judges ruled
+that it had to actually sense the flame and this 'bot never had that ability!
+He did put out the candle faster than anyone else, just about every run.
+<P>
+See also:
+<UL>
+    <LI><A HREF="https://youtu.be/euo25NMkgWM">
+        https://youtu.be/euo25NMkgWM</A> 
+        A mechanical distance measuring device; 
+        sort of a tape measure, but making a 3D scan.
+    </LI>
+  <LI>
+    <A HREF="https://youtu.be/Vxm0aThDJHI">
+        https://youtu.be/Vxm0aThDJHI</A>
+    A complete 3d scanner built from... LEGOs! Really worth a look.
+</UL>
+</body>
+</html>
+
