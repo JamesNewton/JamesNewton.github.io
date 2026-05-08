@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ABC Subroutine Call and Return</title>
+</head>
+<body>
+
+    <h1><A href="minimalcontroller.htm">Minimal Controller</A> Subroutine Call and Return</h1>
+
+    <p>To understand how function calls work, we have to start from the last thing and go backwards in time. We know the goals in advance:</p>
+
+    <ul>
+        <li>Stop executing the current program and switch to executing the subroutine program.</li>
+        <li>Pass some values or addresses (arguments) from the main program scope to the subroutine scope (where they become parameters).</li>
+        <li>Do some stuff in the subroutine.</li>
+        <li>When that finishes, return a value to the calling code's scope.</li>
+        <li>Resume executing the next part of the main program.</li>
+    </ul>
+
+    <p>Note we want to do that from multiple different places in the main program, thereby re-using the function code. And the function might call another function and so on. So we use the stack to save what we need, so that we can do it multiple times. For example, we can push the arguments onto the stack before we switch to running the function.</p>
+
+    <p>That's the obvious stuff. Now let's start at the end and work back. When the function ends, it needs to:</p>
+
+    <ul>
+        <li>Get back to the point in the main program where we need to pick up running again after the function is done. So that's one thing we need to save. We can pop that off the stack, assuming it's been saved there for us when we called the function.</li>
+        <li>But it also needs to clean all those arguments, so we need a count of how many to remove.</li>
+        <li>Finally, we need to somehow return a result.</li>
+    </ul>
+
+    <p>So here is some example ABC code:</p>
+    <p><code>a:b(c,3)+2.</code></p>
+
+    <p>Call the function "b" with the value of "c", and 3 and then put the result in "a" and add 2 to it.</p>
+
+    <p>Let's say that b was defined as: <code>b:"a*b."</code></p>
+
+    <p>Or something like that. Note that in the "b" function, "a" now points to the first arguments on the stack and "b" to the second (the 3). These are the arguments. We don't actually change the value of "a", but when we see a reference to it, we point there instead of to its real address. We do that for as many letters as there were arguments.</p>
+
+    <p>The key is that "." at the end. Here is what it has to do:</p>
+    
+    <ol>
+        <li>Pop the return address and hold on to it so we can set the PC to it to restart execution of the main program. The ")" knows that value (it's the character after the ")" so easy for it to push it right before it sets the PC to the source address: "b").</li>
+        <li>Pop the argument count and decrement the SP by that much to clear off the arguments. ")" knows that as well.</li>
+        <li>Put the result back on the stack for the main program to pickup. Note this isn't a push, because we don't change the stack pointer. We just put it where we would if we were doing a push, then we fail to increment SP, and… we set the source to point at it. So when the main code runs "do_it" that value gets put into "a" (the real "a").</li>
+        <li>But there is one more thing… to understand that, we need to go back to the start and run it forward again.</li>
+    </ol>
+
+    <p>Let's also review the main code:</p>
+    
+    <ul>
+        <li>"a" sets the destination.</li>
+        <li>":" is the operation (copy).</li>
+        <li>"b" is the source.</li>
+        <li>"(" Hmmm… Doesn't seem like this has anything to do, but at least it moves us from source to argument list… more on that in a second.</li>
+        <li>"c" sets the… wait a minute, we already have a destination and source… not to mention an operation. So the "(" needs to save that. It packs up the source (one of 26 with a flag for pin), the operation, and the destination. It could be 3 pushes, but it could also pack into a single value pretty easily.</li>
+        <li>"," takes the destination address and looks up its value and pushes it. It also increments the argument count.</li>
+        <li>"3" builds n, and then "," finds no destination, so it takes n and pushes it, and adds another argument to the count.</li>
+        <li>")" pushes the argument count, and then the current PC + 1 as the return address, and then sets the PC to the saved original source (the "b")... and off we go.</li>
+    </ul>
+
+    <p>There is also an opportunity for a shortcut in the form of a quick call to a function without parameters with something like "a"). If the parameter count is zero, ")" can just "do it all":</p>
+    
+    <ul>
+        <li>Save the current destination, op, and count on behalf of "(", knowing that "(" wasn't used.</li>
+        <li>Push a zero argument count.</li>
+        <li>Push the current PC + 1.</li>
+        <li>Set the PC to the source or destination (if there is no source).</li>
+    </ul>
+
+    <p>It's nice to be able to call a function with only two tokens. The problem with it is that if the programmer writes e.g. "a()" then the "(" function would be done twice. There really doesn't seem to be a way to know. Maybe something clever like setting the count to -1 and then "(" sets it to 0, giving itself away.</p>
+
+</body>
+</html>
