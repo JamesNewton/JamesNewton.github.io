@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Progress Bar Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #111827; color: white; touch-action: manipulation; }
+        .canvas-container { position: relative; width: 100%; max-width: 640px; margin: 0 auto; border-radius: 0.5rem; overflow: hidden; background: #000; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+        canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+        input[type=range] { accent-color: #3b82f6; }
+    </style>
+</head>
+<body class="p-4 sm:p-6 min-h-screen flex flex-col font-sans">
+
+    <div class="max-w-2xl mx-auto w-full flex-grow flex flex-col gap-6">
+        
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-2xl font-bold tracking-tight text-white mb-2">Progress Monitor</h1>
+            <p class="text-sm text-gray-400">Point your camera at a progress bar. Align it in the "Bottom Center" zone.</p>
+        </div>
+
+        <!-- Viewport -->
+        <div class="canvas-container border border-gray-700">
+            <!-- Hidden video element to process the stream -->
+            <video id="camera-feed" autoplay muted playsinline class="hidden"></video>
+            <!-- Visible canvas to display processed feed + overlays -->
+            <canvas id="display-canvas" width="320" height="240"></canvas>
+            
+            <!-- Floating Status Badge -->
+            <div id="status-badge" class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase bg-gray-800 text-gray-400 border border-gray-600">
+                Standby
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-lg flex flex-col gap-4">
+            
+            <div class="flex items-center justify-between gap-4">
+                <button id="btn-start" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                    Start Camera
+                </button>
+                <button id="btn-alarm" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors" disabled>
+                    Arm Alarm
+                </button>
+            </div>
+
+            <div class="mt-2">
+                <label for="threshold" class="block text-sm font-medium text-gray-300 mb-1 flex justify-between">
+                    <span>Motion Threshold</span>
+                    <span id="threshold-val" class="text-blue-400 font-mono">15.0</span>
+                </label>
+                <input type="range" id="threshold" min="1" max="100" value="15" step="0.5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                <p class="text-xs text-gray-500 mt-2 leading-relaxed">
+                    Set this slightly above the "Current Diff" values shown in the zones when the camera is completely still. 
+                </p>
+            </div>
+
+        </div>
+        
+        <!-- Diagnostics Info -->
+        <div class="text-xs text-gray-500 bg-gray-900 p-4 rounded-lg border border-gray-800 font-mono flex flex-col gap-1">
+            <div>Logic State: <span id="log-state" class="text-gray-300">Waiting for stream...</span></div>
+            <div class="w-full bg-gray-800 rounded-full h-1.5 mt-1 overflow-hidden">
+                <div id="quiet-progress" class="bg-blue-500 h-1.5 rounded-full transition-all duration-100 ease-linear" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const video = document.getElementById('camera-feed');
+        const canvas = document.getElementById('display-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        const btnStart = document.getElementById('btn-start');
+        const btnAlarm = document.getElementById('btn-alarm');
+        const sliderThreshold = document.getElementById('threshold');
+        const textThreshold = document.getElementById('threshold-val');
+        const statusBadge = document.getElementById('status-badge');
+        const logState = document.getElementById('log-state');
+        const quietProgress = document.getElementById('quiet-progress');
+
+        // State variables
+        let isRunning = false;
+        let alarmArmed = false;
+        let lastAlarmTime = 0;
+        let audioCtx = null;
+        let previousFrameData = null;
+        let consecutiveQuietFrames = 0;
+        const REQUIRED_QUIET_FRAMES = 50; // 50 frames at 10 FPS = 5 seconds
+        
+        // Resolution configuration (Low resolution for performance & noise smoothing)
+        const W = 320;
+        const H = 240;
+        const FPS = 10; 
+        
+        // Zone configuration boundaries
+        const boundXLeft = W / 4;           // Left zone: 0 to 25%
+        const boundXRight = (3 * W) / 4;    // Right zone: 75% to 100%
+        const boundYCenter = H / 2;         // Center division: 50% height
+
+        // Update Threshold UI
+        let threshold = parseFloat(sliderThreshold.value);
+        sliderThreshold.addEventListener('input', (e) => {
+            threshold = parseFloat(e.target.value);
+            textThreshold.innerText = threshold.toFixed(1);
+        });
+
+        // Setup Audio Context for procedural beep
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Trigger Beep Logic
+        function triggerAlarm() {
+            if (!alarmArmed) return;
+
+            const now = Date.now();
+            const cooldownMs = 8000; // 8 seconds before it can beep again
+
+            if (now - lastAlarmTime > cooldownMs) {
+                lastAlarmTime = now;
+                
+                // Visual feedback
+                statusBadge.innerText = "ALARM SOUNDING!";
+                statusBadge.className = "absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase bg-red-600 text-white border border-red-500 animate-pulse";
+                
+                setTimeout(() => updateBadgeStandby(), 2000);
+
+                // Play Audio
+                if (audioCtx) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    // Simple repeating beep
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);     // Beep 1
+                    osc.frequency.setValueAtTime(0, audioCtx.currentTime + 0.1); // Silence
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2); // Beep 2
+                    osc.frequency.setValueAtTime(0, audioCtx.currentTime + 0.3); // Silence
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.4); // Beep 3
+
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); // Low volume so it isn't deafening
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.6);
+                }
+            }
+        }
+
+        function updateBadgeStandby() {
+            if(!alarmArmed) {
+                statusBadge.innerText = "Standby";
+                statusBadge.className = "absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase bg-gray-800 text-gray-400 border border-gray-600";
+            } else {
+                statusBadge.innerText = "Monitoring";
+                statusBadge.className = "absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase bg-green-900 text-green-400 border border-green-700";
+            }
+        }
+
+        // Camera Logic
+        btnStart.addEventListener('click', async () => {
+            initAudio(); // Required due to browser autoplay policies
+
+            if (isRunning) {
+                // Stop logic
+                const stream = video.srcObject;
+                if (stream) stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                isRunning = false;
+                btnStart.innerText = "Start Camera";
+                btnStart.classList.replace('bg-red-600', 'bg-blue-600');
+                btnStart.classList.replace('hover:bg-red-500', 'hover:bg-blue-500');
+                
+                btnAlarm.disabled = true;
+                btnAlarm.classList.replace('bg-green-600', 'bg-gray-600');
+                btnAlarm.classList.replace('hover:bg-green-500', 'hover:bg-gray-500');
+                alarmArmed = false;
+                btnAlarm.innerText = "Arm Alarm";
+                
+                previousFrameData = null;
+                consecutiveQuietFrames = 0;
+                quietProgress.style.width = '0%';
+                updateBadgeStandby();
+                logState.innerText = "Stopped.";
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: W }, height: { ideal: H }, facingMode: "environment" },
+                    audio: false 
+                });
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    isRunning = true;
+                    btnStart.innerText = "Stop Camera";
+                    btnStart.classList.replace('bg-blue-600', 'bg-red-600');
+                    btnStart.classList.replace('hover:bg-blue-500', 'hover:bg-red-500');
+                    
+                    btnAlarm.disabled = false;
+                    
+                    // Start processing loop
+                    processFrameLoop();
+                };
+            } catch (err) {
+                alert("Could not access camera: " + err.message);
+            }
+        });
+
+        btnAlarm.addEventListener('click', () => {
+            initAudio();
+            alarmArmed = !alarmArmed;
+            if (alarmArmed) {
+                btnAlarm.innerText = "Disarm Alarm";
+                btnAlarm.classList.replace('bg-gray-600', 'bg-green-600');
+                btnAlarm.classList.replace('hover:bg-gray-500', 'hover:bg-green-500');
+            } else {
+                btnAlarm.innerText = "Arm Alarm";
+                btnAlarm.classList.replace('bg-green-600', 'bg-gray-600');
+                btnAlarm.classList.replace('hover:bg-green-500', 'hover:bg-gray-500');
+            }
+            updateBadgeStandby();
+        });
+
+        // Frame Processing
+        function processFrameLoop() {
+            if (!isRunning) return;
+
+            // Draw video to main canvas
+            ctx.drawImage(video, 0, 0, W, H);
+            
+            const currentFrame = ctx.getImageData(0, 0, W, H);
+            const data = currentFrame.data;
+            
+            // Stats accumulators
+            let sumL = 0, countL = 0;
+            let sumR = 0, countR = 0;
+            let sumTC = 0, countTC = 0;
+            let sumBC = 0, countBC = 0;
+
+            if (previousFrameData) {
+                const prevData = previousFrameData.data;
+
+                // Process every pixel
+                for (let y = 0; y < H; y++) {
+                    for (let x = 0; x < W; x++) {
+                        const i = (y * W + x) * 4;
+                        
+                        // Calculate simple gray difference
+                        const diffR = Math.abs(data[i] - prevData[i]);
+                        const diffG = Math.abs(data[i+1] - prevData[i+1]);
+                        const diffB = Math.abs(data[i+2] - prevData[i+2]);
+                        const pixelDiff = (diffR + diffG + diffB) / 3;
+
+                        // Distribute into zones
+                        if (x < boundXLeft) {
+                            sumL += pixelDiff;
+                            countL++;
+                        } else if (x >= boundXRight) {
+                            sumR += pixelDiff;
+                            countR++;
+                        } else {
+                            // Center horizontally
+                            if (y < boundYCenter) {
+                                sumTC += pixelDiff;
+                                countTC++;
+                            } else {
+                                sumBC += pixelDiff;
+                                countBC++;
+                            }
+                        }
+                    }
+                }
+
+                // Calculate averages
+                const avgL = countL > 0 ? (sumL / countL) : 0;
+                const avgR = countR > 0 ? (sumR / countR) : 0;
+                const avgTC = countTC > 0 ? (sumTC / countTC) : 0;
+                const avgBC = countBC > 0 ? (sumBC / countBC) : 0;
+
+                evaluateLogicAndDraw(avgL, avgR, avgTC, avgBC, sumL, sumR, sumTC, sumBC);
+            } else {
+                // Initial draw layout before we have diffs
+                drawZones(0, 0, 0, 0);
+            }
+
+            // Save copy for next iteration
+            previousFrameData = new ImageData(
+                new Uint8ClampedArray(data),
+                currentFrame.width,
+                currentFrame.height
+            );
+
+            // Rate limit to roughly target FPS
+            setTimeout(() => {
+                requestAnimationFrame(processFrameLoop);
+            }, 1000 / FPS);
+        }
+
+        // Logic Evaluation & UI Drawing
+        function evaluateLogicAndDraw(avgL, avgR, avgTC, avgBC, sumL, sumR, sumTC, sumBC) {
+            
+            // Evaluate Thresholds
+            const overL = avgL > threshold;
+            const overR = avgR > threshold;
+            const overTC = avgTC > threshold;
+            const overBC = avgBC > threshold;
+
+            let currentLogicState = "";
+
+            /* LOGIC FROM REQUIREMENTS:
+               1. If left, right, or center top areas are changing more than set amount -> no action
+               2. If lower center area is moving more than the other areas -> no action
+               3. But when ALL areas are below the threshold AND lower center area is lower than others combined -> ALARM 
+            */
+
+            if (overL || overR || overTC) {
+                currentLogicState = "Peripherals active. Ignoring.";
+                consecutiveQuietFrames = 0;
+            } 
+            else if (overBC || sumBC > (sumL + sumR + sumTC)) {
+                // If progress bar is above threshold OR it is moving significantly more than the background noise
+                currentLogicState = "Progress bar active. Ignoring.";
+                consecutiveQuietFrames = 0;
+            } 
+            else {
+                // If we get here, ALL zones are below threshold, and sumBC is less than OR EQUAL to the others combined.
+                // This fixes the bug where perfectly still frames (0 < 0) were causing the timer to reset.
+                consecutiveQuietFrames++;
+                if (consecutiveQuietFrames >= REQUIRED_QUIET_FRAMES) {
+                    currentLogicState = "ALL QUIET - Triggering Alarm!";
+                    triggerAlarm();
+                    consecutiveQuietFrames = 0; // Reset after triggering to wait for next cycle
+                } else {
+                    currentLogicState = `Quiet... Verifying (${consecutiveQuietFrames}/${REQUIRED_QUIET_FRAMES})`;
+                }
+            }
+
+            // Update DOM Debug
+            logState.innerText = currentLogicState;
+            quietProgress.style.width = `${(consecutiveQuietFrames / REQUIRED_QUIET_FRAMES) * 100}%`;
+
+            // Draw Overlays
+            drawZones(avgL, avgR, avgTC, avgBC);
+        }
+
+        function drawZones(avgL, avgR, avgTC, avgBC) {
+            ctx.lineWidth = 1;
+            ctx.font = "12px monospace";
+            ctx.textAlign = "center";
+
+            // Helper to determine border color
+            const getColor = (val) => val > threshold ? "rgba(239, 68, 68, 0.8)" : "rgba(34, 197, 94, 0.8)"; // Red / Green
+            
+            // Left Zone
+            ctx.strokeStyle = getColor(avgL);
+            ctx.strokeRect(0, 0, boundXLeft, H);
+            ctx.fillStyle = getColor(avgL);
+            ctx.fillText("LEFT", boundXLeft / 2, H / 2 - 10);
+            ctx.fillText(avgL.toFixed(1), boundXLeft / 2, H / 2 + 10);
+
+            // Right Zone
+            ctx.strokeStyle = getColor(avgR);
+            ctx.strokeRect(boundXRight, 0, boundXLeft, H);
+            ctx.fillStyle = getColor(avgR);
+            ctx.fillText("RIGHT", boundXRight + boundXLeft / 2, H / 2 - 10);
+            ctx.fillText(avgR.toFixed(1), boundXRight + boundXLeft / 2, H / 2 + 10);
+
+            // Top Center
+            const centerW = boundXRight - boundXLeft;
+            ctx.strokeStyle = getColor(avgTC);
+            ctx.strokeRect(boundXLeft, 0, centerW, boundYCenter);
+            ctx.fillStyle = getColor(avgTC);
+            ctx.fillText("TOP C", boundXLeft + centerW / 2, boundYCenter / 2 - 10);
+            ctx.fillText(avgTC.toFixed(1), boundXLeft + centerW / 2, boundYCenter / 2 + 10);
+
+            // Bottom Center (Progress Bar Zone)
+            ctx.strokeStyle = getColor(avgBC);
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.fillRect(boundXLeft, boundYCenter, centerW, boundYCenter); // Give it a slight tint to highlight
+            ctx.strokeRect(boundXLeft, boundYCenter, centerW, boundYCenter);
+            ctx.fillStyle = getColor(avgBC);
+            ctx.font = "bold 14px monospace";
+            ctx.fillText("PROGRESS", boundXLeft + centerW / 2, boundYCenter + boundYCenter / 2 - 10);
+            ctx.fillText(avgBC.toFixed(1), boundXLeft + centerW / 2, boundYCenter + boundYCenter / 2 + 10);
+        }
+
+    </script>
+</body>
+</html>
