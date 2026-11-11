@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusPirate Web UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for the terminal */
+        #terminal::-webkit-scrollbar {
+            width: 8px;
+        }
+        #terminal::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        #terminal::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        #terminal::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold shadow-lg">BP</div>
+            <h1 class="text-xl font-bold tracking-wider" id="status-title">BusPirate <span class="text-gray-400 text-sm font-normal">Disconnected</span></h1>
+        </div>
+        <div class="flex space-x-2">
+            <button id="btn-connect" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded shadow transition-colors font-medium text-sm">
+                Connect
+            </button>
+            <button id="btn-disconnect" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded shadow transition-colors font-medium text-sm hidden">
+                Disconnect
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
+        
+        <!-- Terminal Area -->
+        <div class="flex-1 bg-black rounded-lg border border-gray-700 shadow-inner flex flex-col overflow-hidden relative">
+            <div id="terminal" class="flex-1 p-4 font-mono text-sm text-green-400 overflow-y-auto whitespace-pre-wrap break-words"></div>
+        </div>
+
+        <!-- Controls Area -->
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 shadow-md flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 shrink-0 items-center">
+            
+            <select id="cmd-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-1/3 p-2.5">
+                <option value="" disabled selected>Select Command...</option>
+                <!-- Populated via JS -->
+            </select>
+
+            <div class="flex-1 flex w-full">
+                <input type="text" id="cmd-input" placeholder="Enter command manually..." class="bg-gray-700 border border-gray-600 text-white text-sm rounded-l focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none font-mono">
+                <button id="btn-send" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-r shadow transition-colors font-medium text-sm border border-green-600">
+                    Send
+                </button>
+            </div>
+
+            <button id="btn-clear" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white px-4 py-2 rounded shadow transition-colors font-medium text-sm w-full sm:w-auto">
+                Clear Log
+            </button>
+        </div>
+    </main>
+
+    <!-- UI Overlay for Messages -->
+    <div id="msg-box" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl border border-gray-600 transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+        Message goes here
+    </div>
+
+    <!-- Modals -->
+
+    <!-- UART Configuration Modal -->
+    <div id="modal-uart" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-40">
+        <div class="bg-gray-800 rounded-lg border border-gray-700 shadow-2xl p-6 w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4 text-white">UART Mode Configuration</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Baud Rate</label>
+                    <select id="uart-baud" class="bg-gray-700 border border-gray-600 text-white text-sm rounded w-full p-2">
+                        <option value="1">1: 300</option>
+                        <option value="2">2: 1200</option>
+                        <option value="3">3: 2400</option>
+                        <option value="4">4: 4800</option>
+                        <option value="5">5: 9600</option>
+                        <option value="6">6: 19200</option>
+                        <option value="7">7: 38400</option>
+                        <option value="8">8: 57600</option>
+                        <option value="9" selected>9: 115200</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Data bits and Parity</label>
+                    <select id="uart-data" class="bg-gray-700 border border-gray-600 text-white text-sm rounded w-full p-2">
+                        <option value="1" selected>1: None 8</option>
+                        <option value="2">2: Even 8</option>
+                        <option value="3">3: Odd 8</option>
+                        <option value="4">4: None 9</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Stop Bits</label>
+                    <select id="uart-stop" class="bg-gray-700 border border-gray-600 text-white text-sm rounded w-full p-2">
+                        <option value="1" selected>1: 1 bit</option>
+                        <option value="2">2: 2 bits</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Receive Polarity</label>
+                    <select id="uart-pol" class="bg-gray-700 border border-gray-600 text-white text-sm rounded w-full p-2">
+                        <option value="1" selected>1: Idle 1</option>
+                        <option value="2">2: Idle 0</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Output Type</label>
+                    <select id="uart-out" class="bg-gray-700 border border-gray-600 text-white text-sm rounded w-full p-2">
+                        <option value="1">1: Open Collector (HiZ/GND)</option>
+                        <option value="2" selected>2: Normal (3.3/GND)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="btn-uart-cancel" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                <button id="btn-uart-ok" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multimeter Modal -->
+    <div id="modal-meter" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center z-40">
+        <div class="bg-gray-800 rounded-lg border border-gray-700 shadow-2xl p-8 w-full max-w-lg text-center flex flex-col items-center">
+            <h2 class="text-2xl font-bold mb-2 text-white">Multimeter Mode</h2>
+            <p class="text-gray-400 mb-6 text-sm">Continuously polling ADC probe...</p>
+            
+            <div class="bg-black border-4 border-gray-700 rounded-lg p-6 w-full mb-6">
+                <div id="meter-display" class="font-mono text-6xl text-green-400 tracking-tight">0.00 V</div>
+            </div>
+            
+            <div class="flex items-center space-x-4 w-full mb-6 justify-center">
+                <label class="text-sm font-medium text-gray-300">Scale:</label>
+                <select id="meter-scale" class="bg-gray-700 border border-gray-600 text-white text-sm rounded p-2">
+                    <option value="1" selected>x1</option>
+                    <option value="5">x5</option>
+                    <option value="10">x10</option>
+                    <option value="25">x25</option>
+                    <option value="50">x50</option>
+                    <option value="100">x100</option>
+                </select>
+                
+                <button id="btn-meter-cal" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-sm transition-colors">
+                    Calibrate
+                </button>
+            </div>
+
+            <div id="meter-cal-inst" class="hidden text-left bg-gray-900 border border-gray-700 p-4 rounded text-sm text-gray-300 mb-6 w-full">
+                <strong class="text-yellow-400 block mb-2">Power supplies turned ON for Calibration!</strong>
+                1. Connect +5V power and GND across potentiometer<br>
+                2. Connect ADC to potentiometer wiper<br>
+                3. Select desired scale<br>
+                4. Trim potentiometer to show (5 V)<br>
+                5. Disconnect +5V from potentiometer<br>
+                6. Connect voltage to be measured<br>
+            </div>
+
+            <div class="w-full flex justify-end">
+                <button id="btn-meter-exit" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded w-full sm:w-auto text-lg font-bold">Exit Meter</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Command Dictionary ---
+        const busPirateCommands = [
+            { desc: "Help", cmd: "?" },
+            { desc: "Reset", cmd: "#" },
+            { desc: "Show Pin State", cmd: "v" },
+            { desc: "ADC In", cmd: "d" },
+            { desc: "ADC Loop (Voltmeter)", cmd: "D" },
+            { desc: "Delay 1uS", cmd: "&" },
+            { desc: "Delay 1mS", cmd: "%" },
+            { desc: "Frequency Counter", cmd: "f" },
+            { desc: "Generate #Khz %Duty", cmd: "g" },
+            { desc: "Control AUX", cmd: "c" },
+            { desc: "Control /CS", cmd: "C" },
+            { desc: "AUX/CS low", cmd: "a" },
+            { desc: "AUX/CS HI", cmd: "A" },
+            { desc: "AUX/CS In", cmd: "@" },
+            { desc: "Power off", cmd: "w" },
+            { desc: "Power ON", cmd: "W" },
+            { desc: "Pullup Off", cmd: "p" },
+            { desc: "Pull Bus to VPullup", cmd: "P" },
+            { desc: "VPullup Pin", cmd: "e1" },
+            { desc: "VPullup 3.3v", cmd: "e2" },
+            { desc: "VPullup 5v", cmd: "e3" },
+            { desc: "HiZ Mode", cmd: "m1" },
+            { desc: "1-Wire Mode", cmd: "m2" },
+            { desc: "UART Mode", cmd: "m3" },
+            { desc: "I2C Mode (m4)", cmd: "m4" },
+            { desc: "SPI Mode (m5)", cmd: "m5" },
+            { desc: "2-Wire Mode (m6)", cmd: "m6" },
+            { desc: "3-Wire Mode (m7)", cmd: "m7" },
+            { desc: "LCD Mode", cmd: "m8" },
+            { desc: "Bitorder MSB", cmd: "l" },
+            { desc: "Bitorder LSB", cmd: "L" },
+            { desc: "HEX Display", cmd: "o1" },
+            { desc: "Decimal Display", cmd: "o2" },
+            { desc: "Binary Display", cmd: "o3" },
+            { desc: "Raw Data", cmd: "o4" },
+            { desc: "Version/Status", cmd: "i" },
+            { desc: "Clock HI", cmd: "/" },
+            { desc: "Clock low", cmd: "\\" },
+            { desc: "Clock Tick", cmd: "^" },
+            { desc: "Data HI", cmd: "-" },
+            { desc: "Data low", cmd: "_" },
+            { desc: "Read bit", cmd: "." },
+            { desc: "Clock Tick & Read bit", cmd: "!" },
+            { desc: "Read Byte", cmd: "r" },
+            { desc: "Bus Start", cmd: "[" },
+            { desc: "Bus Stop", cmd: "]" },
+            { desc: "Bus Start w/Read", cmd: "{" },
+            { desc: "Bus Stop w/Read", cmd: "}" },
+            { desc: "Repeat #times", cmd: ":" },
+            { desc: "Search 7-bit I2C addresses", cmd: "(1)" },
+            { desc: "I2C Sniffer", cmd: "(2)" }
+        ];
+
+        // --- State Variables ---
+        let port;
+        let reader;
+        let inputDone;
+        let outputDone;
+        let inputStream;
+        let outputStream;
+        
+        let isMultimeterMode = false;
+        let meterScale = 1;
+        let isCalibrating = false;
+        let receiveBuffer = "";
+
+        // --- DOM Elements ---
+        const terminalEl = document.getElementById('terminal');
+        const cmdSelect = document.getElementById('cmd-select');
+        const cmdInput = document.getElementById('cmd-input');
+        const btnConnect = document.getElementById('btn-connect');
+        const btnDisconnect = document.getElementById('btn-disconnect');
+        const btnSend = document.getElementById('btn-send');
+        const btnClear = document.getElementById('btn-clear');
+        const statusTitle = document.getElementById('status-title');
+        const msgBox = document.getElementById('msg-box');
+
+        // Modals
+        const modalUart = document.getElementById('modal-uart');
+        const modalMeter = document.getElementById('modal-meter');
+        const meterDisplay = document.getElementById('meter-display');
+
+        // Initialize UI
+        function init() {
+            // Check Serial support
+            if (!("serial" in navigator)) {
+                showMsg("Web Serial API not supported in this browser. Try Chrome or Edge.");
+            }
+
+            // Populate select box
+            busPirateCommands.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.cmd;
+                opt.textContent = `${c.desc} [${c.cmd}]`;
+                cmdSelect.appendChild(opt);
+            });
+
+            // Event Listeners
+            btnConnect.addEventListener('click', connectSerial);
+            btnDisconnect.addEventListener('click', disconnectSerial);
+            btnSend.addEventListener('click', () => sendCommand(cmdInput.value));
+            btnClear.addEventListener('click', () => terminalEl.innerHTML = '');
+            
+            cmdInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendCommand(cmdInput.value);
+            });
+
+            cmdSelect.addEventListener('change', handleSelectChange);
+
+            // UART Modal listeners
+            document.getElementById('btn-uart-cancel').addEventListener('click', () => {
+                modalUart.classList.add('hidden');
+                cmdSelect.value = "";
+            });
+            document.getElementById('btn-uart-ok').addEventListener('click', applyUartConfig);
+
+            // Meter Modal listeners
+            document.getElementById('btn-meter-exit').addEventListener('click', exitMeterMode);
+            document.getElementById('meter-scale').addEventListener('change', (e) => meterScale = parseFloat(e.target.value));
+            document.getElementById('btn-meter-cal').addEventListener('click', toggleCalibration);
+        }
+
+        // --- Toast Messages ---
+        function showMsg(msg) {
+            msgBox.textContent = msg;
+            msgBox.classList.remove('opacity-0');
+            setTimeout(() => {
+                msgBox.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        // --- Serial Communication ---
+        async function connectSerial() {
+            if (!("serial" in navigator)) {
+                showMsg("Web Serial API not supported.");
+                return;
+            }
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 }); // Standard modern BP speed
+
+                // Set up encoding/decoding streams
+                const encoder = new TextEncoderStream();
+                outputDone = encoder.readable.pipeTo(port.writable);
+                outputStream = encoder.writable;
+
+                const decoder = new TextDecoderStream();
+                inputDone = port.readable.pipeTo(decoder.writable);
+                inputStream = decoder.readable;
+
+                // Update UI
+                btnConnect.classList.add('hidden');
+                btnDisconnect.classList.remove('hidden');
+                statusTitle.innerHTML = 'BusPirate <span class="text-green-400 text-sm font-normal">Connected</span>';
+                
+                showMsg("Connected successfully");
+                
+                // Start read loop
+                readLoop();
+
+                // Send initial enter to clear prompt, then get version 'i'
+                sendCommand(""); 
+                setTimeout(() => sendCommand("i"), 200);
+
+            } catch (err) {
+                console.error("Connection error:", err);
+                showMsg("Failed to connect: " + err.message);
+            }
+        }
+
+        async function disconnectSerial() {
+            if (reader) {
+                await reader.cancel();
+            }
+            if (outputStream) {
+                await outputStream.getWriter().close();
+            }
+            await inputDone.catch(() => {});
+            await outputDone.catch(() => {});
+            
+            if (port) {
+                await port.close();
+            }
+
+            btnConnect.classList.remove('hidden');
+            btnDisconnect.classList.add('hidden');
+            statusTitle.innerHTML = 'BusPirate <span class="text-gray-400 text-sm font-normal">Disconnected</span>';
+            showMsg("Disconnected");
+        }
+
+        async function sendCommand(cmdStr) {
+            if (!port || !port.writable) {
+                showMsg("Not connected!");
+                return;
+            }
+            try {
+                const writer = outputStream.getWriter();
+                // Send command followed by carriage return as required by BusPirate
+                await writer.write(cmdStr + "\r");
+                writer.releaseLock();
+                
+                // Optional: echo command to terminal locally in a different color
+                // appendToTerminal(`\n> ${cmdStr}\n`, true);
+            } catch (err) {
+                console.error("Write error:", err);
+                showMsg("Failed to write data");
+            }
+        }
+
+        async function readLoop() {
+            reader = inputStream.getReader();
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    if (value) {
+                        handleIncomingData(value);
+                    }
+                }
+            } catch (error) {
+                console.error("Read error:", error);
+            } finally {
+                reader.releaseLock();
+            }
+        }
+
+        // --- Data Handling ---
+        function handleIncomingData(text) {
+            if (isMultimeterMode) {
+                // Buffer the text because chunks might split "VOLTAGE: 3.30V"
+                receiveBuffer += text;
+                
+                // Process lines in buffer
+                let lines = receiveBuffer.split(/\r?\n/);
+                // Keep the last partial line in the buffer
+                receiveBuffer = lines.pop();
+
+                lines.forEach(line => {
+                    // Check if line contains voltage data. Usually looks like: "VOLTAGE PROBE: 3.30V" or "GND:0.00V"
+                    if (line.includes('V') && /[0-9]+\.[0-9]+/.test(line)) {
+                        parseVoltageLine(line);
+                    }
+                    appendToTerminal(line + "\n"); 
+                });
+            } else {
+                appendToTerminal(text);
+            }
+        }
+
+        function parseVoltageLine(line) {
+            try {
+                // Extract float value from line
+                const match = line.match(/([0-9]+\.[0-9]+)\s*V/i);
+                if (match && match[1]) {
+                    let volts = parseFloat(match[1]);
+                    volts = volts * meterScale;
+                    meterDisplay.textContent = volts.toFixed(2) + " V";
+                    
+                    // The original Droidscript app sent 'd' repeatedly to create a loop
+                    // Only send next 'd' after we received the previous one to avoid flooding
+                    if (isMultimeterMode) {
+                        setTimeout(() => sendCommand("d"), 50);
+                    }
+                }
+            } catch(e) {
+                console.error("Parse error:", e);
+            }
+        }
+
+        function appendToTerminal(text, isEcho = false) {
+            // Replace tabs with spaces for terminal display
+            let safeText = text.replace(/\t/g, '        ');
+            
+            // Basic HTML escaping
+            safeText = safeText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            
+            if (isEcho) {
+                terminalEl.innerHTML += `<span class="text-blue-400">${safeText}</span>`;
+            } else {
+                terminalEl.innerHTML += safeText;
+            }
+            
+            // Auto scroll to bottom
+            terminalEl.scrollTop = terminalEl.scrollHeight;
+        }
+
+        // --- UI Logic ---
+        function handleSelectChange(e) {
+            const cmd = e.target.value;
+            
+            if (cmd === 'm3') {
+                // Open UART config
+                modalUart.classList.remove('hidden');
+            } else if (cmd === 'D') {
+                // Custom implementation for 'D' (Multimeter)
+                // Original app mapped 'D' to open the meter UI and start sending 'd'
+                openMeterMode();
+                e.target.value = ""; // reset select
+            } else {
+                cmdInput.value = cmd;
+            }
+        }
+
+        // --- UART Config Logic ---
+        function applyUartConfig() {
+            const baud = document.getElementById('uart-baud').value;
+            const data = document.getElementById('uart-data').value;
+            const stop = document.getElementById('uart-stop').value;
+            const pol = document.getElementById('uart-pol').value;
+            const out = document.getElementById('uart-out').value;
+            
+            // Format: m3 <baud> <data> <stop> <pol> <out> (spaces required by DroidScript translation)
+            const finalCmd = `m3 ${baud} ${data} ${stop} ${pol} ${out}`;
+            cmdInput.value = finalCmd;
+            modalUart.classList.add('hidden');
+            cmdSelect.value = "";
+        }
+
+        // --- Multimeter Mode Logic ---
+        function openMeterMode() {
+            isMultimeterMode = true;
+            meterScale = parseFloat(document.getElementById('meter-scale').value);
+            modalMeter.classList.remove('hidden');
+            meterDisplay.textContent = "0.00 V";
+            receiveBuffer = "";
+            
+            // Kick off the reading loop
+            sendCommand("d");
+        }
+
+        function exitMeterMode() {
+            isMultimeterMode = false;
+            modalMeter.classList.add('hidden');
+            
+            if (isCalibrating) {
+                toggleCalibration(); // Ensure power is off if we exit while calibrating
+            }
+        }
+
+        function toggleCalibration() {
+            const instEl = document.getElementById('meter-cal-inst');
+            if (!isCalibrating) {
+                // Turn ON
+                isCalibrating = true;
+                sendCommand("W"); // Power UP
+                instEl.classList.remove('hidden');
+                document.getElementById('btn-meter-cal').textContent = "Stop Calibration";
+                document.getElementById('btn-meter-cal').classList.replace('bg-purple-600', 'bg-red-600');
+                document.getElementById('btn-meter-cal').classList.replace('hover:bg-purple-500', 'hover:bg-red-500');
+            } else {
+                // Turn OFF
+                isCalibrating = false;
+                sendCommand("w"); // Power Down
+                instEl.classList.add('hidden');
+                document.getElementById('btn-meter-cal').textContent = "Calibrate";
+                document.getElementById('btn-meter-cal').classList.replace('bg-red-600', 'bg-purple-600');
+                document.getElementById('btn-meter-cal').classList.replace('hover:bg-red-500', 'hover:bg-purple-500');
+            }
+        }
+
+        // Boot
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
